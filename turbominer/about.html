@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>Turbo Miner</h1>
+
+    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as an new entry
+    <code>Process in Turbo Miner</code> to Burp Suite's context menu. In the new tab, you are able to write new or select
+    existing Python scripts that are executed on each request/response item currently stored in the Proxy History,
+    Side Map, or on each request/response item that is sent or received by Burp Suite.
+    <br /><br />
+    The objective of these Python scripts is the flexible and dynamic extraction, correlation, and structured
+    presentation of information from the Burp Suite project as well as the flexible and dynamic on-the-fly modification
+    of outgoing or incoming HTTP requests. Thus, Turbo Miner shall aid in gaining a better and faster understanding of
+    the data collected and processed by Burp Suite.
+    <br /><br />
+    This extension requires Python scripting skills as well as an understanding of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Nevertheless, Turbo
+    Miner already provides some example Python scripts to make life easier.
+
+    <h1>Available Tabs</h1>
+    The <code>Turbo Miner</code> tab contains four additional tabs. Their purpose is described in this section.
+
+
+    <h2>1. Analyzers</h2>
+
+    The Python scripts in this tab usually structure the extracted information in a GUI table.
+    From there, the results can be copied (as is or deduplicated) into the clipboard (e.g., to use them as payloads in
+    the Intruder) or exported into a spreadsheet application for further (statistical) analyses.
+    <br /><br />
+    In this tab, you will find the following three analyzer plugins to extract and to display information in a
+    structured way.
+
+    <h3>Proxy History Analyzer</h3>
+    This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Proxy
+    History. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.
+
+    <h3>Site Map Analyzer</h3>
+    This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Site
+    Map. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.
+
+    <h3>HTTP Listener Analyzer</h3>
+    This analyzer implements the interface <code>IHttpListener</code> of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Thereby, it executes the
+    current Python script after each response was received by Burp. Thus, if a request times out, then the Python script
+    is not called for this request/response pair, and, as a result, this analyzer might not deliver complete results.
+    Use this analyzer to gather intelligence from requests or responses that are currently sent or received (e.g., sent
+    or received by Burp's Intruder for example).
+
+
+    <h2>2. Modifiers</h2>
+
+    Python scripts in this tab allow on the fly modifications on requests sent or responses received by Burp Suite. The
+    following two modifiers are available.
+
+    <h3>HTTP Listener Modifier</h3>
+    This modifier implements the interface <code>IHttpListener</code> of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Thereby, it executes the
+    current Python script after each response was received by Burp. Thus, if a request times out, then the Python script
+    is not called for this request/response pair, and, as a result, this analyzer might not deliver complete results.
+    Use this analyzer to gather intelligence from requests or responses that are currently sent or received (e.g., sent
+    or received by Burp's Intruder for example).
+
+    <h3>Proxy Listener Modifier</h3>
+    This analyzer implements the interface <code>IProxyListener</code> of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Thereby, it executes the
+    Python script after each request sent and response received.
+
+
+    <h2>3. Custom Message Editor</h2>
+
+    This tab implements the interface <code>IMessageEditorTab</code> of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Use it to implement an
+    encoder and decoder tab, which is automatically added to each message editor. Your Python script must implement the
+    following three methods; for more information refer to the <code>IMessageEditorTab</code> specification.
+
+    <pre>
+    def is_enabled(content, is_request, session):
+        """
+        This method is invoked before an HTTP message is displayed in an custom editor tab, so that this custom
+        tab can indicate whether it should be enabled for that message.
+
+        For more information, refer to the Burp Suite API, IMessageEditorTab interface, method isEnabled.
+        :param content (List[bytes]): The message that is about to be displayed by this custom editor tab, or a
+        zero-length array if the existing message is to be cleared.
+        :param is_request (bool): Indicates whether the message is a request or a response.
+        :param session (dict): The dictionary allows storing information accross method calls.
+        :return (bool) If the custom tab is able to handle the specified message, and so will be displayed within the
+        editor. Otherwise, the tab will be hidden while this message is displayed.
+	    """
+        result = True
+        # todo: implement code
+        return result
+
+    def set_message(content, is_request, session):
+        """
+        This method compiles the message to be displayed in this custom editor tab.
+
+        For more information, refer to the Burp Suite API, IMessageEditorTab interface, method set_message.
+        :param content (List[bytes]): The original message based on which the new message, which is going to be
+        displayed by this custom editor tab, is created.
+        :param is_request (bool): Indicates whether the message is a request or a response.
+        :param session (dict): The dictionary allows storing information accross method calls.
+        :return (List[bytes]) Returns the modified content of variable content.
+        """
+        result = content
+        # todo: decode content
+        return result
+
+    def get_message(content, session):
+        """
+        This method converts back the currently displayed message.
+
+        For more information, refer to the Burp Suite API, IMessageEditorTab interface, method set_message.
+        :param content (List[bytes]): The original message based on which the new message, which is going to be
+        displayed by this custom editor tab, is created.
+        :param session (dict): The dictionary allows storing information accross method calls.
+        :return (List[bytes]) Returns the modified content of variable content.
+        """
+        result = result
+        # todo: encode contents
+        return result</pre>
+
+    <b>Note:</b> The last parameter <code>session</code> is of type dictionary and can be used to store information
+    across methods. The parameter <code>header</code> is of type list and can be used to specify column header names in
+    the JTable component, which is part of the <code>IMessageEditorTab</code>. The parameter <code>rows</code> is a
+    two-dimensional list, which can be used to add rows to the JTable component. For more information refer to the
+    table in the next section.
+
+
+    <h2>4. About</h2>
+
+    This tab contains the documentation about Turbo Intruder's Application Programming Interface (API).
+
+
+    <h1>Turbo Miner API</h1>
+
+    The following table provides an overview about the variables and methods that are available for Python scripts in
+    the respective tab.
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Scope</th>
+            <th>Proxy History Analyzer</th>
+            <th>Site Map Analyzer</th>
+            <th>HTTP Listener Analyzer</th>
+            <th>HTTP Listener Modifier</th>
+            <th>Proxy Listener Modifier</th>
+            <th>Custom Message Editor</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>analyze_request</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#analyze_request">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>analyze_response</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#analyze_response">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>analyze_signatures</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#analyze_signatures">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>callbacks</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            This variable is of type <code>burp.IBurpExtenderCallbacks</code>, which can be used to access
+            functionalities provided by Burp Suite. For more information refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            </td>
+        </tr>
+        <tr>
+            <td>compress_gzip</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#compress_gzip">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>decode_html</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#decode_html">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>decode_jwt</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#decode_jwt">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>decompress_gzip</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#decompress_gzip">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>encode_jwt</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#encode_jwt">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>find_domains</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#find_domains">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>find_versions</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#find_versions">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_content_type</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_content_type">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_cookie_attributes</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_cookie_attributes">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_cookies</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_cookies">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_extension_info</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_extension_info">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_header</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_header">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_headers</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_headers">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_hostname</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_hostname">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_json_attributes</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_json_attributes">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_jwt</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_jwt">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_parameter_name</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_parameter_name">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>get_parameters</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#get_parameters">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>header</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable must be a one-dimensional list. Use this list to set the GUI table's header.
+            The GUI table header is set at the beginning when variable <code>ref</code> is 1.
+            </td>
+        </tr>
+        <tr>
+            <td>helpers</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            This variable is of type <code>burp.IExtensionHelpers</code>, which can be used to access
+            functionalities provided by Burp Suite. For more information refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            </td>
+        </tr>
+        <tr>
+            <td>in_scope</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>bool</code> and specifies whether the current request/response item is
+            in the project's scope. You could also use <code>callbacks.isInScope(java.lang.URL)</code> to determine
+            whether the given URL is in scope.
+            </td>
+        </tr>
+        <tr>
+            <td>is_request</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>bool</code> and specifies whether the given
+            <code>IInterceptedProxyMessage</code> object is a request (<code>True</code>) or a response
+            (<code>False</code>).
+            </td>
+        </tr>
+        <tr>
+            <td>message_info</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>IHttpRequestResponse</code> and represents the request/response item that
+            was processed or from which information was extracted. Clicking on a table row in one of Turbo Miner's
+            Analyzers, will always display the information of this variable in tab <code>Message Information</code>.
+            For more information about the <code>IHttpRequestResponse</code> interface, refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            </td>
+        </tr>
+        <tr>
+            <td>message_infos</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>dict</code> and can be used by any Turbo Miner Analyzer to add additional
+            <code>IHttpRequestResponse</code> items to the message info tabs. Note that the dict keys must be of type
+            <code>str</code> and their values of type <code>IHttpRequestResponse</code> in order to be displayed.
+            </td>
+        </tr>
+        <tr>
+            <td>plugin_id</td>
+            <td><center>Variable</center></td><td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            This variable is of type <code>int</code> and specifies the Turbo Miner module that executes the
+            script. Flag 0 stands for the Proxy History Analyzer, 1 for the HTTP Listener Analyzer, 3 for the HTTP
+            Listener Modifier, 4 for the Proxy Listener Modifiers, 5 for the Custom Message Editor, and 6 for the Site
+            Map Analyzer.
+            </td>
+        </tr>
+        <tr>
+            <td>proxy_message_info</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>IInterceptedProxyMessage</code> and represents the
+            request/response item that can be processed or from which information can be extracted.
+            For more information refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            </td>
+        </tr>
+        <tr>
+            <td>ref</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>int</code> and is reset to 1, if the Start button is pressed and
+            is then auto incremented with each subsequent request/response item (<code>IHttpRequestResponse</code>).
+            You can for example use this variable to reset the <code>session</code> dictionary at the beginning of
+            a script execution or determine that several table rows belong to the same request/response item.
+            </td>
+        </tr>
+        <tr>
+            <td>request_info</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>IRequestInfo</code> and represents the current request of the current
+            <code>message_info</code> variable. For more information refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            </td>
+        </tr>
+        <tr>
+            <td>row_count</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            For the Proxy History and Site Map Analyzer this variable holds the total number request/response
+            items.
+            </td>
+        </tr>
+        <tr>
+            <td>rows</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is a two-dimensional list. Use this two-dimensional list to add content to the GUI table.
+            Thereby, each row in <code>rows</code> represents one row in the GUI table.
+
+            If the variable is a one-dimensional list, then each element is added as a single row to the GUI table.
+            </td>
+        </tr>
+        <tr>
+            <td>session</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            This variable is of type <code>dict</code>. You can use this variable to store information across
+            processing iterations. For example, this variable can be used to deduplicate content
+            </td>
+        </tr>
+        <tr>
+            <td>tool_flag</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>int</code> and indicates the Burp Suite tool that issued the request.
+            The Burp Suite tool flags are defined in the <code>IBurpExtenderCallbacks</code> interface. To convert
+            the value into a human readable string, use <code>callbacks.getToolName(tool_flag)</code>. For more
+            information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>.
+            </td>
+        </tr>
+        <tr>
+            <td>url</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>java.net.URL</code> and holds the URL of the current
+            <code>message_info</code> variable so that you do not have to explicitly extract it. For more information
+            regarding <code>java.net.URL</code> refer to the
+            <a href="https://docs.oracle.com/javase/7/docs/api/java/net/URL.html">Java documentation</a>.
+            </td>
+        </tr>
+    </table>
+
+    <h2>Method Details</h2>
+    This chapter provides an overview about Turbo Miner's API methods.
+
+    <dl><dt><a name="ExportedMethods-analyze_request"><strong>analyze_request</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IRequestInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
+    <br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    IRequestInfo&nbsp;object.<br>
+    :return&nbsp;(IRequestInfo):&nbsp;A&nbsp;IRequestInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;request&nbsp;was&nbsp;found.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-analyze_response"><strong>analyze_response</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IResponseInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
+    <br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    IResponseInfo&nbsp;object.<br>
+    :return&nbsp;(IResponseInfo):&nbsp;A&nbsp;IResponseInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;response&nbsp;was&nbsp;found.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-analyze_signatures"><strong>analyze_signatures</strong></a>(self, content, strict<font color="#909090">=False</font>)</dt><dd><tt>This&nbsp;method&nbsp;checks&nbsp;whether&nbsp;the&nbsp;given&nbsp;string&nbsp;matches&nbsp;one&nbsp;of&nbsp;the&nbsp;known&nbsp;file&nbsp;signatures&nbsp;specified&nbsp;in&nbsp;an&nbsp;internal<br>
+    database.<br>
+    <br>
+    Note&nbsp;that&nbsp;depending&nbsp;on&nbsp;the&nbsp;provided&nbsp;content&nbsp;to&nbsp;search,&nbsp;this&nbsp;is&nbsp;very&nbsp;resource&nbsp;intensive&nbsp;method.&nbsp;If&nbsp;you&nbsp;stop<br>
+    Turbo&nbsp;Miner&nbsp;in&nbsp;the&nbsp;middle&nbsp;of&nbsp;an&nbsp;analysis,&nbsp;then&nbsp;Burp&nbsp;Suite&nbsp;might&nbsp;become&nbsp;unresponsive&nbsp;until&nbsp;this&nbsp;method&nbsp;completes.<br>
+    <br>
+    :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;that&nbsp;is&nbsp;tested&nbsp;for&nbsp;known&nbsp;file&nbsp;signatures.<br>
+    :param&nbsp;strict&nbsp;(bool):&nbsp;Bool&nbsp;which&nbsp;specifies&nbsp;whether&nbsp;the&nbsp;file&nbsp;signatures&nbsp;can&nbsp;appear&nbsp;anywhere&nbsp;within&nbsp;the&nbsp;given<br>
+    string&nbsp;(False)&nbsp;or&nbsp;at&nbsp;the&nbsp;expected&nbsp;position&nbsp;(True).&nbsp;Set&nbsp;this&nbsp;parameter&nbsp;to&nbsp;False&nbsp;(default)&nbsp;if&nbsp;you,&nbsp;for&nbsp;example,<br>
+    want&nbsp;to&nbsp;determine,&nbsp;whether&nbsp;a&nbsp;request&nbsp;or&nbsp;response&nbsp;might&nbsp;contain&nbsp;a&nbsp;file&nbsp;somewhere.&nbsp;Note&nbsp;that&nbsp;this&nbsp;might&nbsp;return&nbsp;an<br>
+    increased&nbsp;number&nbsp;of&nbsp;false&nbsp;positives.<br>
+    :return&nbsp;(List[Dict[str,&nbsp;object]]:&nbsp;List&nbsp;of&nbsp;dictionaries.&nbsp;Each&nbsp;dictionary&nbsp;contains&nbsp;the&nbsp;following&nbsp;keys&nbsp;that&nbsp;specify<br>
+    information&nbsp;about&nbsp;the&nbsp;matched&nbsp;file&nbsp;signature:&nbsp;extensions&nbsp;(List[str]),&nbsp;category&nbsp;(str),&nbsp;description&nbsp;(str),<br>
+    offset&nbsp;(int),&nbsp;hex_signatures&nbsp;(str),&nbsp;str_signatures&nbsp;(list),&nbsp;b64_signatures&nbsp;(list)</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-compress_gzip"><strong>compress_gzip</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;compresses&nbsp;the&nbsp;given&nbsp;string&nbsp;using&nbsp;GZIP&nbsp;and&nbsp;returns&nbsp;the&nbsp;compressed&nbsp;byte&nbsp;array.&nbsp;Note&nbsp;that&nbsp;this<br>
+    method&nbsp;might&nbsp;throw&nbsp;an&nbsp;exception.<br>
+    <br>
+    :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;that&nbsp;shall&nbsp;be&nbsp;GZIP&nbsp;compressed.<br>
+    :return&nbsp;(List[bytes]):&nbsp;Byte&nbsp;array&nbsp;containing&nbsp;the&nbsp;GZIP&nbsp;compressed&nbsp;string.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-decode_html"><strong>decode_html</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;can&nbsp;be&nbsp;used&nbsp;to&nbsp;HTML&nbsp;decode&nbsp;the&nbsp;given&nbsp;string.<br>
+    :param&nbsp;content&nbsp;(str):&nbsp;Value&nbsp;that&nbsp;shall&nbsp;be&nbsp;HTML&nbsp;decoded.<br>
+    :return&nbsp;(str):&nbsp;The&nbsp;HTML&nbsp;decoded&nbsp;version&nbsp;of&nbsp;the&nbsp;provided&nbsp;value.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-decode_jwt"><strong>decode_jwt</strong></a>(self, jwt)</dt><dd><tt>This&nbsp;method&nbsp;decodes&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT)&nbsp;and&nbsp;returns&nbsp;a&nbsp;triple&nbsp;containing&nbsp;the&nbsp;JWT&nbsp;header,&nbsp;JWT&nbsp;payload,<br>
+    and&nbsp;JWT&nbsp;signature.<br>
+    <br>
+    :param&nbsp;jwt&nbsp;(str):&nbsp;String&nbsp;containing&nbsp;the&nbsp;JWT.<br>
+    :return&nbsp;(List[str]):&nbsp;List&nbsp;with&nbsp;three&nbsp;string&nbsp;elements.&nbsp;The&nbsp;first&nbsp;element&nbsp;contains&nbsp;the&nbsp;header&nbsp;(or&nbsp;None),&nbsp;the<br>
+    second&nbsp;element&nbsp;the&nbsp;payload&nbsp;(or&nbsp;None),&nbsp;and&nbsp;the&nbsp;third&nbsp;element&nbsp;the&nbsp;signature&nbsp;(or&nbsp;None)&nbsp;of&nbsp;the&nbsp;JWT.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-decompress_gzip"><strong>decompress_gzip</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;decompresses&nbsp;the&nbsp;given&nbsp;GZIP&nbsp;compressed&nbsp;byte&nbsp;array.<br>
+    <br>
+    :param&nbsp;content&nbsp;(list[bytes]):&nbsp;The&nbsp;byte&nbsp;array&nbsp;whose&nbsp;content&nbsp;shall&nbsp;be&nbsp;decompressed.<br>
+    :return&nbsp;(str):&nbsp;Decompresed&nbsp;string.<br>
+    :raise&nbsp;ZipException:&nbsp;If&nbsp;a&nbsp;GZIP&nbsp;format&nbsp;error&nbsp;has&nbsp;occurred&nbsp;or&nbsp;the&nbsp;compression&nbsp;method&nbsp;used&nbsp;is&nbsp;unsupported.<br>
+    :raise&nbsp;IOException:&nbsp;if&nbsp;an&nbsp;I/O&nbsp;error&nbsp;has&nbsp;occurred.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-encode_jwt"><strong>encode_jwt</strong></a>(self, header, payload, signature<font color="#909090">=None</font>)</dt><dd><tt>This&nbsp;method&nbsp;encodes&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT)&nbsp;header,&nbsp;JWT&nbsp;payload,&nbsp;and&nbsp;JWT&nbsp;signature&nbsp;into&nbsp;a&nbsp;complete&nbsp;JWT<br>
+    string.<br>
+    <br>
+    :param&nbsp;header&nbsp;(str):&nbsp;The&nbsp;dictionary&nbsp;containing&nbsp;the&nbsp;JWT&nbsp;header&nbsp;information.<br>
+    :param&nbsp;payload&nbsp;(str):&nbsp;The&nbsp;dictionary&nbsp;containing&nbsp;the&nbsp;JWT&nbsp;payload&nbsp;information.<br>
+    :param&nbsp;signature&nbsp;(str):&nbsp;The&nbsp;JWT's&nbsp;signature.<br>
+    :return&nbsp;(str):&nbsp;The&nbsp;final&nbsp;JWT&nbsp;string.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-find_domains"><strong>find_domains</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;text&nbsp;for&nbsp;valid&nbsp;host&nbsp;and&nbsp;domain&nbsp;names.<br>
+    <br>
+    The&nbsp;search&nbsp;is&nbsp;based&nbsp;on&nbsp;a&nbsp;regular&nbsp;expression&nbsp;and&nbsp;in&nbsp;order&nbsp;to&nbsp;decrease&nbsp;the&nbsp;likelihood&nbsp;of&nbsp;false&nbsp;positives,&nbsp;each<br>
+    identified&nbsp;identified&nbsp;domains&nbsp;top-level&nbsp;domain&nbsp;(TLD)&nbsp;is&nbsp;compared&nbsp;to&nbsp;a&nbsp;known&nbsp;list&nbsp;of&nbsp;TLDs.<br>
+    <br>
+    :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;in&nbsp;which&nbsp;the&nbsp;domain&nbsp;names&nbsp;are&nbsp;searched.<br>
+    :return&nbsp;(List[str[):&nbsp;List&nbsp;of&nbsp;identified&nbsp;domain&nbsp;names.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-find_versions"><strong>find_versions</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;text&nbsp;for&nbsp;known&nbsp;software&nbsp;versions&nbsp;based&nbsp;on&nbsp;an&nbsp;internal&nbsp;database<br>
+    (source:&nbsp;vulners.com).<br>
+    <br>
+    Note&nbsp;that&nbsp;depending&nbsp;on&nbsp;the&nbsp;provided&nbsp;content&nbsp;to&nbsp;search,&nbsp;this&nbsp;is&nbsp;very&nbsp;resource&nbsp;intensive&nbsp;method.&nbsp;If&nbsp;you&nbsp;stop<br>
+    Turbo&nbsp;Miner&nbsp;in&nbsp;the&nbsp;middle&nbsp;of&nbsp;an&nbsp;analysis,&nbsp;then&nbsp;Burp&nbsp;Suite&nbsp;might&nbsp;become&nbsp;unresponsive&nbsp;until&nbsp;this&nbsp;method&nbsp;completes.<br>
+    <br>
+    :param&nbsp;content:&nbsp;The&nbsp;string&nbsp;in&nbsp;which&nbsp;the&nbsp;software&nbsp;versions&nbsp;are&nbsp;searched.<br>
+    :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;List&nbsp;of&nbsp;dictionaries&nbsp;containing&nbsp;details&nbsp;about&nbsp;the&nbsp;identified&nbsp;software&nbsp;versions.<br>
+    each&nbsp;dictionary&nbsp;contains&nbsp;the&nbsp;following&nbsp;keys:&nbsp;software,&nbsp;type,&nbsp;version,&nbsp;cpe,&nbsp;alias,&nbsp;source</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_content_type"><strong>get_content_type</strong></a>(self, headers)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;Content-Type&nbsp;from&nbsp;the&nbsp;given&nbsp;list&nbsp;of&nbsp;headers.<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the<br>
+    Content-Type&nbsp;header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by<br>
+    Burp&nbsp;Suite's&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
+    :return&nbsp;(str):&nbsp;String&nbsp;containing&nbsp;the&nbsp;content&nbsp;of&nbsp;the&nbsp;Content-Type&nbsp;header.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_cookie_attributes"><strong>get_cookie_attributes</strong></a>(self)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;a&nbsp;static&nbsp;list&nbsp;of&nbsp;all&nbsp;possible&nbsp;cookie&nbsp;attributes.&nbsp;This&nbsp;list&nbsp;can&nbsp;be&nbsp;used&nbsp;in&nbsp;combination&nbsp;with<br>
+    API&nbsp;method&nbsp;get_cookies&nbsp;to&nbsp;convert&nbsp;all&nbsp;obtained&nbsp;cookies&nbsp;from&nbsp;a&nbsp;dictionary&nbsp;into&nbsp;a&nbsp;list/table&nbsp;format.<br>
+    :return&nbsp;(List[str]):&nbsp;Static&nbsp;string&nbsp;list&nbsp;containing&nbsp;the&nbsp;following&nbsp;elements:&nbsp;name,&nbsp;value,&nbsp;expires,&nbsp;max-age,<br>
+    domain,&nbsp;path,&nbsp;secure,&nbsp;httponly,&nbsp;samesite</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_cookies"><strong>get_cookies</strong></a>(self, item, filter<font color="#909090">=[]</font>)</dt><dd><tt>This&nbsp;method&nbsp;takes&nbsp;an&nbsp;IResponseInfo&nbsp;or&nbsp;IRequestInfo&nbsp;object&nbsp;as&nbsp;the&nbsp;first&nbsp;argument&nbsp;and&nbsp;extracts&nbsp;all&nbsp;its&nbsp;cookie<br>
+    information.&nbsp;The&nbsp;second&nbsp;optional&nbsp;argument&nbsp;acts&nbsp;as&nbsp;a&nbsp;filtering&nbsp;option&nbsp;that&nbsp;limits&nbsp;the&nbsp;cookies&nbsp;to&nbsp;be&nbsp;extracted.<br>
+    <br>
+    :param&nbsp;item&nbsp;(IRequestInfo/IResponseInfo):&nbsp;The&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;item&nbsp;whose&nbsp;session&nbsp;information<br>
+    :param&nbsp;filter&nbsp;(List[str]):&nbsp;List&nbsp;of&nbsp;cookie&nbsp;names&nbsp;whose&nbsp;attributes&nbsp;shall&nbsp;be&nbsp;extracted&nbsp;and&nbsp;returned.<br>
+    :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;The&nbsp;method&nbsp;returns&nbsp;a&nbsp;list&nbsp;of&nbsp;dictionaries.&nbsp;Each&nbsp;dictionary&nbsp;contains&nbsp;the<br>
+    following&nbsp;keys,&nbsp;which&nbsp;are&nbsp;also&nbsp;returned&nbsp;by&nbsp;API&nbsp;method&nbsp;get_cookie_attributes:&nbsp;"name",&nbsp;"value",&nbsp;"expires",<br>
+    "max-age",&nbsp;"domain",&nbsp;"path",&nbsp;"secure",&nbsp;"httponly",&nbsp;"samesite"</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_extension_info"><strong>get_extension_info</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;analyses&nbsp;the&nbsp;file&nbsp;extension&nbsp;of&nbsp;the&nbsp;given&nbsp;string&nbsp;and&nbsp;returns&nbsp;additional&nbsp;information&nbsp;like&nbsp;file<br>
+    category&nbsp;about&nbsp;the&nbsp;first&nbsp;extension&nbsp;that&nbsp;matches.<br>
+    <br>
+    :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;whose&nbsp;file&nbsp;extension&nbsp;should&nbsp;be&nbsp;analyzed.<br>
+    :return&nbsp;(dict):&nbsp;Dictionary&nbsp;containing&nbsp;information&nbsp;about&nbsp;the&nbsp;string's&nbsp;file&nbsp;extension&nbsp;or&nbsp;None&nbsp;if&nbsp;no&nbsp;extension<br>
+    was&nbsp;identified.&nbsp;The&nbsp;dictionary&nbsp;contains&nbsp;the&nbsp;following&nbsp;keys:&nbsp;extension&nbsp;(str),&nbsp;category&nbsp;(str),&nbsp;description&nbsp;(str)</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_header"><strong>get_header</strong></a>(self, headers, header_name)</dt><dd><tt>This&nbsp;method&nbsp;is&nbsp;a&nbsp;simplified&nbsp;version&nbsp;of&nbsp;API&nbsp;method&nbsp;get_headers.&nbsp;It&nbsp;analyses&nbsp;a&nbsp;given&nbsp;list&nbsp;of&nbsp;headers&nbsp;and&nbsp;returns<br>
+    the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;header&nbsp;information&nbsp;that&nbsp;matches&nbsp;a&nbsp;given&nbsp;name.<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;given<br>
+    header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's<br>
+    IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
+    :param&nbsp;header_name&nbsp;(str):&nbsp;The&nbsp;name&nbsp;(case&nbsp;insensitive)&nbsp;of&nbsp;the&nbsp;header&nbsp;whose&nbsp;value&nbsp;shall&nbsp;be&nbsp;returned.<br>
+    :return&nbsp;(tuple):&nbsp;Returns&nbsp;the&nbsp;value&nbsp;of&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;header&nbsp;as&nbsp;a&nbsp;tuple;&nbsp;the&nbsp;first&nbsp;element&nbsp;is<br>
+    the&nbsp;header&nbsp;name&nbsp;and&nbsp;the&nbsp;second&nbsp;elements&nbsp;is&nbsp;its&nbsp;content.&nbsp;If&nbsp;the&nbsp;header&nbsp;was&nbsp;not&nbsp;found,&nbsp;then&nbsp;a&nbsp;tuple&nbsp;containing<br>
+    (None,&nbsp;None)&nbsp;is&nbsp;returned.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_headers"><strong>get_headers</strong></a>(self, headers, re_headers)</dt><dd><tt>This&nbsp;method&nbsp;analyses&nbsp;a&nbsp;given&nbsp;list&nbsp;of&nbsp;headers&nbsp;and&nbsp;returns&nbsp;all&nbsp;occurrences&nbsp;of&nbsp;the&nbsp;header&nbsp;information&nbsp;that<br>
+    matches&nbsp;a&nbsp;given&nbsp;list&nbsp;of&nbsp;regular&nbsp;expressions.<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;given<br>
+    header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's<br>
+    IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
+    :param&nbsp;re_headers&nbsp;(List[re.Pattern]):&nbsp;List&nbsp;of&nbsp;regular&nbsp;expressions&nbsp;that&nbsp;specify&nbsp;the&nbsp;patterns&nbsp;for&nbsp;header&nbsp;names<br>
+    whose&nbsp;header&nbsp;values&nbsp;shall&nbsp;be&nbsp;returned.<br>
+    :return&nbsp;(Dict[str,&nbsp;List[str]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;the&nbsp;returned&nbsp;dictionary&nbsp;are&nbsp;always&nbsp;the&nbsp;strings&nbsp;of&nbsp;the&nbsp;re_headers<br>
+    list&nbsp;({item.pattern:&nbsp;[]&nbsp;for&nbsp;item&nbsp;in&nbsp;re_headers})&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;dictionary&nbsp;values&nbsp;contain&nbsp;the<br>
+    identified&nbsp;header&nbsp;values.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_hostname"><strong>get_hostname</strong></a>(self, url)</dt><dd><tt>This&nbsp;method&nbsp;removes&nbsp;the&nbsp;file&nbsp;and&nbsp;query&nbsp;part&nbsp;of&nbsp;the&nbsp;given&nbsp;URL&nbsp;so&nbsp;that&nbsp;only&nbsp;the&nbsp;protocol,&nbsp;hostname,&nbsp;and&nbsp;port&nbsp;parts<br>
+    remain.<br>
+    <br>
+    :param&nbsp;url&nbsp;(java.lang.URL):&nbsp;The&nbsp;URL&nbsp;from&nbsp;which&nbsp;the&nbsp;file&nbsp;and&nbsp;query&nbsp;part&nbsp;is&nbsp;removed.<br>
+    :return&nbsp;(java.lang.URL):&nbsp;The&nbsp;new&nbsp;java.net.URL&nbsp;instance&nbsp;containing&nbsp;the&nbsp;protocol,&nbsp;host,&nbsp;and&nbsp;port&nbsp;information</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_json_attributes"><strong>get_json_attributes</strong></a>(self, body, attributes, must_match<font color="#909090">=0</font>)</dt><dd><tt>Searches&nbsp;the&nbsp;string&nbsp;stored&nbsp;in&nbsp;the&nbsp;body&nbsp;variable&nbsp;for&nbsp;those&nbsp;attribute&nbsp;names,&nbsp;which&nbsp;are&nbsp;specified&nbsp;by&nbsp;the<br>
+    attributes&nbsp;list.<br>
+    <br>
+    This&nbsp;method&nbsp;converts&nbsp;the&nbsp;given&nbsp;string&nbsp;body&nbsp;into&nbsp;a&nbsp;JSON&nbsp;object&nbsp;(if&nbsp;not&nbsp;already&nbsp;the&nbsp;case)&nbsp;and&nbsp;then&nbsp;searches<br>
+    this&nbsp;JSON&nbsp;object&nbsp;recursively&nbsp;for&nbsp;attributes&nbsp;that&nbsp;are&nbsp;specified&nbsp;by&nbsp;the&nbsp;attributes&nbsp;list.<br>
+    :param&nbsp;body&nbsp;(str/dict):&nbsp;Contains&nbsp;the&nbsp;JSON&nbsp;object,&nbsp;which&nbsp;is&nbsp;either&nbsp;of&nbsp;type&nbsp;string&nbsp;or&nbsp;dictionary,&nbsp;that&nbsp;shall&nbsp;be<br>
+    searched.<br>
+    :param&nbsp;attributes&nbsp;(List[str]):&nbsp;List&nbsp;of&nbsp;attribute&nbsp;names&nbsp;those&nbsp;the&nbsp;values&nbsp;should&nbsp;be&nbsp;extracted&nbsp;from&nbsp;the&nbsp;given<br>
+    JSON&nbsp;object.<br>
+    :param&nbsp;must_match&nbsp;(int=0):&nbsp;Specifies&nbsp;how&nbsp;many&nbsp;attributes&nbsp;in&nbsp;the&nbsp;provided&nbsp;list&nbsp;must&nbsp;be&nbsp;found&nbsp;on&nbsp;the&nbsp;save&nbsp;level<br>
+    in&nbsp;the&nbsp;JSON&nbsp;object&nbsp;in&nbsp;order&nbsp;to&nbsp;be&nbsp;added&nbsp;to&nbsp;the&nbsp;return&nbsp;list.&nbsp;If&nbsp;the&nbsp;parameter&nbsp;is&nbsp;not&nbsp;specified&nbsp;or&nbsp;less&nbsp;than&nbsp;or<br>
+    equal&nbsp;to&nbsp;0,&nbsp;then&nbsp;any&nbsp;occurrence&nbsp;is&nbsp;added&nbsp;to&nbsp;the&nbsp;list.<br>
+    :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;each&nbsp;dictionary&nbsp;represent&nbsp;the&nbsp;values&nbsp;specified&nbsp;in&nbsp;the&nbsp;provided<br>
+    attributes&nbsp;list&nbsp;and&nbsp;the&nbsp;values&nbsp;represent&nbsp;the&nbsp;corresponding&nbsp;values&nbsp;extracted&nbsp;from&nbsp;the&nbsp;JSON&nbsp;object.<br>
+    :raise&nbsp;ValueError:&nbsp;This&nbsp;exception&nbsp;is&nbsp;thrown&nbsp;when&nbsp;the&nbsp;given&nbsp;body&nbsp;cannot&nbsp;be&nbsp;converted&nbsp;into&nbsp;a<br>
+    dictionary.s</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_jwt"><strong>get_jwt</strong></a>(self, headers, re_header<font color="#909090">=r'^Authorization:\s+Bearer\s+(?P&lt;jwt&gt;.+?)$'</font>)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;array&nbsp;of&nbsp;headers&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;authorization<br>
+    header&nbsp;and&nbsp;extracts&nbsp;as&nbsp;well&nbsp;as&nbsp;decodes&nbsp;and&nbsp;returns&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT).<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;List&nbsp;of&nbsp;strings&nbsp;that&nbsp;contain&nbsp;the&nbsp;headers&nbsp;to&nbsp;be&nbsp;searched.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of<br>
+    headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo<br>
+    interfaces.<br>
+    :param&nbsp;re_header:&nbsp;The&nbsp;regular&nbsp;expression&nbsp;string&nbsp;(case&nbsp;insensitive)&nbsp;that&nbsp;specifies&nbsp;how&nbsp;the&nbsp;JWT&nbsp;can&nbsp;be&nbsp;extracted.<br>
+    Note&nbsp;that&nbsp;the&nbsp;regular&nbsp;expression&nbsp;must&nbsp;contain&nbsp;the&nbsp;named&nbsp;group&nbsp;jwt,&nbsp;which&nbsp;specifies&nbsp;the&nbsp;position&nbsp;of&nbsp;the&nbsp;jwt&nbsp;to<br>
+    be&nbsp;extracted.<br>
+    :return&nbsp;(List[str]):&nbsp;List&nbsp;with&nbsp;three&nbsp;string&nbsp;elements.&nbsp;The&nbsp;first&nbsp;element&nbsp;contains&nbsp;the&nbsp;header&nbsp;(or&nbsp;None),&nbsp;the<br>
+    second&nbsp;element&nbsp;the&nbsp;payload&nbsp;(or&nbsp;None),&nbsp;and&nbsp;the&nbsp;third&nbsp;element&nbsp;the&nbsp;signature&nbsp;(or&nbsp;None)&nbsp;of&nbsp;the&nbsp;JWT.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_parameter_name"><strong>get_parameter_name</strong></a>(self, type)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;the&nbsp;descriptive&nbsp;name&nbsp;of&nbsp;the&nbsp;given&nbsp;parameter&nbsp;type&nbsp;value.&nbsp;This&nbsp;method&nbsp;is&nbsp;usually&nbsp;used&nbsp;to<br>
+    convert&nbsp;the&nbsp;value&nbsp;returned&nbsp;by&nbsp;getType&nbsp;method&nbsp;of&nbsp;the&nbsp;IParameter&nbsp;class&nbsp;into&nbsp;a&nbsp;string&nbsp;(e.g.,&nbsp;value&nbsp;0&nbsp;is&nbsp;GET,&nbsp;value<br>
+    1&nbsp;is&nbsp;POST,&nbsp;etc.).<br>
+    <br>
+    :param&nbsp;type&nbsp;(int):&nbsp;The&nbsp;integer&nbsp;value&nbsp;that&nbsp;shall&nbsp;be&nbsp;returned&nbsp;into&nbsp;the&nbsp;string.<br>
+    :return&nbsp;(str):&nbsp;The&nbsp;descriptive&nbsp;name&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;type&nbsp;parameter&nbsp;value&nbsp;or&nbsp;None.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-get_parameters"><strong>get_parameters</strong></a>(self, request_info, re_names)</dt><dd><tt>This&nbsp;method&nbsp;analyses&nbsp;the&nbsp;parameters&nbsp;of&nbsp;the&nbsp;given&nbsp;IRequestInfo&nbsp;object&nbsp;and&nbsp;returns&nbsp;all&nbsp;occurrences&nbsp;of&nbsp;parameters<br>
+    whose&nbsp;names&nbsp;match&nbsp;one&nbsp;of&nbsp;the&nbsp;given&nbsp;regular&nbsp;expressions.<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;given<br>
+    header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's<br>
+    IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
+    :param&nbsp;re_headers&nbsp;(List[re.Pattern]):&nbsp;List&nbsp;of&nbsp;regular&nbsp;expressions&nbsp;that&nbsp;specify&nbsp;the&nbsp;patterns&nbsp;for&nbsp;header&nbsp;names<br>
+    whose&nbsp;header&nbsp;values&nbsp;shall&nbsp;be&nbsp;returned.<br>
+    :return&nbsp;(Dict[str,&nbsp;List[IParameter]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;the&nbsp;returned&nbsp;dictionary&nbsp;are&nbsp;always&nbsp;the&nbsp;strings&nbsp;of&nbsp;the<br>
+    re_names&nbsp;list&nbsp;({item.pattern:&nbsp;[]&nbsp;for&nbsp;item&nbsp;in&nbsp;re_names})&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;dictionary&nbsp;values&nbsp;contain&nbsp;the<br>
+    IParameter&nbsp;objects&nbsp;whose&nbsp;names&nbsp;matched&nbsp;the&nbsp;corresponding&nbsp;regular&nbsp;expression.</tt></dd></dl>
+</body>
+</html>

@@ -1,0 +1,437 @@
+{
+  "source": "https://en.wikipedia.org/wiki/List_of_file_signatures",
+  "signatures": [
+    {
+      "extensions": [
+        "ico"
+      ],
+      "category": "Image",
+      "description": "Computer icon encoded in ICO file format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x00\x00\x01\x00"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "z",
+        "tar.z"
+      ],
+      "category": "Archive",
+      "description": "compressed file (often tar zip) using Lempel-Ziv-Welch algorithm",
+      "offset": 0,
+      "hex_signatures": [
+        "\x1f\x9d"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "z",
+        "tar.z"
+      ],
+      "category": "Archive",
+      "description": "compressed file (often tar zip) using LZH algorithm",
+      "offset": 0,
+      "hex_signatures": [
+        "\x1f\xa0"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "bz2"
+      ],
+      "category": "Archive",
+      "description": "Compressed file using Bzip2 algorithm",
+      "offset": 0,
+      "hex_signatures": [
+        "\x42\x5a\x68"
+      ],
+      "str_signatures": [
+        "BZh"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "gif"
+      ],
+      "category": "Image",
+      "description": "Image file encoded in the Graphics Interchange Format (GIF)",
+      "offset": 0,
+      "hex_signatures": [
+        "\x47\x49\x46\x38\x37\x61",
+        "\x47\x49\x46\x38\x39\x61"
+      ],
+      "str_signatures": [
+        "GIF87a",
+        "GIF89a"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "tif",
+        "tiff"
+      ],
+      "category": "Image",
+      "description": "Tagged Image File Format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x49\x49\x2A\x00",
+        "\x4D4D\x00\x2A"
+      ],
+      "str_signatures": [
+        "II\*.",
+        "MM.\*"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "jpg",
+        "jpeg"
+      ],
+      "category": "Image",
+      "description": "	JPEG raw or in the JFIF or Exif file format",
+      "offset": 0,
+      "hex_signatures": [
+        "\xFF\xD8\xFF\xDB",
+        "\xFF\xD8\xFF\xE0..4A\x46\x49\x46\x00\x01",
+        "\xFF\xD8\xFF\xE1..45\x78\x69\x66\x00\x00"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "exe"
+      ],
+      "category": "Executable",
+      "description": "DOS MZ executable file format and its descendants (including NE and PE)",
+      "offset": 0,
+      "hex_signatures": [
+        "\x4D\x5A"
+      ],
+      "str_signatures": [
+        "MZ"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "lz"
+      ],
+      "category": "Archive",
+      "description": "lzip compressed file",
+      "offset": 0,
+      "hex_signatures": [
+        "\x4C\x5A\x49\x50"
+      ],
+      "str_signatures": [
+        "LZIP"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "zip",
+        "jar",
+        "odt",
+        "ods",
+        "odp",
+        "docx",
+        "xlsx",
+        "pptx",
+        "vsdx",
+        "apk",
+        "aar"
+      ],
+      "category": "Archive",
+      "description": "zip file format and formats based on it, such as JAR, ODF, OOXML",
+      "offset": 0,
+      "hex_signatures": [
+        "\x50\x4B\x03\x04",
+        "\x50\x4B\x05\x06",
+        "\x50\x4B\x07\x08"
+      ],
+      "str_signatures": [
+        "PK"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "rar"
+      ],
+      "category": "Archive",
+      "description": "RAR archive",
+      "offset": 0,
+      "hex_signatures": [
+        "\x52\x61\x72\x21\x1A\x07\x00",
+        "\x52\x61\x72\x21\x1A\x07\x01\x00"
+      ],
+      "str_signatures": [
+        "Rar!"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "elf"
+      ],
+      "category": "Executable",
+      "description": "Executable and Linkable Format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x7F\x45\x4C\x46"
+      ],
+      "str_signatures": [
+        ".ELF"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "png"
+      ],
+      "category": "Image",
+      "description": "Image encoded in the Portable Network Graphics format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"
+      ],
+      "str_signatures": [
+        ".PNG...."
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "class"
+      ],
+      "category": "Executable",
+      "description": "Java class file, Mach-O Fat Binary",
+      "offset": 0,
+      "hex_signatures": [
+        "\xCA\xFE\xBA\xBE"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "ps"
+      ],
+      "category": "Document",
+      "description": "PostScript document",
+      "offset": 0,
+      "hex_signatures": [
+        "\x25\x21\x50\x53"
+      ],
+      "str_signatures": [
+        "%!PS"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "pdf"
+      ],
+      "category": "Document",
+      "description": "PDF document",
+      "offset": 0,
+      "hex_signatures": [
+        "\x25\x50\x44\x46"
+      ],
+      "str_signatures": [
+        "%PDF"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "bmp"
+      ],
+      "category": "Image",
+      "description": "BMP file, a bitmap format used mostly in the Windows world",
+      "offset": 0,
+      "hex_signatures": [
+        "\x42\x4D"
+      ],
+      "str_signatures": [
+        "BM"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "doc",
+        "xls",
+        "ppt",
+        "msg"
+      ],
+      "category": "Document",
+      "description": "Compound File Binary Format, a container format used for document by older versions of Microsoft Office. It is however an open format used by other programs as well.",
+      "offset": 0,
+      "hex_signatures": [
+        "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "xar"
+      ],
+      "category": "Archive",
+      "description": "eXtensible ARchive format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x78\x61\x72\x21"
+      ],
+      "str_signatures": [
+        "xrar!"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "tar"
+      ],
+      "category": "Archive",
+      "description": "",
+      "offset": 257,
+      "hex_signatures": [
+        "\x75\x73\x74\x61\x72\x00\x30\x30",
+        "\x75\x73\x74\x61\x72\x20\x20\x00"
+      ],
+      "str_signatures": [
+        "ustar.00",
+        "ustar  ."
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "7z"
+      ],
+      "category": "Archive",
+      "description": "7-Zip File Format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x37\x7A\xBC\xAF\x27\x1C"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "gz",
+        "tar.gz"
+      ],
+      "category": "Archive",
+      "description": "GZIP",
+      "offset": 0,
+      "hex_signatures": [
+        "\x1F\x8B"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "xz",
+        "tar.xz"
+      ],
+      "category": "Archive",
+      "description": "XZ compression utility using LZMA/LZMA2 compression",
+      "offset": 0,
+      "hex_signatures": [
+        "\xFD\x37\x7A\x58\x5A\x00\x00"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "der"
+      ],
+      "category": "Certificate",
+      "description": "DER encoded X.509 certificate",
+      "offset": 0,
+      "hex_signatures": [
+        "\x30\x82"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "xml"
+      ],
+      "category": "Document",
+      "description": "eXtensible Markup Language when using the ASCII character encoding",
+      "offset": 0,
+      "hex_signatures": [
+        "\x3c\x3f\x78\x6d\x6c\x20"
+      ],
+      "str_signatures": [
+        "<?xml "
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "swf"
+      ],
+      "category": "Internet File",
+      "description": "flash .swf",
+      "offset": 0,
+      "hex_signatures": [
+        "\x43\x57\x53",
+        "\x46\x57\x53"
+      ],
+      "str_signatures": [
+        "CWS",
+        "FWS"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "rtf"
+      ],
+      "category": "Document",
+      "description": "Rich Text Format",
+      "offset": 0,
+      "hex_signatures": [
+        "\x7B\x5C\x72\x74\x66\x31"
+      ],
+      "str_signatures": [
+        "\{\rtf1"
+      ],
+      "b64_signatures": []
+    },
+    {
+      "extensions": [
+        "zlib"
+      ],
+      "category": "Archive",
+      "description": "zlib compression",
+      "offset": 0,
+      "hex_signatures": [
+        "78 01",
+        "78 9C",
+        "78 DA"
+      ],
+      "str_signatures": [],
+      "b64_signatures": []
+    }
+  ]
+}
