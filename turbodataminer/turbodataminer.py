@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Burp Suite Extension that provides an Python IDE for various intelligence objectives
-
-This Burp Suite Extension provides an Python IDE to accomplish real time modifications of HTTTP requests and
-responses; to extract information out of HTTP requests and responses to present them in a
-structured way; and encode/decode proprietary HTTP requests and responses.
+"""
+The objective of this Burp Suite extension is the flexible and dynamic extraction, correlation, and structured
+presentation of information from the Burp Suite project as well as the flexible and dynamic on-the-fly modification
+of outgoing or incoming HTTP requests using Python scripts. Thus, Turbo Data Miner shall aid in gaining a better and
+faster understanding of the data collected by Burp Suite.
 """
 
 __author__ = "Lukas Reiter"
@@ -23,7 +23,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-__version__ = 0.1
+__version__ = 1.0
 
 import traceback
 import os
@@ -359,36 +359,77 @@ class IntelTable(JTable, IMessageEditorController):
         self._data_model = data_model
         self.setAutoCreateRowSorter(True)
         self._currently_selected_message_info = None
-
         # table pop menu
         popup_menu = JPopupMenu()
-        popup_menu.add(JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed))
-        popup_menu.add(JMenuItem("Refresh Table", actionPerformed=self.refresh_table_menu_pressed))
-        popup_menu.add(JMenuItem("Export CSV", actionPerformed=self.export_csv_menu_pressed))
+        # Clear Table
+        item = JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed)
+        item.setToolTipText("Remove all rows from the table.")
+        popup_menu.add(item)
+        # Refresh Table
+        item = JMenuItem("Refresh Table", actionPerformed=self.refresh_table_menu_pressed)
+        item.setToolTipText("Synchronize the table with it's underlying data model.")
+        popup_menu.add(item)
         popup_menu.addSeparator()
-        popup_menu.add(JMenuItem("Copy Selected Row(s)", actionPerformed=self.copy_selected_values_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Header Row", actionPerformed=self.copy_header_row_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Cell Value", actionPerformed=self.copy_single_value_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Column Values", actionPerformed=self.copy_column_values_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Selected Column Values",
-                                 actionPerformed=self.copy_selected_column_values_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Column Values (Deduplicated)",
-                                 actionPerformed=self.copy_column_values_dedup_menu_pressed))
-        popup_menu.add(JMenuItem("Copy Selected Column Values (Deduplicated)",
-                                 actionPerformed=self.copy_selected_column_values_dedup_menu_pressed))
+        # Export CSV
+        item = JMenuItem("Export CSV", actionPerformed=self.export_csv_menu_pressed)
+        item.setToolTipText("Export the content of the table to a CSV file.")
+        popup_menu.add(item)
         popup_menu.addSeparator()
-        popup_menu.add(JMenuItem("Delete Selected Row(s)",
-                                 actionPerformed=self.delete_rows_menu_pressed))
+        # Copy Selected Row(s)
+        item = JMenuItem("Copy Selected Row(s)", actionPerformed=self.copy_selected_values_menu_pressed)
+        item.setToolTipText("Copy the selected rows into the clipboard. To obtain the content of the header row as "
+                            "well, you can use menu item 'Copy Header Row'.")
+        popup_menu.add(item)
+        # Copy Header Row
+        item = JMenuItem("Copy Header Row", actionPerformed=self.copy_header_row_menu_pressed)
+        item.setToolTipText("You can use this menu item to copy and paste the table's header row. You can use this "
+                            "function in combination with menu item 'Copy Selected Row(s)'.")
+        popup_menu.add(item)
+        # Copy Cell Value
+        item = JMenuItem("Copy Cell Value", actionPerformed=self.copy_single_value_menu_pressed)
+        item.setToolTipText("Copy the value of the cell on which you launched this menu item.")
+        popup_menu.add(item)
+        # Copy All Column Values
+        item = JMenuItem("Copy All Column Values", actionPerformed=self.copy_column_values_menu_pressed)
+        item.setToolTipText("Copy all values of the column on which you launched this menu item.")
+        popup_menu.add(item)
+        # Copy Selected Column Values
+        item = JMenuItem("Copy Selected Column Values", actionPerformed=self.copy_selected_column_values_menu_pressed)
+        item.setToolTipText("Copy the column values of all rows that are currently selected.")
+        popup_menu.add(item)
+        # Copy All Column Values (Deduplicated)
+        item = JMenuItem("Copy All Column Values (Deduplicated)",
+                         actionPerformed=self.copy_column_values_dedup_menu_pressed)
+        item.setToolTipText("Like menu item 'Copy All Column Values' but only copies unique values into the clipboard. "
+                            "Note that this function summarizes the frequency of occurrence for each copied item in "
+                            "the Turbo Data Miner's standard output.")
+        popup_menu.add(item)
+        # Copy Selected Column Values (Deduplicated)
+        item = JMenuItem("Copy Selected Column Values (Deduplicated)",
+                         actionPerformed=self.copy_selected_column_values_dedup_menu_pressed)
+        item.setToolTipText("Like menu item 'Copy Selected Column Values' but only copies unique values into the "
+                            "clipboard. Note that this function summarizes the frequency of occurrence for each copied "
+                            "item in the Turbo Data Miner's standard output.")
+        popup_menu.add(item)
         popup_menu.addSeparator()
+        # Delete Selected Row(s)
+        item = JMenuItem("Delete Selected Row(s)", actionPerformed=self.delete_rows_menu_pressed)
+        item.setToolTipText("Removes the selected rows from the table.")
+        popup_menu.add(item)
+        popup_menu.addSeparator()
+        # Add Selected Host(s) To Scope
         item = JMenuItem("Add Selected Host(s) To Scope", actionPerformed=self.include_hosts_in_scope)
         item.setToolTipText("Include the host names of the selected requests in scope")
         popup_menu.add(item)
+        # Remove Selected Host(s) From Scope
         item = JMenuItem("Remove Selected Host(s) From Scope", actionPerformed=self.exclude_hosts_from_scope)
         item.setToolTipText("Exclude the host names of the selected requests from scope")
         popup_menu.add(item)
         popup_menu.addSeparator()
-        popup_menu.add(JMenuItem("Send Selected Rows to Repeater",
-                                 actionPerformed=self.send_to_repeater))
+        # Send Selected Row(s) to Repeater
+        item = JMenuItem("Send Selected Row(s) to Repeater", actionPerformed=self.send_to_repeater)
+        item.setToolTipText("Send the request of the selected row to Burp Suite's Repeater for further analysis.")
+        popup_menu.add(item)
         self.setComponentPopupMenu(popup_menu)
 
     def refresh_table_menu_pressed(self, event):
@@ -418,9 +459,10 @@ class IntelTable(JTable, IMessageEditorController):
                         row = []
                         try:
                             for column_index in range(0, self._data_model.getColumnCount()):
-                                value = self._data_model.getValueAt(row_index, column_index).encode("ISO-8859-1")
+                                value = str(self._data_model.getValueAt(row_index, column_index)).encode("ISO-8859-1")
                                 row.append(value)
-                        except:
+                        except Exception:
+                            self._intel_tab.callbacks.printError(traceback.format_exc())
                             row.append("error occured while exporting row")
                         csv_writer.writerow(row)
 
@@ -978,7 +1020,7 @@ class ExportedMethods:
         database.
 
         Note that depending on the provided content to search, this is very resource intensive method. If you stop
-        Turbo Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
+        Turbo Data Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
 
         :param content (str): The string that is tested for known file signatures.
         :param strict (bool): Bool which specifies whether the file signatures can appear anywhere within the given
@@ -1106,7 +1148,7 @@ class ExportedMethods:
         (source: vulners.com).
 
         Note that depending on the provided content to search, this is very resource intensive method. If you stop
-        Turbo Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
+        Turbo Data Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
 
         :param content: The string in which the software versions are searched.
         :return (List[Dict[str, str]]): List of dictionaries containing details about the identified software versions.
@@ -2517,7 +2559,7 @@ class CustomTextEditorImplementation(CustomMessageEditorBase):
     """
     This class implements Burp Suite's interface IMessageEditorTab to add a custom text editor tab in the Burp Suite
     GUI. Internally, this class uses class CustomMessageEditorTab to allow the management of custom editors in the
-    Turbo Miner extension.
+    Turbo Data Miner extension.
     """
     def __init__(self, extender, controller, editable):
         CustomMessageEditorBase.__init__(self, extender, controller, editable)
@@ -2590,7 +2632,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._about.setText(about_file_content)
         self._about.addHyperlinkListener(self.hyperlink_listener)
         # set our extension name
-        callbacks.setExtensionName("Turbo Miner")
+        callbacks.setExtensionName("Turbo Data Miner")
         self._pha = ProxyHistoryAnalyzerBase(self)
         self._sma = SiteMapAnalyzerBase(self)
         self._hla = HttpListenerAnalyzer(self)

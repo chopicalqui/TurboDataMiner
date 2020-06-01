@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-    <h1>Turbo Miner</h1>
+    <h1>Turbo Data Miner</h1>
 
     This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as an new entry
     <code>Process in Turbo Miner</code> to Burp Suite's context menu. In the new tab, you are able to write new or select
@@ -14,7 +14,7 @@
     <br /><br />
     The objective of these Python scripts is the flexible and dynamic extraction, correlation, and structured
     presentation of information from the Burp Suite project as well as the flexible and dynamic on-the-fly modification
-    of outgoing or incoming HTTP requests. Thus, Turbo Miner shall aid in gaining a better and faster understanding of
+    of outgoing or incoming HTTP requests. Thus, Turbo Data Miner shall aid in gaining a better and faster understanding of
     the data collected and processed by Burp Suite.
     <br /><br />
     This extension requires Python scripting skills as well as an understanding of the
@@ -136,7 +136,7 @@
     This tab contains the documentation about Turbo Intruder's Application Programming Interface (API).
 
 
-    <h1>Turbo Miner API</h1>
+    <h1>Turbo Data Miner API</h1>
 
     The following table provides an overview about the variables and methods that are available for Python scripts in
     the respective tab.
@@ -539,7 +539,7 @@
             <td><center></center></td>
             <td>
             This variable is of type <code>IHttpRequestResponse</code> and represents the request/response item that
-            was processed or from which information was extracted. Clicking on a table row in one of Turbo Miner's
+            was processed or from which information was extracted. Clicking on a table row in one of Turbo Data Miner's
             Analyzers, will always display the information of this variable in tab <code>Message Information</code>.
             For more information about the <code>IHttpRequestResponse</code> interface, refer to
             <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
@@ -556,7 +556,7 @@
             <td><center></center></td>
             <td><center></center></td>
             <td>
-            This variable is of type <code>dict</code> and can be used by any Turbo Miner Analyzer to add additional
+            This variable is of type <code>dict</code> and can be used by any Turbo Data Miner Analyzer to add additional
             <code>IHttpRequestResponse</code> items to the message info tabs. Note that the dict keys must be of type
             <code>str</code> and their values of type <code>IHttpRequestResponse</code> in order to be displayed.
             </td>
@@ -571,7 +571,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td>
-            This variable is of type <code>int</code> and specifies the Turbo Miner module that executes the
+            This variable is of type <code>int</code> and specifies the Turbo Data Miner module that executes the
             script. Flag 0 stands for the Proxy History Analyzer, 1 for the HTTP Listener Analyzer, 3 for the HTTP
             Listener Modifier, 4 for the Proxy Listener Modifiers, 5 for the Custom Message Editor, and 6 for the Site
             Map Analyzer.
@@ -711,7 +711,7 @@
     </table>
 
     <h2>Method Details</h2>
-    This chapter provides an overview about Turbo Miner's API methods.
+    This chapter provides an overview about Turbo Data Miner's API methods.
 
     <dl><dt><a name="ExportedMethods-analyze_request"><strong>analyze_request</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IRequestInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
     <br>

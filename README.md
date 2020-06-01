@@ -1,4 +1,4 @@
-# Turbo Miner
+# Turbo Data Miner
 
 This extension adds a new tab `Turbo Miner` to Burp Suite's GUI as well as an new entry `Process in Turbo Miner` to 
 Burp Suite's context menu. In the new tab, you are able to write new or select existing Python scripts that are 
@@ -7,25 +7,25 @@ item that is sent or received by Burp Suite.
   
 The objective of these Python scripts is the flexible and dynamic extraction, correlation, and structured
 presentation of information from the Burp Suite state as well as the flexible and dynamic on-the-fly modification
-of outgoing or incoming HTTP requests. Thus, Turbo Miner shall aid in gaining a better and faster understanding of
+of outgoing or incoming HTTP requests. Thus, Turbo Data Miner shall aid in gaining a better and faster understanding of
 the data collected and processed by Burp Suite.
 
-The following screenshot provides an example how Turbo Miner can be used to obtain a structured presentation of all 
+The following screenshot provides an example how Turbo Data Miner can be used to obtain a structured presentation of all 
 cookies (and their attributes) that are stored in the current Burp Suite project. At the bottom (see 1), you select 
 the corresponding Python script in the combobox. By clicking button `Load Script`, the selected 
 code is then loaded into the IDE text area and can be customized, if needed. Alternatively, you can create your own 
-script by clicking button `New Script`. The analysis is started by clicking button `Start`. Afterwards, Turbo Miner 
+script by clicking button `New Script`. The analysis is started by clicking button `Start`. Afterwards, Turbo Data Miner 
 executes the compiled Python script on each Request/Response item. Thereby, the script extracts cookie information 
 from each response (see source code in 2) and adds it to the table (see 3). Finally, in the table, you can sort per 
 column to gain a better understanding of each attribute or perform additional operations via the table's context menu 
 (see 4).
 
-![Turbo Miner's Proxy History Analyzer](example.png)
+![Turbo Data Miner's Proxy History Analyzer](example.png)
 
 As you can see, with Python skills, an understanding of the 
 [Burp Suite Extender API](https://portswigger.net/Burp/extender/api/index.html) as well as an understanding of Turbo 
-Miner's API (see Turbo Miner tab `About` or directly the 
-[HTML page](https://github.com/chopicalqui/TurboMiner/blob/master/turbominer/about.html) used by the `About` tab), 
+Miner's API (see Turbo Data Miner tab `About` or directly the 
+[HTML page](https://github.com/chopicalqui/TurboDataMiner/blob/master/turbominer/about.html) used by the `About` tab), 
 you can extract and structure any information available in the current Burp Suite project.
 
 
@@ -146,9 +146,9 @@ This tab contains the documentation about Turbo Intruder's Application Programmi
 
 # Author
 
-**Lukas Reiter** (@chopicalquy) - [Turbo Miner](https://github.com/chopicalqui/TurboMiner)
+**Lukas Reiter** (@chopicalquy) - [Turbo Data Miner](https://github.com/chopicalqui/TurboDataMiner)
 
 # License
 
 This project is licensed under the GPLv3 License - see the 
-[license](https://github.com/chopicalqui/TurboMiner/blob/master/LICENSE) file for details.
+[license](https://github.com/chopicalqui/TurboDataMiner/blob/master/LICENSE) file for details.
