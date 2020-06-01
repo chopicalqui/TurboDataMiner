@@ -29,7 +29,6 @@ import traceback
 import os
 import csv
 import uuid
-import Queue
 import threading
 import time
 import re
@@ -72,19 +71,18 @@ from javax.swing import JFileChooser
 from javax.swing import TransferHandler
 from javax.swing import JLabel
 from javax.swing import JOptionPane
-from javax.swing import JSpinner
 from javax.swing import JTextField
 from javax.swing import JList
 from javax.swing.filechooser import FileNameExtensionFilter
 from javax.swing.event import DocumentListener
-from javax.swing.event import ListDataListener
-from javax.swing import SpinnerNumberModel
 from javax.swing import DefaultComboBoxModel
 from javax.swing import SwingUtilities
+from javax.swing.event import HyperlinkEvent;
 from java.awt import BorderLayout
 from java.awt import GridLayout
 from java.awt import Font
 from java.awt import Toolkit
+from java.awt import Desktop
 from java.awt.datatransfer import StringSelection
 from java.lang import Integer
 from java.lang import String
@@ -1617,7 +1615,7 @@ class IdePane(JPanel):
             os.makedirs(self._scripts_dir)
         path = os.path.join(self._scripts_dir, "{}.json".format(script_info.uuid))
         if os.path.exists(path):
-            answer = JOptionPane.showConfirmDialog(None,
+            answer = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
                                                    "File already exists. Do you want to overwrite it?",
                                                    "Overwrite File?",
                                                    JOptionPane.YES_NO_OPTION)
@@ -1695,7 +1693,7 @@ class IdePane(JPanel):
         result = None
         # Note that item at index 0 is a new item
         if self.code_changed:
-            result = JOptionPane.showConfirmDialog(None,
+            result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
                                                    "Do you want to save the changes before you continue?",
                                                    "Save Changed Script Code?",
                                                    JOptionPane.YES_NO_CANCEL_OPTION)
@@ -2568,6 +2566,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._home_dir = None
         self._parent = None
         self._context_menu_invocation = None
+        self._about = None
 
     def registerExtenderCallbacks(self, callbacks):
         """
@@ -2585,10 +2584,11 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         if os.path.isfile(about_file):
             with open(about_file, "r") as f:
                 about_file_content = f.read()
-        about = JTextPane()
-        about.setContentType("text/html")
-        about.setEditable(False)
-        about.setText(about_file_content)
+        self._about = JTextPane()
+        self._about.setContentType("text/html")
+        self._about.setEditable(False)
+        self._about.setText(about_file_content)
+        self._about.addHyperlinkListener(self.hyperlink_listener)
         # set our extension name
         callbacks.setExtensionName("Turbo Miner")
         self._pha = ProxyHistoryAnalyzerBase(self)
@@ -2608,7 +2608,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._main_tabs.addTab("Analyzers", analyzer_tabs)
         self._main_tabs.addTab("Modifiers", modifier_tabs)
         self._main_tabs.addTab("Custom Message Editor", self._custom_editor_tab)
-        self._main_tabs.addTab("About", JScrollPane(about))
+        self._main_tabs.addTab("About", JScrollPane(self._about))
         # add the custom tab to Burp Suite's UI
         self._callbacks.addSuiteTab(self)
         self._callbacks.customizeUiComponent(self._main_tabs)
@@ -2660,6 +2660,20 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
     def menu_invocation_pressed(self, event):
         """This method will be called when one of the menu items are pressed."""
         self._pha.menu_invocation_pressed(self._context_menu_invocation)
+
+    def hyperlink_listener(self, event):
+        """This event handler processes hyperlink click events"""
+        if event.getEventType() == HyperlinkEvent.EventType.ACTIVATED:
+            description = event.getDescription()
+            try:
+                # Follow an internal link
+                if description and description[0] == "#":
+                    self._about.scrollToReference(description[1:])
+                # Follow an external link
+                elif Desktop.isDesktopSupported():
+                    Desktop.getDesktop().browse(event.getURL().toURI())
+            except Exception:
+                self._callbacks.printError(traceback.format_exc())
 
     @property
     def callbacks(self):
