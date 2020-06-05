@@ -1,1 +1,10 @@
-{"author": "Lukas Reiter", "plugins": [3], "uuid": "89f968ba-6eb0-404a-be2c-aa2aa745b6ef", "version": "v1.0", "script": "\"\"\"\nThis script performs on-the-fly modifications on outgoing in-scope HTTP requests.\nUse this template script to perform modifications on HTTP request bodies or headers\nby modifying the content of variables headers or body_content.\n\"\"\"\nif in_scope:\n\trequest = message_info.getRequest()\n\trequest_info = helpers.analyzeRequest(request)\n\theaders = request_info.getHeaders()\n\tbody_offset = request_info.getBodyOffset()\n\tbody_bytes = request[body_offset:]\n\tbody_content = helpers.bytesToString(body_bytes)\n\t\n\t# insert code here\n\t\n\trequest = helpers.buildHttpMessage(headers, body_content)\n\tmessage_info.setRequest(request)", "name": "Template to Perform On-The-Fly Modifications On In-Scope Request Bodies/Headers"}
+{
+    "author": "Lukas Reiter", 
+    "plugins": [
+        3
+    ], 
+    "uuid": "89f968ba-6eb0-404a-be2c-aa2aa745b6ef", 
+    "version": "v1.0", 
+    "script": "\"\"\"\nThis script performs on-the-fly modifications on outgoing in-scope HTTP requests.\nUse this template script to perform modifications on HTTP request bodies or headers\nby modifying the content of variables headers or body_content.\n\"\"\"\nif in_scope:\n\trequest = message_info.getRequest()\n\trequest_info = helpers.analyzeRequest(request)\n\theaders = request_info.getHeaders()\n\tbody_offset = request_info.getBodyOffset()\n\tbody_bytes = request[body_offset:]\n\tbody_content = helpers.bytesToString(body_bytes)\n\t\n\t# insert code here\n\t\n\trequest = helpers.buildHttpMessage(headers, body_content)\n\tmessage_info.setRequest(request)", 
+    "name": "Template to Perform On-The-Fly Modifications On In-Scope Request Bodies/Headers"
+}

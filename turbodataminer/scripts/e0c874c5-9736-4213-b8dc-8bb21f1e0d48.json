@@ -1,1 +1,11 @@
-{"author": "Lukas Reiter", "plugins": [0, 6], "uuid": "e0c874c5-9736-4213-b8dc-8bb21f1e0d48", "version": "v1.0", "script": "\"\"\"\nThis script extracts all cookie information from in-scope HTTP responses and adds\nthe information to the table above.\n\"\"\"\n# Do the initial setup\nif ref == 1 or \"attributes\" not in session:\n\tsession[\"attributes\"] = get_cookie_attributes()\n\theader = [\"Ref.\", \"URL\"]\n\theader.extend(session[\"attributes\"])\n# Process only in-scope HTTP responses\nresponse = message_info.getResponse()\nif in_scope and response:\n\tresponse_info = helpers.analyzeResponse(response)\n\tcookies = get_cookies(response_info)\n\tfor cookie in cookies:\n\t\trow = [ref, url]\n\t\tfor key in session[\"attributes\"]:\n\t\t\tvalue = cookie[key] if cookie[key] is not None else \"\"\n\t\t\trow.append(value)\n\t\trows.append(row)", "name": "Cookie - Template Script to Extract Cookie Information From HTTP Responses"}
+{
+    "author": "Lukas Reiter", 
+    "plugins": [
+        0, 
+        6
+    ], 
+    "uuid": "e0c874c5-9736-4213-b8dc-8bb21f1e0d48", 
+    "version": "v1.0", 
+    "script": "\"\"\"\nThis script extracts all cookie information from in-scope HTTP responses and adds\nthe information to the table above.\n\"\"\"\n# Do the initial setup\nif ref == 1 or \"attributes\" not in session:\n\tsession[\"attributes\"] = get_cookie_attributes()\n\theader = [\"Ref.\", \"URL\"]\n\theader.extend(session[\"attributes\"])\n# Process only in-scope HTTP responses\nresponse = message_info.getResponse()\nif in_scope and response:\n\tresponse_info = helpers.analyzeResponse(response)\n\tcookies = get_cookies(response_info)\n\tfor cookie in cookies:\n\t\trow = [ref, url]\n\t\tfor key in session[\"attributes\"]:\n\t\t\tvalue = cookie[key] if cookie[key] is not None else \"\"\n\t\t\trow.append(value)\n\t\trows.append(row)", 
+    "name": "Cookie - Template Script to Extract Cookie Information From HTTP Responses"
+}

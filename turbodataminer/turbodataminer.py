@@ -129,7 +129,7 @@ class IntelDataModelEntry:
                     isinstance(item, bool):
                 self._elements.append(item)
             else:
-                self._elements.append(str(item))
+                self._elements.append(unicode(item))
         self._length = len(elements)
         self._message_info = message_info
         self._message_infos = message_infos
@@ -360,77 +360,78 @@ class IntelTable(JTable, IMessageEditorController):
         self.setAutoCreateRowSorter(True)
         self._currently_selected_message_info = None
         # table pop menu
-        popup_menu = JPopupMenu()
+        self._popup_menu = JPopupMenu()
         # Clear Table
         item = JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed)
         item.setToolTipText("Remove all rows from the table.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Refresh Table
         item = JMenuItem("Refresh Table", actionPerformed=self.refresh_table_menu_pressed)
         item.setToolTipText("Synchronize the table with it's underlying data model.")
-        popup_menu.add(item)
-        popup_menu.addSeparator()
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Export CSV
         item = JMenuItem("Export CSV", actionPerformed=self.export_csv_menu_pressed)
         item.setToolTipText("Export the content of the table to a CSV file.")
-        popup_menu.add(item)
-        popup_menu.addSeparator()
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Copy Selected Row(s)
         item = JMenuItem("Copy Selected Row(s)", actionPerformed=self.copy_selected_values_menu_pressed)
         item.setToolTipText("Copy the selected rows into the clipboard. To obtain the content of the header row as "
                             "well, you can use menu item 'Copy Header Row'.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Copy Header Row
         item = JMenuItem("Copy Header Row", actionPerformed=self.copy_header_row_menu_pressed)
         item.setToolTipText("You can use this menu item to copy and paste the table's header row. You can use this "
                             "function in combination with menu item 'Copy Selected Row(s)'.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Copy Cell Value
         item = JMenuItem("Copy Cell Value", actionPerformed=self.copy_single_value_menu_pressed)
         item.setToolTipText("Copy the value of the cell on which you launched this menu item.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Copy All Column Values
-        item = JMenuItem("Copy All Column Values", actionPerformed=self.copy_column_values_menu_pressed)
+        item = JMenuItem("Copy All Column Values", actionPerformed=self.copy_all_column_values_menu_pressed)
         item.setToolTipText("Copy all values of the column on which you launched this menu item.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Copy Selected Column Values
         item = JMenuItem("Copy Selected Column Values", actionPerformed=self.copy_selected_column_values_menu_pressed)
         item.setToolTipText("Copy the column values of all rows that are currently selected.")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Copy All Column Values (Deduplicated)
         item = JMenuItem("Copy All Column Values (Deduplicated)",
-                         actionPerformed=self.copy_column_values_dedup_menu_pressed)
-        item.setToolTipText("Like menu item 'Copy All Column Values' but only copies unique values into the clipboard. "
-                            "Note that this function summarizes the frequency of occurrence for each copied item in "
-                            "the Turbo Data Miner's standard output.")
-        popup_menu.add(item)
+                         actionPerformed=self.copy_all_column_values_dedup_menu_pressed)
+        item.setToolTipText("Like menu item 'Copy All Column Values' but only copies unique values into the clipboard.")
+        self._popup_menu.add(item)
         # Copy Selected Column Values (Deduplicated)
         item = JMenuItem("Copy Selected Column Values (Deduplicated)",
                          actionPerformed=self.copy_selected_column_values_dedup_menu_pressed)
         item.setToolTipText("Like menu item 'Copy Selected Column Values' but only copies unique values into the "
-                            "clipboard. Note that this function summarizes the frequency of occurrence for each copied "
-                            "item in the Turbo Data Miner's standard output.")
-        popup_menu.add(item)
-        popup_menu.addSeparator()
+                            "clipboard.")
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Delete Selected Row(s)
         item = JMenuItem("Delete Selected Row(s)", actionPerformed=self.delete_rows_menu_pressed)
         item.setToolTipText("Removes the selected rows from the table.")
-        popup_menu.add(item)
-        popup_menu.addSeparator()
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Add Selected Host(s) To Scope
         item = JMenuItem("Add Selected Host(s) To Scope", actionPerformed=self.include_hosts_in_scope)
         item.setToolTipText("Include the host names of the selected requests in scope")
-        popup_menu.add(item)
+        self._popup_menu.add(item)
         # Remove Selected Host(s) From Scope
         item = JMenuItem("Remove Selected Host(s) From Scope", actionPerformed=self.exclude_hosts_from_scope)
         item.setToolTipText("Exclude the host names of the selected requests from scope")
-        popup_menu.add(item)
-        popup_menu.addSeparator()
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Send Selected Row(s) to Repeater
         item = JMenuItem("Send Selected Row(s) to Repeater", actionPerformed=self.send_to_repeater)
         item.setToolTipText("Send the request of the selected row to Burp Suite's Repeater for further analysis.")
-        popup_menu.add(item)
-        self.setComponentPopupMenu(popup_menu)
+        self._popup_menu.add(item)
+        self.setComponentPopupMenu(self._popup_menu)
+
+    def _setEnablePopupMenu(self, enabled):
+        for item in self._popup_menu.getSubElements():
+            item.setEnabled(enabled)
 
     def refresh_table_menu_pressed(self, event):
         """This methed is invoked when the refresh table menu is selected"""
@@ -447,36 +448,84 @@ class IntelTable(JTable, IMessageEditorController):
         """This method is invoked when the clear table menu is selected"""
         self.clear_data()
 
+    def _export_csv_menu_pressed(self, file_name):
+        """This method is invoked by a thread when the export CSV menu is selected"""
+        if file_name:
+            self._setEnablePopupMenu(False)
+            try:
+                with self._table_model_lock:
+                    with open(file_name, 'wb') as csvfile:
+                        csv_writer = csv.writer(csvfile, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                        # Write header
+                        try:
+                            header_row = [item.encode("ISO-8859-1") if item else "" for item in self._data_model.get_header()]
+                            csv_writer.writerow(header_row)
+                        except:
+                            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+                        # Write content
+                        for row_index in range(0, self._data_model.getRowCount()):
+                            row = []
+                            try:
+                                for column_index in range(0, self._data_model.getColumnCount()):
+                                    value = unicode(self._data_model.getValueAt(row_index, column_index)).encode("ISO-8859-1")
+                                    row.append(value)
+                            except:
+                                traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+                                row.append("error occured while exporting row")
+                            csv_writer.writerow(row)
+                JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                              "Exporting the CSV file completed successfully.",
+                                              "Export completed ...",
+                                              JOptionPane.DEFAULT_OPTION)
+            except:
+                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+                traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            self._setEnablePopupMenu(True)
+
     def export_csv_menu_pressed(self, event):
         """This method is invoked when the export CSV menu is selected"""
         filter = FileNameExtensionFilter("CSV files", ["csv"])
         file_name = IdePane.open_file_chooser(self, filter)
-        if file_name:
-            with self._table_model_lock:
-                with open(file_name, 'wb') as csvfile:
-                    csv_writer = csv.writer(csvfile, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    for row_index in range(0, self._data_model.getRowCount()):
-                        row = []
-                        try:
-                            for column_index in range(0, self._data_model.getColumnCount()):
-                                value = str(self._data_model.getValueAt(row_index, column_index)).encode("ISO-8859-1")
-                                row.append(value)
-                        except Exception:
-                            self._intel_tab.callbacks.printError(traceback.format_exc())
-                            row.append("error occured while exporting row")
-                        csv_writer.writerow(row)
+        thread = threading.Thread(target=self._export_csv_menu_pressed, args=(file_name, ))
+        thread.daemon = True
+        thread.start()
 
     def copy_header_row_menu_pressed(self, event):
         """This method is invoked when the copy header row menu is selected"""
         header_row = self._data_model.get_header()
         if header_row:
-            self._intel_tab.ide_pane.copy_to_clipboard("\t".join(header_row))
+            try:
+                with self._table_model_lock:
+                    self._intel_tab.ide_pane.copy_to_clipboard("\t".join(header_row))
+                JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                              "Copying the header row to clipboard completed successfully.",
+                                              "Copying completed ...",
+                                              JOptionPane.DEFAULT_OPTION)
+            except:
+                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+                traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+
+    def _copy_selected_values_menu_pressed(self):
+        """This helper method is invoked by a thread when the copy all menu is selected"""
+        self._setEnablePopupMenu(False)
+        try:
+            with self._table_model_lock:
+                clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
+                self.getTransferHandler().exportToClipboard(self, clipboard, TransferHandler.COPY)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying the selected values to clipboard completed successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
 
     def copy_selected_values_menu_pressed(self, event):
         """This method is invoked when the copy all menu is selected"""
-        with self._table_model_lock:
-            clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
-            self.getTransferHandler().exportToClipboard(self, clipboard, TransferHandler.COPY)
+        thread = threading.Thread(target=self._copy_selected_values_menu_pressed)
+        thread.daemon = True
+        thread.start()
 
     def _copy_column_values_as_list(self, column_index, selected_rows_only=False):
         """This method returns all values of the given column_index as list"""
@@ -502,53 +551,126 @@ class IntelTable(JTable, IMessageEditorController):
 
     def copy_single_value_menu_pressed(self, event):
         """This method is invoked when the copy single value menu is selected"""
-        with self._table_model_lock:
-            selected_column = self.getSelectedColumn()
-            selected_row = self.getSelectedRow()
-            model_row = self.convertRowIndexToModel(selected_row)
-            value = self._data_model.getValueAt(model_row, selected_column)
-            self._intel_tab.ide_pane.copy_to_clipboard(value)
+        try:
+            with self._table_model_lock:
+                selected_column = self.getSelectedColumn()
+                selected_row = self.getSelectedRow()
+                model_row = self.convertRowIndexToModel(selected_row)
+                value = self._data_model.getValueAt(model_row, selected_column)
+                self._intel_tab.ide_pane.copy_to_clipboard(value)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying the selected cell value to clipboard completed successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
 
-    def copy_column_values_menu_pressed(self, event):
+    def _copy_all_column_values_menu_pressed(self):
+        """This helper method is invoked by a thread when the copy column values menu is selected"""
+        self._setEnablePopupMenu(False)
+        try:
+            with self._table_model_lock:
+                selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
+                data = ""
+                for item in self._copy_column_values_as_list(selected_column):
+                    data += unicode(item) + os.linesep
+                self._intel_tab.ide_pane.copy_to_clipboard(data)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying all column values to clipboard completed successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
+
+    def copy_all_column_values_menu_pressed(self, event):
         """This method is invoked when the copy column values menu is selected"""
-        with self._table_model_lock:
-            selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
-            data = ""
-            for item in self._copy_column_values_as_list(selected_column):
-                data = "{}{}{}".format(data, str(item), os.linesep)
-            self._intel_tab.ide_pane.copy_to_clipboard(data)
+        thread = threading.Thread(target=self._copy_all_column_values_menu_pressed)
+        thread.daemon = True
+        thread.start()
+
+    def _copy_selected_column_values_menu_pressed(self):
+        """This method is invoked by a thread when the copy column values menu is selected"""
+        self._setEnablePopupMenu(False)
+        try:
+            with self._table_model_lock:
+                selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
+                data = ""
+                for item in self._copy_column_values_as_list(selected_column, selected_rows_only=True):
+                    data += unicode(item) + os.linesep
+                self._intel_tab.ide_pane.copy_to_clipboard(data)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying the selected column values to clipboard completed successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
 
     def copy_selected_column_values_menu_pressed(self, event):
         """This method is invoked when the copy column values menu is selected"""
-        with self._table_model_lock:
-            selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
-            data = ""
-            for item in self._copy_column_values_as_list(selected_column, selected_rows_only=True):
-                data = "{}{}{}".format(data, str(item), os.linesep)
-            self._intel_tab.ide_pane.copy_to_clipboard(data)
+        thread = threading.Thread(target=self._copy_selected_column_values_menu_pressed)
+        thread.daemon = True
+        thread.start()
 
-    def copy_column_values_dedup_menu_pressed(self, event):
+    def _copy_all_column_values_dedup_menu_pressed(self):
+        """This method is invoked by a thread when the copy column values deduplicated menu is selected"""
+        self._setEnablePopupMenu(False)
+        try:
+            with self._table_model_lock:
+                selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
+                data = unicode("")
+                for key, value in self._copy_column_values_as_dict(selected_column).items():
+                    data += unicode(key) + os.linesep
+                self._intel_tab.ide_pane.copy_to_clipboard(data)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying all deduplicated column values to clipboard completed "
+                                          "successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
+
+    def copy_all_column_values_dedup_menu_pressed(self, event):
         """This method is invoked when the copy column values deduplicated menu is selected"""
-        with self._table_model_lock:
-            selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
-            data = ""
-            for key, value in self._copy_column_values_as_dict(selected_column).items():
-                data = "{}{}{}".format(data, str(key), os.linesep)
-                print("{}: {}".format(key, value))
-            self._intel_tab.ide_pane.copy_to_clipboard(data)
+        thread = threading.Thread(target=self._copy_all_column_values_dedup_menu_pressed)
+        thread.daemon = True
+        thread.start()
+
+    def _copy_selected_column_values_dedup_menu_pressed(self):
+        """This method is invoked by a thread when the copy column values deduplicated menu is selected"""
+        self._setEnablePopupMenu(False)
+        try:
+            with self._table_model_lock:
+                selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
+                data = unicode("")
+                for key, value in self._copy_column_values_as_dict(selected_column, selected_rows_only=True).items():
+                    data += unicode(key) + os.linesep
+                self._intel_tab.ide_pane.copy_to_clipboard(data)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Copying selected deduplicated column values to clipboard completed "
+                                          "successfully.",
+                                          "Copying completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
 
     def copy_selected_column_values_dedup_menu_pressed(self, event):
         """This method is invoked when the copy column values deduplicated menu is selected"""
-        with self._table_model_lock:
-            selected_column = self.getColumnModel().getSelectionModel().getLeadSelectionIndex()
-            data = ""
-            for key, value in self._copy_column_values_as_dict(selected_column, selected_rows_only=True).items():
-                data = "{}{}{}".format(data, str(key), os.linesep)
-                print("{}: {}".format(key, value))
-            self._intel_tab.ide_pane.copy_to_clipboard(data)
+        thread = threading.Thread(target=self._copy_selected_column_values_dedup_menu_pressed)
+        thread.daemon = True
+        thread.start()
 
-    def delete_rows_menu_pressed(self, event):
-        """This method is invoked when the delete rows button is pressed"""
+    def _delete_rows_menu_pressed(self):
+        """This method is invoked by a thread when the delete rows button is pressed"""
+        self._setEnablePopupMenu(False)
         try:
             with self._table_model_lock:
                 selected_rows = self.getSelectedRows()
@@ -559,13 +681,27 @@ class IntelTable(JTable, IMessageEditorController):
                 rows.sort(reverse=True)
                 for i in rows:
                     self._data_model.delete_row(i)
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Deleting the selected rows completed successfully.",
+                                          "Deleting completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
         except:
-            self._intel_tab.extender.callbacks.printError(traceback.format_exc())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
+
+    def delete_rows_menu_pressed(self, event):
+        """This method is invoked when the delete rows button is pressed"""
+        thread = threading.Thread(target=self._delete_rows_menu_pressed)
+        thread.daemon = True
+        thread.start()
 
     def _add_remove_scope(self, in_scope):
         """If true, then adds the given URL to scope, else the URL is excluded from scope"""
-        with self._table_model_lock:
+        self._setEnablePopupMenu(False)
+        try:
             with self._table_model_lock:
+                dedup = {}
                 selected_rows = self.getSelectedRows()
                 for selected_row in selected_rows:
                     model_row = self.convertRowIndexToModel(selected_row)
@@ -573,24 +709,44 @@ class IntelTable(JTable, IMessageEditorController):
                     if message_info:
                         http_service = message_info.getHttpService()
                         url = URL(http_service.getProtocol(), http_service.getHost(), http_service.getPort(), "")
-                        print("Add in scope: {}".format(url))
-                        if in_scope:
-                            if not self._intel_tab.callbacks.isInScope(url):
-                                self._intel_tab.callbacks.includeInScope(url)
-                        else:
-                            self._intel_tab.callbacks.excludeFromScope(url)
+                        if unicode(url) not in dedup:
+                            if in_scope:
+                                if not self._intel_tab.callbacks.isInScope(url):
+                                    self._intel_tab.callbacks.includeInScope(url)
+                            else:
+                                self._intel_tab.callbacks.excludeFromScope(url)
+                            dedup[unicode(url)] = None
+            if in_scope:
+                JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                              "Adding selected host name(s) in scope completed successfully.",
+                                              "Adding in scope completed ...",
+                                              JOptionPane.DEFAULT_OPTION)
+            else:
+                JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                              "Deleting selected host name(s) from scope completed successfully.",
+                                              "Deleting from scope completed ...",
+                                              JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
 
     def include_hosts_in_scope(self, event):
         """Adds the currently selected hosts in scope"""
-        self._add_remove_scope(True)
+        thread = threading.Thread(target=self._add_remove_scope, args=(True, ))
+        thread.daemon = True
+        thread.start()
 
     def exclude_hosts_from_scope(self, event):
         """Excludes the currently selected hosts from scope"""
-        self._add_remove_scope(False)
+        thread = threading.Thread(target=self._add_remove_scope, args=(False, ))
+        thread.daemon = True
+        thread.start()
 
     def _sent_to_burp_function(self, function):
         """This method sends the selected request to the given callback function (e.g., callbacks.sendToIntruder)"""
-        with self._table_model_lock:
+        self._setEnablePopupMenu(False)
+        try:
             with self._table_model_lock:
                 selected_rows = self.getSelectedRows()
                 id = 1
@@ -606,10 +762,20 @@ class IntelTable(JTable, IMessageEditorController):
                                  message_info.getRequest(),
                                  "Turbo Miner {}".format(id))
                     id += 1
+            JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
+                                          "Sending selected items to Repeater completed successfully.",
+                                          "Sending completed ...",
+                                          JOptionPane.DEFAULT_OPTION)
+        except:
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
+            traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+        self._setEnablePopupMenu(True)
 
     def send_to_repeater(self, event):
         """Sends the currently selected requests to the Repeater"""
-        self._sent_to_burp_function(self._intel_tab.callbacks.sendToRepeater)
+        thread = threading.Thread(target=self._sent_to_burp_function, args=(self._intel_tab.callbacks.sendToRepeater, ))
+        thread.daemon = True
+        thread.start()
 
     def getHttpService(self):
         """Returns the burp.IHttpService object of the currently selected message info"""
@@ -764,6 +930,7 @@ class PluginInformation:
     @property
     def selected(self):
         return self._selected
+
     @property
     def category(self):
         return self._category
@@ -892,11 +1059,12 @@ class SaveDialog(JDialog):
 
 class ExportedMethods:
     """
-    This class implements TurboMiner's API
+    This class implements Turbo Data Miner's API
     """
 
-    def __init__(self, extender):
+    def __init__(self, extender, ide_pane):
         self._extender = extender
+        self._ide_pane = ide_pane
         self._html_parser = HTMLParser.HTMLParser()
         self._signatures = {}
         self._extensions = {}
@@ -916,14 +1084,15 @@ class ExportedMethods:
             for name, details in self._vulners_rules["data"]["rules"].items():
                 try:
                     details["regex"] = re.compile("{}".format(details["regex"]))
-                except Exception as ex:
-                    pass
+                except:
+                    self._extender.callbacks.printError("Failed to compile regex while loading "
+                                                        "software version database: {0}".format(details["regex"]))
 
     def _decode_jwt(self, item):
         result = json.dumps(item)
         result = result.replace('_', '/')
         result = result.replace('-', '+')
-        result += '=' * (4 - len(str(result)) % 4)
+        result += '=' * (4 - len(unicode(result)) % 4)
         result = self._extender.helpers.bytesToString(self._extender.helpers.base64Decode(result))
         return result
 
@@ -1016,11 +1185,8 @@ class ExportedMethods:
 
     def analyze_signatures(self, content, strict=False):
         """
-        This method checks whether the given string matches one of the known file signatures specified in an internal
+        This method checks whether the given string matches one of the known file signatures based on an internal
         database.
-
-        Note that depending on the provided content to search, this is very resource intensive method. If you stop
-        Turbo Data Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
 
         :param content (str): The string that is tested for known file signatures.
         :param strict (bool): Bool which specifies whether the file signatures can appear anywhere within the given
@@ -1033,6 +1199,8 @@ class ExportedMethods:
         """
         result = []
         for signatures in self._signatures["signatures"]:
+            if not self._ide_pane.activated:
+                return result
             for signature in signatures["hex_signatures"]:
                 tmp = "^" + ("." * signatures["offset"]) + signature if strict else signature
                 if re.search(tmp, content):
@@ -1136,6 +1304,8 @@ class ExportedMethods:
         if not content:
             return result
         for item in self.re_domain_name.finditer(content):
+            if not self._ide_pane.activated:
+                return result
             domain_name = item.group("domain").lower()
             tld = domain_name.split(".")[-1]
             if tld in self.top_level_domains:
@@ -1147,15 +1317,14 @@ class ExportedMethods:
         This method searches the given text for known software versions based on an internal database
         (source: vulners.com).
 
-        Note that depending on the provided content to search, this is very resource intensive method. If you stop
-        Turbo Data Miner in the middle of an analysis, then Burp Suite might become unresponsive until this method completes.
-
         :param content: The string in which the software versions are searched.
         :return (List[Dict[str, str]]): List of dictionaries containing details about the identified software versions.
         each dictionary contains the following keys: software, type, version, cpe, alias, source
         """
         result = []
         for name, details in self._vulners_rules["data"]["rules"].items():
+            if not self._ide_pane.activated:
+                return result
             match = details["regex"].search(content)
             if match:
                 item = {}
@@ -1180,6 +1349,8 @@ class ExportedMethods:
         result = None
         re_ct = re.compile("^Content-Type:\s(?P<type>.*?)(\s*;\s*.*)?$", re.IGNORECASE)
         for header in headers:
+            if not self._ide_pane.activated:
+                return result
             match = re_ct.match(header)
             if match:
                 result = match.group("type")
@@ -1215,12 +1386,16 @@ class ExportedMethods:
                                         [re.compile("^cookie$", re.IGNORECASE)]).values())
             cookie_values = []
             for item in tmp:
+                if not self._ide_pane.activated:
+                    return result
                 if item:
                     if isinstance(item, list):
                         cookie_values.extend(item)
                     else:
                         cookie_values.append(item)
             for cookie_value in cookie_values:
+                if not self._ide_pane.activated:
+                    return result
                 cookies = [tmp.strip() for tmp in cookie_value.split(";")]
                 for cookie in cookies:
                     cookie_info = self._get_dict(cookie_attributes)
@@ -1232,12 +1407,16 @@ class ExportedMethods:
                                         [re.compile("^set-cookie", re.IGNORECASE)]).values())
             cookie_values = []
             for item in tmp:
+                if not self._ide_pane.activated:
+                    return result
                 if item:
                     if isinstance(item, list):
                         cookie_values.extend(item)
                     else:
                         cookie_values.append(item)
             for cookie_value in cookie_values:
+                if not self._ide_pane.activated:
+                    return result
                 cookie_info = self._get_dict(cookie_attributes)
                 attributes = [tmp.strip() for tmp in cookie_value.split(";")]
                 cookie_info["name"], cookie_info["value"] = self._split_items(attributes[0])
@@ -1279,6 +1458,8 @@ class ExportedMethods:
         """
         lower_header_name = header_name.lower()
         for header in headers:
+            if not self._ide_pane.activated:
+                return result
             tmp = header.split(":")
             name = tmp[0].lower()
             value = ":".join(tmp[1:]).strip()
@@ -1302,6 +1483,8 @@ class ExportedMethods:
         """
         result = {item.pattern: [] for item in re_headers}
         for regex in re_headers:
+            if not self._ide_pane.activated:
+                return result
             for header in headers:
                 tmp = header.split(":")
                 name = tmp[0]
@@ -1351,6 +1534,8 @@ class ExportedMethods:
             attributes = [attributes]
         must_match = must_match if must_match <= len(attributes) else len(attributes)
         for item in attributes:
+            if not self._ide_pane.activated:
+                return result
             if item not in result:
                 result[item] = None
         result = self._parse_json(json_object, result, must_match)
@@ -1373,6 +1558,8 @@ class ExportedMethods:
         result = [None, None, None]
         jwt_re = re.compile(re_header, re.IGNORECASE)
         for header in headers:
+            if not self._ide_pane.activated:
+                return result
             jwt_match = jwt_re.match(header)
             if jwt_match:
                 jwt = jwt_match.group("jwt")
@@ -1422,8 +1609,12 @@ class ExportedMethods:
         """
         result = {item.pattern: [] for item in re_names}
         for regex in re_names:
+            if not self._ide_pane.activated:
+                return result
             pattern = regex.pattern
             for parameter in request_info.getParameters():
+                if not self._ide_pane.activated:
+                    return result
                 name = parameter.getName()
                 if regex.match(name):
                     result[pattern].append(parameter)
@@ -1542,7 +1733,6 @@ class IdePane(JPanel):
         self._button_pane.add(self._refresh_button)
         self.add(components_pane, BorderLayout.SOUTH)
         self.refresh()
-        self.code_changed = False
 
     def add_component(self, component):
         """This method can be used to add addtional components to the GUI"""
@@ -1594,13 +1784,14 @@ class IdePane(JPanel):
 
     def copy_to_clipboard(self, content):
         """This method takes the parameter and copies it into the clipboard."""
-        string_selection = StringSelection(str(content))
+        string_selection = StringSelection(unicode(content))
         clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
         clipboard.setContents(string_selection, None)
 
     @staticmethod
     def open_file_chooser(parent=None, filter=None):
-        """Shows file chooser dialog and returns the selected file path
+        """
+        Shows file chooser dialog and returns the selected file path
 
         This method uses JFileChooser to ask users for a file.
 
@@ -1627,25 +1818,28 @@ class IdePane(JPanel):
             if file.endswith(".json"):
                 with open(os.path.join(self._scripts_dir, file), "r") as f:
                     content = f.read()
-                    script_info = ScriptInformation.load_json(content)
-                    for plugin in script_info.plugins:
-                        if self._intel_base and plugin and self._intel_base.plugin_id == plugin.plugin_id:
-                            scripts.append(script_info)
-                            break
+                    if content:
+                        script_info = ScriptInformation.load_json(content)
+                        for plugin in script_info.plugins:
+                            if self._intel_base and plugin and self._intel_base.plugin_id == plugin.plugin_id:
+                                scripts.append(script_info)
+                                break
         scripts.sort(key=lambda x: x.name)
         self._cb_list = DefaultComboBoxModel(scripts)
         self._code_chooser.setModel(self._cb_list)
         self._cb_list.setSelectedItem(selected_item)
 
     def force_save_script(self, script_info):
-        """This file writes the script code to the file regardless whether it already exists.
-        Use save_script if you want to ask the user whether file should be overwritten or not"""
+        """
+        This file writes the script code to the file regardless whether it already exists.
+        Use save_script if you want to ask the user whether file should be overwritten or not
+        """
         if not os.path.exists(self._scripts_dir):
             os.makedirs(self._scripts_dir)
         path = os.path.join(self._scripts_dir, "{}.json".format(script_info.uuid))
         with open(path, "w") as f:
             json_object = script_info.get_json()
-            f.write(json.JSONEncoder().encode(json_object))
+            f.write(json.dumps(json_object, indent=4))
         # Now we refresh all instances
         for instance in IdePane.INSTANCES:
             instance.refresh()
@@ -1702,7 +1896,7 @@ class IdePane(JPanel):
         try:
             if not self.activated:
                 self.compile()
-        except Exception:
+        except:
             ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
 
     def start_stop_button_pressed(self, event):
@@ -1716,7 +1910,7 @@ class IdePane(JPanel):
             else:
                 if self._stop_analysis_function:
                     self._stop_analysis_function()
-        except Exception:
+        except:
             ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
             self.activated = False
 
@@ -1733,7 +1927,6 @@ class IdePane(JPanel):
         script if desired and update all internal structures accordingly.
         """
         result = None
-        # Note that item at index 0 is a new item
         if self.code_changed:
             result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
                                                    "Do you want to save the changes before you continue?",
@@ -1751,14 +1944,16 @@ class IdePane(JPanel):
         """This method is invoked when the new script button is pressed"""
         result = self.save_current_script()
         if result == JOptionPane.CANCEL_OPTION:
+            code_changed = self.code_changed
             self._cb_list.setSelectedItem(self.script_info)
+            self.code_changed = code_changed
         else:
             self.script_info = ScriptInformation(plugins=[IntelBase.get_plugin_by_id(self._intel_base.plugin_id)])
             self._cb_list.setSelectedItem(self.script_info)
             self.code_changed = False
 
     def save_button_pressed(self, event):
-        "This method is invoked when the save script button is pressed"
+        """This method is invoked when the save script button is pressed"""
         save_dialog = SaveDialog(self._intel_base.extender.parent, self._intel_base.plugin_category_id, self.script_info)
         save_dialog.pack()
         save_dialog.setVisible(True)
@@ -1772,12 +1967,17 @@ class IdePane(JPanel):
 
     def load_button_pressed(self, event):
         """This method is invoked when the load button is clicked"""
-        result = self.save_current_script()
-        if result == JOptionPane.CANCEL_OPTION:
-            self._cb_list.setSelectedItem(self.script_info)
-        else:
-            self.script_info = self._cb_list.getSelectedItem()
-            self.code_changed = False
+        new_script = self._cb_list.getSelectedItem()
+        if new_script and self.script_info.uuid != new_script.uuid:
+            result = self.save_current_script()
+            if result == JOptionPane.CANCEL_OPTION:
+                code_changed = self.code_changed
+                self._cb_list.setSelectedItem(self.script_info)
+                self.code_changed = code_changed
+            else:
+                self.refresh()
+                self.script_info = self._cb_list.getSelectedItem()
+                self.code_changed = False
 
 
 class IntelBase(JPanel, IExtensionStateListener):
@@ -1815,7 +2015,6 @@ class IntelBase(JPanel, IExtensionStateListener):
         JPanel.__init__(self)
         self._id = "{}:{:03d}".format(id, IntelTab.INSTANCE_COUNT)
         IntelBase.INSTANCE_COUNT = IntelBase.INSTANCE_COUNT + 1
-        self._exported_methods = ExportedMethods(extender)
         self.setLayout(BorderLayout())
         self._extender = extender
         self._callbacks = extender.callbacks
@@ -1824,6 +2023,7 @@ class IntelBase(JPanel, IExtensionStateListener):
         self._plugin_id = plugin_id
         self._scripts_dir = os.path.join(extender.home_dir, IntelBase.SCRIPTS_DIR)
         self._ide_pane = IdePane(self, pre_code, post_code)
+        self._exported_methods = ExportedMethods(extender, self._ide_pane)
         self._session = {}
         self._ref_lock = Lock()
         self._ref = 1
@@ -1839,11 +2039,7 @@ class IntelBase(JPanel, IExtensionStateListener):
                     self._ide_pane.code_changed = json_object["code_changed"]
                 else:
                     self._ide_pane.code_changed = False
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.script_info = ScriptInformation(plugins=[IntelBase.get_plugin_by_id(self._plugin_id)])
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.script_info = ScriptInformation(plugins=[IntelBase.get_plugin_by_id(self._plugin_id)])
@@ -1909,10 +2105,7 @@ class IntelBase(JPanel, IExtensionStateListener):
             b64_script_info = json.JSONEncoder().encode(b64_script_info)
             b64_script_info = base64.b64encode(b64_script_info)
             self._callbacks.saveExtensionSetting("{}_code".format(self._id), b64_script_info)
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
@@ -1930,7 +2123,7 @@ class IntelBase(JPanel, IExtensionStateListener):
 
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
-                                    message_reference=None, proxy_message_info=None, time_delta=None):
+                                    message_reference=None, proxy_message_info=None, time_delta=None, in_scope=None):
         raise NotImplementedError("Method not implemented yet")
 
 
@@ -2026,7 +2219,8 @@ class IntelTab(IntelBase):
 
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
-                                    message_reference=None, proxy_message_info=None, time_delta=None, row_count=None):
+                                    message_reference=None, proxy_message_info=None, time_delta=None, row_count=None,
+                                    in_scope=None):
         """
         This method executes the Python script for each HTTP request response item in the HTTP proxy history.
         :return: Returns True if exection was successful else False
@@ -2040,7 +2234,7 @@ class IntelTab(IntelBase):
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
-        in_scope = self._callbacks.isInScope(url)
+        in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
             'plugin_id': self._plugin_id,
@@ -2101,10 +2295,15 @@ class IntelTab(IntelBase):
         header = locals['header']
         message_infos = locals['message_infos']
         # Create new table row
-        entries = [IntelDataModelEntry(row, message_info, message_infos)
-                   if isinstance(row, list) else IntelDataModelEntry([row],
-                                                                     message_info,
-                                                                     message_infos) for row in rows]
+        entries = []
+        for row in rows:
+            try:
+                if isinstance(row, list):
+                    entries.append(IntelDataModelEntry(row, message_info, message_infos))
+                else:
+                    entries.append(IntelDataModelEntry([row], message_info, message_infos))
+            except:
+                traceback.print_exc(file=self._callbacks.getStderr())
         # Setup table header
         if self._ref <= 1:
             self._data_model.set_header(header, reset_column_count=True)
@@ -2127,7 +2326,7 @@ class ModifierTab(IntelBase):
 
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
-                                    message_reference=None, proxy_message_info=None, time_delta=None):
+                                    message_reference=None, proxy_message_info=None, time_delta=None, in_scope=None):
         """
         This method executes the Python script for each HTTP request response item in the HTTP proxy history.
         :return: Returns True if execution was successful else False
@@ -2140,7 +2339,7 @@ class ModifierTab(IntelBase):
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
-        in_scope = self._callbacks.isInScope(url)
+        in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
             'plugin_id': self._plugin_id,
@@ -2219,12 +2418,9 @@ class AnalyzerBase(IntelTab):
 
         try:
             self._process_thread = threading.Thread(target=self.process_proxy_history_entries, args=(entries, ))
+            self._process_thread.daemon = True
             self._process_thread.start()
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2243,11 +2439,7 @@ class AnalyzerBase(IntelTab):
                     break
                 self.process_proxy_history_entry(message_info, IBurpExtenderCallbacks.TOOL_PROXY, row_count=row_count)
             self._ide_pane.activated = False
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2257,11 +2449,8 @@ class AnalyzerBase(IntelTab):
             self._ref = 1
             self._ide_pane.compile()
             for message_info in invocation.getSelectedMessages():
-                self.process_proxy_history_entry(message_info, invocation.getToolFlag())
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-        except BaseException:
+                self.process_proxy_history_entry(message_info, invocation.getToolFlag(), in_scope=True)
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
@@ -2317,11 +2506,7 @@ class HttpListenerAnalyzer(IntelTab, IHttpListener):
         try:
             if self._ide_pane.activated and not is_request:
                 self.process_proxy_history_entry(message_info, is_request, tool_flag)
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2347,11 +2532,7 @@ class HttpListenerModifier(ModifierTab, IHttpListener):
         try:
             if self._ide_pane.activated:
                 self.process_proxy_history_entry(message_info, is_request, tool_flag)
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2378,11 +2559,7 @@ class ProxyListenerModifier(ModifierTab, IProxyListener):
                 self.process_proxy_history_entry(message.getMessageInfo(),
                                                  is_request,
                                                  proxy_message_info=message)
-        except Exception:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
-        except BaseException:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2449,7 +2626,7 @@ _is_enabled = is_enabled"""
                 self._set_message = locals['_set_message']
                 self._get_message = locals['_get_message']
                 self._is_enabled = locals['_is_enabled']
-        except Exception:
+        except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
@@ -2482,7 +2659,8 @@ _is_enabled = is_enabled"""
 
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None,
                                 received_date=None, listener_interface=None, client_ip_address=None,
-                                timedout=None, message_reference=None, proxy_message_info=None, time_delta=None):
+                                timedout=None, message_reference=None, proxy_message_info=None, time_delta=None,
+                                in_scope=None):
         pass
 
 
@@ -2693,7 +2871,8 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
             IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TABLE,
             IContextMenuInvocation.CONTEXT_PROXY_HISTORY,
             IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS]:
-            menu_items.append(JMenuItem("Process in Turbo Miner", actionPerformed=self.menu_invocation_pressed))
+            menu_items.append(JMenuItem("Process in Turbo Data Miner (Proxy History Analyzer tab)",
+                                        actionPerformed=self.menu_invocation_pressed))
         return menu_items
 
     def createNewInstance(self, controller, editable):
@@ -2714,7 +2893,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
                 # Follow an external link
                 elif Desktop.isDesktopSupported():
                     Desktop.getDesktop().browse(event.getURL().toURI())
-            except Exception:
+            except:
                 self._callbacks.printError(traceback.format_exc())
 
     @property

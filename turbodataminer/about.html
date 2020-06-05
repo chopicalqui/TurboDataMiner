@@ -728,9 +728,6 @@
     <dl><dt><a name="ExportedMethods-analyze_signatures"><strong>analyze_signatures</strong></a>(self, content, strict<font color="#909090">=False</font>)</dt><dd><tt>This&nbsp;method&nbsp;checks&nbsp;whether&nbsp;the&nbsp;given&nbsp;string&nbsp;matches&nbsp;one&nbsp;of&nbsp;the&nbsp;known&nbsp;file&nbsp;signatures&nbsp;specified&nbsp;in&nbsp;an&nbsp;internal<br>
     database.<br>
     <br>
-    Note&nbsp;that&nbsp;depending&nbsp;on&nbsp;the&nbsp;provided&nbsp;content&nbsp;to&nbsp;search,&nbsp;this&nbsp;is&nbsp;very&nbsp;resource&nbsp;intensive&nbsp;method.&nbsp;If&nbsp;you&nbsp;stop<br>
-    Turbo&nbsp;Miner&nbsp;in&nbsp;the&nbsp;middle&nbsp;of&nbsp;an&nbsp;analysis,&nbsp;then&nbsp;Burp&nbsp;Suite&nbsp;might&nbsp;become&nbsp;unresponsive&nbsp;until&nbsp;this&nbsp;method&nbsp;completes.<br>
-    <br>
     :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;that&nbsp;is&nbsp;tested&nbsp;for&nbsp;known&nbsp;file&nbsp;signatures.<br>
     :param&nbsp;strict&nbsp;(bool):&nbsp;Bool&nbsp;which&nbsp;specifies&nbsp;whether&nbsp;the&nbsp;file&nbsp;signatures&nbsp;can&nbsp;appear&nbsp;anywhere&nbsp;within&nbsp;the&nbsp;given<br>
     string&nbsp;(False)&nbsp;or&nbsp;at&nbsp;the&nbsp;expected&nbsp;position&nbsp;(True).&nbsp;Set&nbsp;this&nbsp;parameter&nbsp;to&nbsp;False&nbsp;(default)&nbsp;if&nbsp;you,&nbsp;for&nbsp;example,<br>
@@ -782,9 +779,6 @@
 
     <dl><dt><a name="ExportedMethods-find_versions"><strong>find_versions</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;text&nbsp;for&nbsp;known&nbsp;software&nbsp;versions&nbsp;based&nbsp;on&nbsp;an&nbsp;internal&nbsp;database<br>
     (source:&nbsp;vulners.com).<br>
-    <br>
-    Note&nbsp;that&nbsp;depending&nbsp;on&nbsp;the&nbsp;provided&nbsp;content&nbsp;to&nbsp;search,&nbsp;this&nbsp;is&nbsp;very&nbsp;resource&nbsp;intensive&nbsp;method.&nbsp;If&nbsp;you&nbsp;stop<br>
-    Turbo&nbsp;Miner&nbsp;in&nbsp;the&nbsp;middle&nbsp;of&nbsp;an&nbsp;analysis,&nbsp;then&nbsp;Burp&nbsp;Suite&nbsp;might&nbsp;become&nbsp;unresponsive&nbsp;until&nbsp;this&nbsp;method&nbsp;completes.<br>
     <br>
     :param&nbsp;content:&nbsp;The&nbsp;string&nbsp;in&nbsp;which&nbsp;the&nbsp;software&nbsp;versions&nbsp;are&nbsp;searched.<br>
     :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;List&nbsp;of&nbsp;dictionaries&nbsp;containing&nbsp;details&nbsp;about&nbsp;the&nbsp;identified&nbsp;software&nbsp;versions.<br>
