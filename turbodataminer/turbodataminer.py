@@ -1457,6 +1457,7 @@ class ExportedMethods:
         (None, None) is returned.
         """
         lower_header_name = header_name.lower()
+        result = (None, None)
         for header in headers:
             if not self._ide_pane.activated:
                 return result
@@ -1465,7 +1466,7 @@ class ExportedMethods:
             value = ":".join(tmp[1:]).strip()
             if lower_header_name == name:
                 return (name, value)
-        return (None, None)
+        return result
 
     def get_headers(self, headers, re_headers):
         """
@@ -1630,6 +1631,8 @@ class ExportedMethods:
         was identified. The dictionary contains the following keys: extension (str), category (str), description (str)
         """
         for extension in self._extensions["extensions"]:
+            if not self._ide_pane.activated:
+                break
             if content.endswith(".{}".format(extension["extension"])):
                 return extension
         return None
@@ -2448,11 +2451,14 @@ class AnalyzerBase(IntelTab):
         try:
             self._ref = 1
             self._ide_pane.compile()
+            self._ide_pane.activated = True
             for message_info in invocation.getSelectedMessages():
                 self.process_proxy_history_entry(message_info, invocation.getToolFlag(), in_scope=True)
+            self._ide_pane.activated = False
         except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+            self._ide_pane.activated = False
 
 
 class ProxyHistoryAnalyzerBase(AnalyzerBase):
