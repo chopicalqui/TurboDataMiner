@@ -87,9 +87,11 @@ from java.awt.datatransfer import StringSelection
 from java.lang import Integer
 from java.lang import String
 from java.lang import Float
+from java.lang import Thread
 from java.util import Date
 from java.lang import Boolean
 from java.net import URL
+from java.net import URLClassLoader
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
 from java.io import InputStreamReader
@@ -2233,13 +2235,13 @@ class IntelTab(IntelBase):
         header = []
         rows = []
         message_infos = {}
-        globals = {}
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
+            'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
             'row_count': row_count,
             'get_json_attributes': self._exported_methods.get_json_attributes,
@@ -2291,7 +2293,7 @@ class IntelTab(IntelBase):
         if time_delta:
             locals["time_delta"] = time_delta
         # Execute compiled code
-        exec(self.ide_pane.compiled_code, globals, locals)
+        exec(self.ide_pane.compiled_code, locals, locals)
         # Reimport writable API variables
         self._session = locals['session']
         rows = locals['rows']
@@ -2338,13 +2340,13 @@ class ModifierTab(IntelBase):
             return
         header = []
         rows = []
-        globals = {}
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
+            'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
             'is_request': is_request,
             'get_json_attributes': self._exported_methods.get_json_attributes,
@@ -2389,7 +2391,7 @@ class ModifierTab(IntelBase):
         if proxy_message_info:
             locals["proxy_message_info"] = proxy_message_info
         # Execute script
-        exec(self.ide_pane.compiled_code, globals, locals)
+        exec(self.ide_pane.compiled_code, locals, locals)
         # Reimport API variables
         self._session = locals['session']
         self._ref = self._ref + 1
@@ -2597,6 +2599,7 @@ _is_enabled = is_enabled"""
             self._session = {}
             locals = {
                 'callbacks': self._extender.callbacks,
+                'xerceslib': self._extender.xerces_classloader,
                 'plugin_id': self._plugin_id,
                 'get_json_attributes': self._exported_methods.get_json_attributes,
                 'get_headers': self._exported_methods.get_headers,
@@ -2624,9 +2627,8 @@ _is_enabled = is_enabled"""
                 '_is_enabled': self._is_enabled,
                 'helpers': self._helpers
             }
-            globals = locals
             # Execute script
-            exec(self.ide_pane.compiled_code, globals, locals)
+            exec(self.ide_pane.compiled_code, locals, locals)
             # Reimport API method implementations
             with self._lock:
                 self._set_message = locals['_set_message']
@@ -2848,6 +2850,14 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._callbacks.registerContextMenuFactory(self)
         self._callbacks.registerMessageEditorTabFactory(self)
         self._parent = SwingUtilities.getRoot(self._main_tabs)
+        # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
+        # http://xerces.apache.org/mirrors.cgi
+        # Note that the files integrity was verified prior its incorporation into Turbo Data Miner.
+        # For more information about the issue refer to:
+        # https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a
+        xerces_path = os.path.join(self._home_dir, "data", "xercesImpl.jar")
+        self._xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
+                                                  Thread.currentThread().getContextClassLoader())
 
     def getTabCaption(self):
         return "Turbo Miner"
@@ -2917,6 +2927,10 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
     @property
     def home_dir(self):
         return self._home_dir
+
+    @property
+    def xerces_classloader(self):
+        return self._xerces_classloader
 
     @property
     def custom_editor_tab(self):
