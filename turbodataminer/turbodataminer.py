@@ -35,6 +35,7 @@ import re
 import base64
 import HTMLParser
 import json
+import sys
 from burp import IBurpExtender
 from burp import ITab
 from burp import IHttpListener
@@ -1529,7 +1530,7 @@ class ExportedMethods:
         :return (List[Dict[str, str]]): The keys of each dictionary represent the values specified in the provided
         attributes list and the values represent the corresponding values extracted from the JSON object.
         :raise ValueError: This exception is thrown when the given body cannot be converted into a
-        dictionary.s
+        dictionary.
         """
         result = {}
         json_object = body if isinstance(body, dict) else json.JSONDecoder().decode(body)
@@ -1543,6 +1544,27 @@ class ExportedMethods:
                 result[item] = None
         result = self._parse_json(json_object, result, must_match)
         return result
+
+    def get_json_attribute_by_path(self, body, path, default_value=None):
+        """
+        This method returns the JSON attribute located at position path in JSON object body.
+        :param body (str/dict): Contains the JSON object, which is either of type string or dictionary, that shall be
+        searched.
+        :param path (str): Path (e.g. data/value/) that specifies the attribute that shall be returned.
+        :param default_value (object): The default value that shall be returned if the requested path does not exist.
+        :return (dict): The JSON attribute at location path or default_value.
+        :raise ValueError: This exception is thrown when the given body cannot be converted into a
+        dictionary.
+        """
+        path = path[1:] if path[0] == '/' else path
+        current_position = body if isinstance(body, dict) else json.JSONDecoder().decode(body)
+        for value in path.split("/"):
+            if isinstance(current_position, dict) and value in current_position:
+                current_position = current_position[value]
+            else:
+                current_position = None
+                break
+        return current_position if current_position else default_value
 
     def get_jwt(self, headers, re_header="^Authorization:\s+Bearer\s+(?P<jwt>.+?\..+?\..+?)$"):
         """
@@ -2245,6 +2267,7 @@ class IntelTab(IntelBase):
             'plugin_id': self._plugin_id,
             'row_count': row_count,
             'get_json_attributes': self._exported_methods.get_json_attributes,
+            'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
             'get_headers': self._exported_methods.get_headers,
             'get_parameters': self._exported_methods.get_parameters,
             'get_parameter_name': self._exported_methods.get_parameter_name,
@@ -2350,6 +2373,7 @@ class ModifierTab(IntelBase):
             'plugin_id': self._plugin_id,
             'is_request': is_request,
             'get_json_attributes': self._exported_methods.get_json_attributes,
+            'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
             'get_headers': self._exported_methods.get_headers,
             'get_header': self._exported_methods.get_header,
             'get_cookies': self._exported_methods.get_cookies,
@@ -2449,14 +2473,36 @@ class AnalyzerBase(IntelTab):
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
 
-    def menu_invocation_pressed(self, invocation):
+    def _menu_invocation_pressed(self, invocation):
+        """
+        This method iterates through all selected message info items that were sent to Turbo Data Miner via
+        Turbo Data Miner's context menu.
+        """
         try:
             self._ref = 1
             self._ide_pane.compile()
             self._ide_pane.activated = True
-            for message_info in invocation.getSelectedMessages():
-                self.process_proxy_history_entry(message_info, invocation.getToolFlag(), in_scope=True)
+            messages = invocation.getSelectedMessages()
+            row_count = len(messages)
+            for message_info in messages:
+                self.process_proxy_history_entry(message_info,
+                                                 invocation.getToolFlag(),
+                                                 in_scope=True,
+                                                 row_count=row_count)
             self._ide_pane.activated = False
+        except:
+            traceback.print_exc(file=self._callbacks.getStderr())
+            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+            self._ide_pane.activated = False
+
+    def menu_invocation_pressed(self, invocation):
+        """This method is invoked when Turbo Data Miner's context menu is selected"""
+        self._ref = 1
+
+        try:
+            self._process_thread = threading.Thread(target=self._menu_invocation_pressed, args=(invocation, ))
+            self._process_thread.daemon = True
+            self._process_thread.start()
         except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
@@ -2602,6 +2648,7 @@ _is_enabled = is_enabled"""
                 'xerceslib': self._extender.xerces_classloader,
                 'plugin_id': self._plugin_id,
                 'get_json_attributes': self._exported_methods.get_json_attributes,
+                'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
                 'get_headers': self._exported_methods.get_headers,
                 'get_parameters': self._exported_methods.get_parameters,
                 'get_parameter_name': self._exported_methods.get_parameter_name,
@@ -2858,6 +2905,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         xerces_path = os.path.join(self._home_dir, "data", "xercesImpl.jar")
         self._xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
                                                   Thread.currentThread().getContextClassLoader())
+        sys.path.append(os.path.join(self._home_dir, "data", "libs"))
 
     def getTabCaption(self):
         return "Turbo Miner"

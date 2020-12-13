@@ -409,6 +409,20 @@
             </td>
         </tr>
         <tr>
+            <td>get_json_attribute_by_path</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-get_json_attribute_by_path">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>get_json_attributes</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
@@ -874,6 +888,16 @@
     :param&nbsp;url&nbsp;(java.lang.URL):&nbsp;The&nbsp;URL&nbsp;from&nbsp;which&nbsp;the&nbsp;file&nbsp;and&nbsp;query&nbsp;part&nbsp;is&nbsp;removed.<br>
     :return&nbsp;(java.lang.URL):&nbsp;The&nbsp;new&nbsp;java.net.URL&nbsp;instance&nbsp;containing&nbsp;the&nbsp;protocol,&nbsp;host,&nbsp;and&nbsp;port&nbsp;information</tt></dd></dl>
 
+    <dl><dt><a name="ExportedMethods-get_json_attribute_by_path"><strong>get_json_attribute_by_path</strong></a>(self, body, path, default_value<font color="#909090">=None</font>)</dt><dd><tt>This method returns the JSON attribute located at position path in JSON object body.
+    <br><br>
+    :param body (str/dict): Contains the JSON object, which is either of type string or dictionary, that shall be
+    searched.<br>
+    :param path (str): Path (e.g. data/value/) that specifies the attribute that shall be returned.<br>
+    :param default_value (object): The default value that shall be returned if the requested path does not exist.<br>
+    :return (dict): The JSON attribute at location path or default_value.<br>
+    :raise ValueError: This exception is thrown when the given body cannot be converted into a
+    dictionary.</tt></dd></dl>
+
     <dl><dt><a name="ExportedMethods-get_json_attributes"><strong>get_json_attributes</strong></a>(self, body, attributes, must_match<font color="#909090">=0</font>)</dt><dd><tt>Searches&nbsp;the&nbsp;string&nbsp;stored&nbsp;in&nbsp;the&nbsp;body&nbsp;variable&nbsp;for&nbsp;those&nbsp;attribute&nbsp;names,&nbsp;which&nbsp;are&nbsp;specified&nbsp;by&nbsp;the<br>
     attributes&nbsp;list.<br>
     <br>
@@ -889,7 +913,7 @@
     :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;each&nbsp;dictionary&nbsp;represent&nbsp;the&nbsp;values&nbsp;specified&nbsp;in&nbsp;the&nbsp;provided<br>
     attributes&nbsp;list&nbsp;and&nbsp;the&nbsp;values&nbsp;represent&nbsp;the&nbsp;corresponding&nbsp;values&nbsp;extracted&nbsp;from&nbsp;the&nbsp;JSON&nbsp;object.<br>
     :raise&nbsp;ValueError:&nbsp;This&nbsp;exception&nbsp;is&nbsp;thrown&nbsp;when&nbsp;the&nbsp;given&nbsp;body&nbsp;cannot&nbsp;be&nbsp;converted&nbsp;into&nbsp;a<br>
-    dictionary.s</tt></dd></dl>
+    dictionary.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-get_jwt"><strong>get_jwt</strong></a>(self, headers, re_header<font color="#909090">=r'^Authorization:\s+Bearer\s+(?P&lt;jwt&gt;.+?)$'</font>)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;array&nbsp;of&nbsp;headers&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;authorization<br>
     header&nbsp;and&nbsp;extracts&nbsp;as&nbsp;well&nbsp;as&nbsp;decodes&nbsp;and&nbsp;returns&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT).<br>
