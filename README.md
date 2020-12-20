@@ -1,9 +1,9 @@
 # Turbo Data Miner
 
-This extension adds a new tab `Turbo Miner` to Burp Suite's GUI as well as an new entry `Process in Turbo Miner` to 
-Burp Suite's context menu. In the new tab, you are able to write new or select existing Python scripts that are 
-executed on each request/response item currently stored in the Proxy History, Side Map, or on each request/response 
-item that is sent or received by Burp Suite.  
+This extension adds a new tab `Turbo Miner` to Burp Suite's GUI as well as an new entry `Process in Turbo Data Miner 
+(Proxy History Analyzer tab)` to Burp Suite's context menu. In the new tab, you are able to write new or select 
+existing Python scripts that are executed on each request/response item currently stored in the Proxy History, Side 
+Map, or on each request/response item that is sent or received by Burp Suite.  
   
 The objective of these Python scripts is the flexible and dynamic extraction, correlation, and structured
 presentation of information from the Burp Suite state as well as the flexible and dynamic on-the-fly modification
