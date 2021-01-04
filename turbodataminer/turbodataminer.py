@@ -1160,9 +1160,9 @@ class ExportedMethods:
         """
         This method returns an IRequestInfo object based on the given IHttpRequestResponse object.
 
-        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as a
+        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as an
         IRequestInfo object.
-        :return (IRequestInfo): A IRequestInfo object or None, if no request was found.
+        :return (IRequestInfo): An IRequestInfo object or None, if no request was found.
         """
         request = message_info.getRequest()
         if request:
@@ -1175,9 +1175,9 @@ class ExportedMethods:
         """
         This method returns an IResponseInfo object based on the given IHttpRequestResponse object.
 
-        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as a
+        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as an
         IResponseInfo object.
-        :return (IResponseInfo): A IResponseInfo object or None, if no response was found.
+        :return (IResponseInfo): An IResponseInfo object or None, if no response was found.
         """
         response = message_info.getResponse()
         if response:
@@ -1559,6 +1559,8 @@ class ExportedMethods:
         path = path[1:] if path[0] == '/' else path
         current_position = body if isinstance(body, dict) else json.JSONDecoder().decode(body)
         for value in path.split("/"):
+            if not self._ide_pane.activated:
+                return current_position
             if isinstance(current_position, dict) and value in current_position:
                 current_position = current_position[value]
             else:

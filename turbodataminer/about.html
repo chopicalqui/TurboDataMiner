@@ -7,7 +7,7 @@
 <body>
     <h1>Turbo Data Miner</h1>
 
-    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as an new entry
+    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as a new entry
     <code>Process in Turbo Miner</code> to Burp Suite's context menu. In the new tab, you are able to write new or select
     existing Python scripts that are executed on each request/response item currently stored in the Proxy History,
     Side Map, or on each request/response item that is sent or received by Burp Suite.
@@ -762,15 +762,15 @@
 
     <dl><dt><a name="ExportedMethods-analyze_request"><strong>analyze_request</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IRequestInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
     <br>
-    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;an<br>
     IRequestInfo&nbsp;object.<br>
-    :return&nbsp;(IRequestInfo):&nbsp;A&nbsp;IRequestInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;request&nbsp;was&nbsp;found.</tt></dd></dl>
+    :return&nbsp;(IRequestInfo):&nbsp;An&nbsp;IRequestInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;request&nbsp;was&nbsp;found.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-analyze_response"><strong>analyze_response</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IResponseInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
     <br>
-    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;an<br>
     IResponseInfo&nbsp;object.<br>
-    :return&nbsp;(IResponseInfo):&nbsp;A&nbsp;IResponseInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;response&nbsp;was&nbsp;found.</tt></dd></dl>
+    :return&nbsp;(IResponseInfo):&nbsp;An&nbsp;IResponseInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;response&nbsp;was&nbsp;found.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-analyze_signatures"><strong>analyze_signatures</strong></a>(self, content, strict<font color="#909090">=False</font>)</dt><dd><tt>This&nbsp;method&nbsp;checks&nbsp;whether&nbsp;the&nbsp;given&nbsp;string&nbsp;matches&nbsp;one&nbsp;of&nbsp;the&nbsp;known&nbsp;file&nbsp;signatures&nbsp;specified&nbsp;in&nbsp;an&nbsp;internal<br>
     database.<br>
