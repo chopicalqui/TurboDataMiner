@@ -35,6 +35,7 @@ import re
 import base64
 import HTMLParser
 import json
+import sys
 from burp import IBurpExtender
 from burp import ITab
 from burp import IHttpListener
@@ -87,9 +88,11 @@ from java.awt.datatransfer import StringSelection
 from java.lang import Integer
 from java.lang import String
 from java.lang import Float
+from java.lang import Thread
 from java.util import Date
 from java.lang import Boolean
 from java.net import URL
+from java.net import URLClassLoader
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
 from java.io import InputStreamReader
@@ -1157,9 +1160,9 @@ class ExportedMethods:
         """
         This method returns an IRequestInfo object based on the given IHttpRequestResponse object.
 
-        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as a
+        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as an
         IRequestInfo object.
-        :return (IRequestInfo): A IRequestInfo object or None, if no request was found.
+        :return (IRequestInfo): An IRequestInfo object or None, if no request was found.
         """
         request = message_info.getRequest()
         if request:
@@ -1172,9 +1175,9 @@ class ExportedMethods:
         """
         This method returns an IResponseInfo object based on the given IHttpRequestResponse object.
 
-        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as a
+        :param message_info (IHttpRequestResponse): The IHttpRequestResponse whose request should be returned as an
         IResponseInfo object.
-        :return (IResponseInfo): A IResponseInfo object or None, if no response was found.
+        :return (IResponseInfo): An IResponseInfo object or None, if no response was found.
         """
         response = message_info.getResponse()
         if response:
@@ -1527,7 +1530,7 @@ class ExportedMethods:
         :return (List[Dict[str, str]]): The keys of each dictionary represent the values specified in the provided
         attributes list and the values represent the corresponding values extracted from the JSON object.
         :raise ValueError: This exception is thrown when the given body cannot be converted into a
-        dictionary.s
+        dictionary.
         """
         result = {}
         json_object = body if isinstance(body, dict) else json.JSONDecoder().decode(body)
@@ -1541,6 +1544,29 @@ class ExportedMethods:
                 result[item] = None
         result = self._parse_json(json_object, result, must_match)
         return result
+
+    def get_json_attribute_by_path(self, body, path, default_value=None):
+        """
+        This method returns the JSON attribute located at position path in JSON object body.
+        :param body (str/dict): Contains the JSON object, which is either of type string or dictionary, that shall be
+        searched.
+        :param path (str): Path (e.g. data/value/) that specifies the attribute that shall be returned.
+        :param default_value (object): The default value that shall be returned if the requested path does not exist.
+        :return (dict): The JSON attribute at location path or default_value.
+        :raise ValueError: This exception is thrown when the given body cannot be converted into a
+        dictionary.
+        """
+        path = path[1:] if path[0] == '/' else path
+        current_position = body if isinstance(body, dict) else json.JSONDecoder().decode(body)
+        for value in path.split("/"):
+            if not self._ide_pane.activated:
+                return current_position
+            if isinstance(current_position, dict) and value in current_position:
+                current_position = current_position[value]
+            else:
+                current_position = None
+                break
+        return current_position if current_position else default_value
 
     def get_jwt(self, headers, re_header="^Authorization:\s+Bearer\s+(?P<jwt>.+?\..+?\..+?)$"):
         """
@@ -2233,16 +2259,17 @@ class IntelTab(IntelBase):
         header = []
         rows = []
         message_infos = {}
-        globals = {}
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
+            'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
             'row_count': row_count,
             'get_json_attributes': self._exported_methods.get_json_attributes,
+            'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
             'get_headers': self._exported_methods.get_headers,
             'get_parameters': self._exported_methods.get_parameters,
             'get_parameter_name': self._exported_methods.get_parameter_name,
@@ -2291,7 +2318,7 @@ class IntelTab(IntelBase):
         if time_delta:
             locals["time_delta"] = time_delta
         # Execute compiled code
-        exec(self.ide_pane.compiled_code, globals, locals)
+        exec(self.ide_pane.compiled_code, locals, locals)
         # Reimport writable API variables
         self._session = locals['session']
         rows = locals['rows']
@@ -2338,16 +2365,17 @@ class ModifierTab(IntelBase):
             return
         header = []
         rows = []
-        globals = {}
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
         locals = {
             'callbacks': self._callbacks,
+            'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
             'is_request': is_request,
             'get_json_attributes': self._exported_methods.get_json_attributes,
+            'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
             'get_headers': self._exported_methods.get_headers,
             'get_header': self._exported_methods.get_header,
             'get_cookies': self._exported_methods.get_cookies,
@@ -2389,7 +2417,7 @@ class ModifierTab(IntelBase):
         if proxy_message_info:
             locals["proxy_message_info"] = proxy_message_info
         # Execute script
-        exec(self.ide_pane.compiled_code, globals, locals)
+        exec(self.ide_pane.compiled_code, locals, locals)
         # Reimport API variables
         self._session = locals['session']
         self._ref = self._ref + 1
@@ -2447,14 +2475,36 @@ class AnalyzerBase(IntelTab):
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
 
-    def menu_invocation_pressed(self, invocation):
+    def _menu_invocation_pressed(self, invocation):
+        """
+        This method iterates through all selected message info items that were sent to Turbo Data Miner via
+        Turbo Data Miner's context menu.
+        """
         try:
             self._ref = 1
             self._ide_pane.compile()
             self._ide_pane.activated = True
-            for message_info in invocation.getSelectedMessages():
-                self.process_proxy_history_entry(message_info, invocation.getToolFlag(), in_scope=True)
+            messages = invocation.getSelectedMessages()
+            row_count = len(messages)
+            for message_info in messages:
+                self.process_proxy_history_entry(message_info,
+                                                 invocation.getToolFlag(),
+                                                 in_scope=True,
+                                                 row_count=row_count)
             self._ide_pane.activated = False
+        except:
+            traceback.print_exc(file=self._callbacks.getStderr())
+            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+            self._ide_pane.activated = False
+
+    def menu_invocation_pressed(self, invocation):
+        """This method is invoked when Turbo Data Miner's context menu is selected"""
+        self._ref = 1
+
+        try:
+            self._process_thread = threading.Thread(target=self._menu_invocation_pressed, args=(invocation, ))
+            self._process_thread.daemon = True
+            self._process_thread.start()
         except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
@@ -2597,8 +2647,10 @@ _is_enabled = is_enabled"""
             self._session = {}
             locals = {
                 'callbacks': self._extender.callbacks,
+                'xerceslib': self._extender.xerces_classloader,
                 'plugin_id': self._plugin_id,
                 'get_json_attributes': self._exported_methods.get_json_attributes,
+                'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
                 'get_headers': self._exported_methods.get_headers,
                 'get_parameters': self._exported_methods.get_parameters,
                 'get_parameter_name': self._exported_methods.get_parameter_name,
@@ -2624,9 +2676,8 @@ _is_enabled = is_enabled"""
                 '_is_enabled': self._is_enabled,
                 'helpers': self._helpers
             }
-            globals = locals
             # Execute script
-            exec(self.ide_pane.compiled_code, globals, locals)
+            exec(self.ide_pane.compiled_code, locals, locals)
             # Reimport API method implementations
             with self._lock:
                 self._set_message = locals['_set_message']
@@ -2848,6 +2899,15 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._callbacks.registerContextMenuFactory(self)
         self._callbacks.registerMessageEditorTabFactory(self)
         self._parent = SwingUtilities.getRoot(self._main_tabs)
+        # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
+        # http://xerces.apache.org/mirrors.cgi
+        # Note that the files integrity was verified prior its incorporation into Turbo Data Miner.
+        # For more information about the issue refer to:
+        # https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a
+        xerces_path = os.path.join(self._home_dir, "data", "xercesImpl.jar")
+        self._xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
+                                                  Thread.currentThread().getContextClassLoader())
+        sys.path.append(os.path.join(self._home_dir, "data", "libs"))
 
     def getTabCaption(self):
         return "Turbo Miner"
@@ -2917,6 +2977,10 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
     @property
     def home_dir(self):
         return self._home_dir
+
+    @property
+    def xerces_classloader(self):
+        return self._xerces_classloader
 
     @property
     def custom_editor_tab(self):

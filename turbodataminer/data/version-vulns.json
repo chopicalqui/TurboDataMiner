@@ -415,7 +415,7 @@
       },
       "Liferay, headers": {
         "alias": "cpe:/a:liferay:liferay_portal",
-        "regex": "Liferay-Portal:\\s*[a-z\\s]+([\\d.]+)",
+        "regex": "Liferay-Portal:\\s*[a-zA-Z\\s]+([\\d.]+)",
         "type": "cpe"
       },
       "LinkSmart, script": {

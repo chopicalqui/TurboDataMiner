@@ -7,7 +7,7 @@
 <body>
     <h1>Turbo Data Miner</h1>
 
-    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as an new entry
+    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as a new entry
     <code>Process in Turbo Miner</code> to Burp Suite's context menu. In the new tab, you are able to write new or select
     existing Python scripts that are executed on each request/response item currently stored in the Proxy History,
     Side Map, or on each request/response item that is sent or received by Burp Suite.
@@ -409,6 +409,20 @@
             </td>
         </tr>
         <tr>
+            <td>get_json_attribute_by_path</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-get_json_attribute_by_path">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>get_json_attributes</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
@@ -708,6 +722,39 @@
             <a href="https://docs.oracle.com/javase/7/docs/api/java/net/URL.html">Java documentation</a>.
             </td>
         </tr>
+        <tr>
+            <td>xerceslib</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td>
+            Per default, BApps written in Python cannot use Burp Suite's build in XML library as documented in the
+            Burp Suite User Forum thread
+            <a href="https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a">SAXParser
+            Dependency Delimma</a>. This same thread describes a workaround by loading the
+            <a href="https://xerces.apache.org/">Apache Xerces</a> library within BApps themselves.<br>
+            This variable contains a reference to a <code>java.net.URLClassLoader</code> object, which loaded Turbo
+            Data Miner's own local <a href="https://xerces.apache.org/">Apache Xerces</a> library (version 1.12.1).
+            This variable can then be used within Python scripts to load Turbo Data Miner's own
+            <a href="https://xerces.apache.org/">Apache Xerces</a> library into the current execution thread and
+            subsequently, to successfully process XML files. In order to make XML library available, use the following
+            Python code:
+            <br><br>
+            <code>
+            from java.lang import Thread<br>
+            Thread.currentThread().setContextClassLoader(xerceslib)<br>
+            import xml.etree.ElementTree as ET<br>
+            [...]<br>
+            root = ET.fromstring(body_content.encode("utf-8"))<br>
+            [...]<br>
+            </code>
+            </td>
+        </tr>
     </table>
 
     <h2>Method Details</h2>
@@ -715,15 +762,15 @@
 
     <dl><dt><a name="ExportedMethods-analyze_request"><strong>analyze_request</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IRequestInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
     <br>
-    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;an<br>
     IRequestInfo&nbsp;object.<br>
-    :return&nbsp;(IRequestInfo):&nbsp;A&nbsp;IRequestInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;request&nbsp;was&nbsp;found.</tt></dd></dl>
+    :return&nbsp;(IRequestInfo):&nbsp;An&nbsp;IRequestInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;request&nbsp;was&nbsp;found.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-analyze_response"><strong>analyze_response</strong></a>(self, message_info)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;an&nbsp;IResponseInfo&nbsp;object&nbsp;based&nbsp;on&nbsp;the&nbsp;given&nbsp;IHttpRequestResponse&nbsp;object.<br>
     <br>
-    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;a<br>
+    :param&nbsp;message_info&nbsp;(IHttpRequestResponse):&nbsp;The&nbsp;IHttpRequestResponse&nbsp;whose&nbsp;request&nbsp;should&nbsp;be&nbsp;returned&nbsp;as&nbsp;an<br>
     IResponseInfo&nbsp;object.<br>
-    :return&nbsp;(IResponseInfo):&nbsp;A&nbsp;IResponseInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;response&nbsp;was&nbsp;found.</tt></dd></dl>
+    :return&nbsp;(IResponseInfo):&nbsp;An&nbsp;IResponseInfo&nbsp;object&nbsp;or&nbsp;None,&nbsp;if&nbsp;no&nbsp;response&nbsp;was&nbsp;found.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-analyze_signatures"><strong>analyze_signatures</strong></a>(self, content, strict<font color="#909090">=False</font>)</dt><dd><tt>This&nbsp;method&nbsp;checks&nbsp;whether&nbsp;the&nbsp;given&nbsp;string&nbsp;matches&nbsp;one&nbsp;of&nbsp;the&nbsp;known&nbsp;file&nbsp;signatures&nbsp;specified&nbsp;in&nbsp;an&nbsp;internal<br>
     database.<br>
@@ -841,6 +888,16 @@
     :param&nbsp;url&nbsp;(java.lang.URL):&nbsp;The&nbsp;URL&nbsp;from&nbsp;which&nbsp;the&nbsp;file&nbsp;and&nbsp;query&nbsp;part&nbsp;is&nbsp;removed.<br>
     :return&nbsp;(java.lang.URL):&nbsp;The&nbsp;new&nbsp;java.net.URL&nbsp;instance&nbsp;containing&nbsp;the&nbsp;protocol,&nbsp;host,&nbsp;and&nbsp;port&nbsp;information</tt></dd></dl>
 
+    <dl><dt><a name="ExportedMethods-get_json_attribute_by_path"><strong>get_json_attribute_by_path</strong></a>(self, body, path, default_value<font color="#909090">=None</font>)</dt><dd><tt>This method returns the JSON attribute located at position path in JSON object body.
+    <br><br>
+    :param body (str/dict): Contains the JSON object, which is either of type string or dictionary, that shall be
+    searched.<br>
+    :param path (str): Path (e.g. data/value/) that specifies the attribute that shall be returned.<br>
+    :param default_value (object): The default value that shall be returned if the requested path does not exist.<br>
+    :return (dict): The JSON attribute at location path or default_value.<br>
+    :raise ValueError: This exception is thrown when the given body cannot be converted into a
+    dictionary.</tt></dd></dl>
+
     <dl><dt><a name="ExportedMethods-get_json_attributes"><strong>get_json_attributes</strong></a>(self, body, attributes, must_match<font color="#909090">=0</font>)</dt><dd><tt>Searches&nbsp;the&nbsp;string&nbsp;stored&nbsp;in&nbsp;the&nbsp;body&nbsp;variable&nbsp;for&nbsp;those&nbsp;attribute&nbsp;names,&nbsp;which&nbsp;are&nbsp;specified&nbsp;by&nbsp;the<br>
     attributes&nbsp;list.<br>
     <br>
@@ -856,7 +913,7 @@
     :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;each&nbsp;dictionary&nbsp;represent&nbsp;the&nbsp;values&nbsp;specified&nbsp;in&nbsp;the&nbsp;provided<br>
     attributes&nbsp;list&nbsp;and&nbsp;the&nbsp;values&nbsp;represent&nbsp;the&nbsp;corresponding&nbsp;values&nbsp;extracted&nbsp;from&nbsp;the&nbsp;JSON&nbsp;object.<br>
     :raise&nbsp;ValueError:&nbsp;This&nbsp;exception&nbsp;is&nbsp;thrown&nbsp;when&nbsp;the&nbsp;given&nbsp;body&nbsp;cannot&nbsp;be&nbsp;converted&nbsp;into&nbsp;a<br>
-    dictionary.s</tt></dd></dl>
+    dictionary.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-get_jwt"><strong>get_jwt</strong></a>(self, headers, re_header<font color="#909090">=r'^Authorization:\s+Bearer\s+(?P&lt;jwt&gt;.+?)$'</font>)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;array&nbsp;of&nbsp;headers&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;authorization<br>
     header&nbsp;and&nbsp;extracts&nbsp;as&nbsp;well&nbsp;as&nbsp;decodes&nbsp;and&nbsp;returns&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT).<br>
