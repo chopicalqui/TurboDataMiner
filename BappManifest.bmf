@@ -2,9 +2,9 @@ Uuid: 84350b8f090a4388a9d12cca141f201b
 ExtensionType: 2
 Name: Turbo Data Miner
 RepoName: turbo-data-miner
-ScreenVersion: 0.9.2
-SerialVersion: 2
-MinPlatformVersion: 0
+ScreenVersion: 1.0
+SerialVersion: 3
+MinPlatformVersion: 2
 ProOnly: False
 Author: Chopicalqui
 ShortDescription: Flexible and dynamic extraction, correlation, and structured presentation of information as well as on-the-fly modification of outgoing or incoming HTTP requests using Python scripts.
