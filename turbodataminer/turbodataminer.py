@@ -1240,7 +1240,7 @@ class ExportedMethods:
         second element the payload (or None), and the third element the signature (or None) of the JWT.
         """
         return_value = [None, None, None]
-        jwt_re = re.compile("^(?P<header>eyJh[a-zA-Z0-9]+?)\.(?P<payload>eyJ[a-zA-Z0-9]+?)\.(?P<signature>[a-zA-Z0-9_\-=]+?)$")
+        jwt_re = re.compile("^(?P<header>eyJ[a-zA-Z0-9]+?)\.(?P<payload>eyJ[a-zA-Z0-9]+?)\.(?P<signature>[a-zA-Z0-9_\-=]+?)$")
         jwt_match = jwt_re.match(jwt)
         if jwt_match:
             header = jwt_match.group("header")
@@ -1625,11 +1625,9 @@ class ExportedMethods:
         This method analyses the parameters of the given IRequestInfo object and returns all occurrences of parameters
         whose names match one of the given regular expressions.
 
-        :param headers (List[str]): The list of headers that shall be searched for the first occurrence of the given
-        header. Usually, the list of headers is obtained via the getHeaders method implemented by Burp Suite's
-        IRequestInfo or IResponseInfo interfaces.
-        :param re_headers (List[re.Pattern]): List of regular expressions that specify the patterns for header names
-        whose header values shall be returned.
+        :param request_info (RequestInfo): The IRequestInfo object whose parameters shall be analysed.
+        :param re_names (List[re.Pattern]): List of regular expressions that specify the patterns for parameter names
+        whose parameter values shall be returned.
         :return (Dict[str, List[IParameter]]): The keys of the returned dictionary are always the strings of the
         re_names list ({item.pattern: [] for item in re_names}) and the corresponding dictionary values contain the
         IParameter objects whose names matched the corresponding regular expression.
@@ -1644,7 +1642,25 @@ class ExportedMethods:
                     return result
                 name = parameter.getName()
                 if regex.match(name):
-                    result[pattern].append(parameter)
+                    result[pattern].append(parameter.getValue())
+        return result
+
+    def has_header(self, headers, name):
+        """
+        This method checks whether the given header exists in the list of headers. The search is case insensitive.
+
+        :param headers (List[str]): The list of headers that shall be searched to determine if the given header name
+        exists.
+        :param name (str): The header name that shall be searched.
+        :return (bool): True, if the given header name exists in the headers list, else False.
+        """
+        re_header_name = "^{}:.*$".format(name)
+        result = False
+        for header in headers:
+            if not self._ide_pane.activated:
+                return result
+            if re.match(re_header_name, header, re.IGNORECASE):
+                return True
         return result
 
     def get_extension_info(self, content):
@@ -1662,6 +1678,22 @@ class ExportedMethods:
             if content.endswith(".{}".format(extension["extension"])):
                 return extension
         return None
+
+    def send_http_message(self, request, http_service):
+        """
+        This method sends the given request to the given HTTP service.
+
+        :param request (str): The request that shall be sent.
+        :param http_service (IHttpService): The service to which the given request shall be sent.
+        :return (IHttpRequestResponse): Object containing the sent and received data.
+        """
+        request_binary = self._extender.helpers.stringToBytes(request.replace("\n", "\r\n").strip())
+        request_info = self._extender.helpers.analyzeRequest(request_binary)
+        headers = request_info.getHeaders()
+        body_offset = request_info.getBodyOffset()
+        body_bytes = request_binary[body_offset:]
+        new_request = self._extender.helpers.buildHttpMessage(headers, body_bytes)
+        return self._extender.callbacks.makeHttpRequest(http_service, new_request)
 
 
 class IdeTextAreaListener(DocumentListener):
@@ -2290,6 +2322,8 @@ class IntelTab(IntelBase):
             'get_jwt': self._exported_methods.get_jwt,
             'decode_jwt': self._exported_methods.decode_jwt,
             'encode_jwt': self._exported_methods.encode_jwt,
+            'send_http_message': self._exported_methods.send_http_message,
+            'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
             'header': header,
             'rows': rows,
@@ -2336,6 +2370,8 @@ class IntelTab(IntelBase):
                 traceback.print_exc(file=self._callbacks.getStderr())
         # Setup table header
         if self._ref <= 1:
+            self._data_model.set_header(header, reset_column_count=True)
+        elif row_count and self._ref == (row_count - 1) and not self._data_model.get_header() and header:
             self._data_model.set_header(header, reset_column_count=True)
         # Add new row to table
         self._data_model.add_rows(entries)
@@ -2396,6 +2432,8 @@ class ModifierTab(IntelBase):
             'get_jwt': self._exported_methods.get_jwt,
             'decode_jwt': self._exported_methods.decode_jwt,
             'encode_jwt': self._exported_methods.encode_jwt,
+            'send_http_message': self._exported_methods.send_http_message,
+            'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
             'header': header,
             'rows': rows,
@@ -2671,6 +2709,8 @@ _is_enabled = is_enabled"""
                 'get_jwt': self._exported_methods.get_jwt,
                 'decode_jwt': self._exported_methods.decode_jwt,
                 'encode_jwt': self._exported_methods.encode_jwt,
+                'send_http_message': self._exported_methods.send_http_message,
+                'has_header': self._exported_methods.has_header,
                 '_set_message': self._set_message,
                 '_get_message': self._get_message,
                 '_is_enabled': self._is_enabled,

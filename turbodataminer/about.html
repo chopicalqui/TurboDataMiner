@@ -479,6 +479,20 @@
             </td>
         </tr>
         <tr>
+            <td>has_header</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-has_header">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>header</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
@@ -686,6 +700,20 @@
             <td>
             This variable is of type <code>dict</code>. You can use this variable to store information across
             processing iterations. For example, this variable can be used to deduplicate content
+            </td>
+        </tr>
+        <tr>
+            <td>send_http_message</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-send_http_message">Method Details</a> for more information.
             </td>
         </tr>
         <tr>
@@ -937,13 +965,25 @@
     <dl><dt><a name="ExportedMethods-get_parameters"><strong>get_parameters</strong></a>(self, request_info, re_names)</dt><dd><tt>This&nbsp;method&nbsp;analyses&nbsp;the&nbsp;parameters&nbsp;of&nbsp;the&nbsp;given&nbsp;IRequestInfo&nbsp;object&nbsp;and&nbsp;returns&nbsp;all&nbsp;occurrences&nbsp;of&nbsp;parameters<br>
     whose&nbsp;names&nbsp;match&nbsp;one&nbsp;of&nbsp;the&nbsp;given&nbsp;regular&nbsp;expressions.<br>
     <br>
-    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;given<br>
+    :param&nbsp;request_info&nbsp;(RequestInfo): The IRequestInfo object, whose parameters shall be analysed.<br>
     header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's<br>
     IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
-    :param&nbsp;re_headers&nbsp;(List[re.Pattern]):&nbsp;List&nbsp;of&nbsp;regular&nbsp;expressions&nbsp;that&nbsp;specify&nbsp;the&nbsp;patterns&nbsp;for&nbsp;header&nbsp;names<br>
-    whose&nbsp;header&nbsp;values&nbsp;shall&nbsp;be&nbsp;returned.<br>
+    :param&nbsp;re_names&nbsp;(List[re.Pattern]): List of regular expressions that specify the patterns for parameter names,
+    whose parameter values shall be returned.<br>
     :return&nbsp;(Dict[str,&nbsp;List[IParameter]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;the&nbsp;returned&nbsp;dictionary&nbsp;are&nbsp;always&nbsp;the&nbsp;strings&nbsp;of&nbsp;the<br>
     re_names&nbsp;list&nbsp;({item.pattern:&nbsp;[]&nbsp;for&nbsp;item&nbsp;in&nbsp;re_names})&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;dictionary&nbsp;values&nbsp;contain&nbsp;the<br>
     IParameter&nbsp;objects&nbsp;whose&nbsp;names&nbsp;matched&nbsp;the&nbsp;corresponding&nbsp;regular&nbsp;expression.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-has_hea:&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;bder"><strong>has_header</strong></a>(self, headers, name)</dt><dd><tt>This method checks whether the given header name exists in the given list of headers.<br>
+    <br>
+    :param headers (List[str]): The list of headers that shall be searched to determine if the given header name exists.<br>
+    :param name (str): The header name that shall be searched.<br>
+    :return (bool): True, if the given header name exists in the headers list, else False.<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-send_http_message"><strong>send_http_message</strong></a>(self, request, http_service)</dt><dd><tt>This method sends the given request to the given HTTP service.<br>
+    <br>
+    :param request (str): The request (including the request headers and body) that shall be sent.<br>
+    :param http_service (IHttpService): The service to which the given request shall be sent.<br>
+    :return (IHttpRequestResponse): Object containing the sent and received data.<br></tt></dd></dl>
 </body>
 </html>
