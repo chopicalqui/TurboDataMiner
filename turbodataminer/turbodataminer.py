@@ -116,15 +116,7 @@ class IntelDataModelEntry:
         """
         self._elements = []
         for item in elements:
-            if isinstance(item, unicode):
-                try:
-                    value = item.decode("utf-8")
-                except UnicodeDecodeError:
-                    print("Failed to UTF-8 decode item and therefore, switched from decode "
-                          "argument errors='strict' to errors='ignore'.")
-                    value = item.decode("utf-8", 'ignore')
-                self._elements.append(value)
-            elif isinstance(item, Integer) or \
+            if isinstance(item, Integer) or \
                     isinstance(item, Float) or \
                     isinstance(item, Boolean) or \
                     isinstance(item, int) or \
@@ -132,7 +124,7 @@ class IntelDataModelEntry:
                     isinstance(item, bool):
                 self._elements.append(item)
             else:
-                self._elements.append(unicode(item))
+                self._elements.append(unicode(item, encoding="utf-8", errors="ignore"))
         self._length = len(elements)
         self._message_info = message_info
         self._message_infos = message_infos
@@ -796,11 +788,12 @@ class IntelTable(JTable, IMessageEditorController):
         """This method is invoked when a table row is selected. It then refreshes the details in the message tabs."""
         # show the log entry for the selected row
         if self._intel_tab:
-            model_row = self.convertRowIndexToModel(row)
-            self._currently_selected_message_info = self._data_model.get_message_info_at(model_row)
-            self._intel_tab.work_tab_pane.message_infos = self._data_model.get_message_infos_at(model_row)
-            self._intel_tab.message_info_pane.set_message_info(self._currently_selected_message_info)
-            JTable.changeSelection(self, row, col, toggle, extend)
+            with self._table_model_lock:
+                model_row = self.convertRowIndexToModel(row)
+                self._currently_selected_message_info = self._data_model.get_message_info_at(model_row)
+                self._intel_tab.work_tab_pane.message_infos = self._data_model.get_message_infos_at(model_row)
+                self._intel_tab.message_info_pane.set_message_info(self._currently_selected_message_info)
+                JTable.changeSelection(self, row, col, toggle, extend)
 
 
 class ErrorDialog(JDialog):
@@ -2295,7 +2288,8 @@ class IntelTab(IntelBase):
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
-        locals = {
+
+        globals = {
             'callbacks': self._callbacks,
             'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
@@ -2336,45 +2330,43 @@ class IntelTab(IntelBase):
             'ref': self._ref
         }
         if tool_flag:
-            locals["tool_flag"] = tool_flag
+            globals["tool_flag"] = tool_flag
         if send_date:
-            locals["sent_date"] = send_date
+            globals["sent_date"] = send_date
         if received_date:
-            locals["received_date"] = received_date
+            globals["received_date"] = received_date
         if listener_interface:
-            locals["listener_interface"] = listener_interface
+            globals["listener_interface"] = listener_interface
         if client_ip_address:
-            locals["client_ip_address"] = client_ip_address
+            globals["client_ip_address"] = client_ip_address
         if timedout is not None:
-            locals["timedout"] = timedout
+            globals["timedout"] = timedout
         if message_reference:
-            locals["message_reference"] = message_reference
+            globals["message_reference"] = message_reference
         if time_delta:
-            locals["time_delta"] = time_delta
+            globals["time_delta"] = time_delta
         # Execute compiled code
-        exec(self.ide_pane.compiled_code, locals, locals)
+        exec(self.ide_pane.compiled_code, globals)
         # Reimport writable API variables
-        self._session = locals['session']
-        rows = locals['rows']
-        header = locals['header']
-        message_infos = locals['message_infos']
+        self._session = globals['session']
+        rows = globals['rows']
+        header = globals['header']
+        message_infos = globals['message_infos']
         # Create new table row
         entries = []
         for row in rows:
-            try:
-                if isinstance(row, list):
-                    entries.append(IntelDataModelEntry(row, message_info, message_infos))
-                else:
-                    entries.append(IntelDataModelEntry([row], message_info, message_infos))
-            except:
-                traceback.print_exc(file=self._callbacks.getStderr())
+            if isinstance(row, list):
+                entries.append(IntelDataModelEntry(row, message_info, message_infos))
+            else:
+                entries.append(IntelDataModelEntry([row], message_info, message_infos))
         # Setup table header
         if self._ref <= 1:
             self._data_model.set_header(header, reset_column_count=True)
         elif row_count and self._ref == (row_count - 1) and not self._data_model.get_header() and header:
             self._data_model.set_header(header, reset_column_count=True)
         # Add new row to table
-        self._data_model.add_rows(entries)
+        with self._table_model_lock:
+            self._data_model.add_rows(entries)
         self._ref = self._ref + 1
 
 
@@ -2405,7 +2397,8 @@ class ModifierTab(IntelBase):
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
-        locals = {
+
+        globals = {
             'callbacks': self._callbacks,
             'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
@@ -2445,19 +2438,19 @@ class ModifierTab(IntelBase):
             'ref': self._ref
         }
         if tool_flag:
-            locals["tool_flag"] = tool_flag
+            globals["tool_flag"] = tool_flag
         if listener_interface:
-            locals["listener_interface"] = listener_interface
+            globals["listener_interface"] = listener_interface
         if client_ip_address:
-            locals["client_ip_address"] = client_ip_address
+            globals["client_ip_address"] = client_ip_address
         if message_reference:
-            locals["message_reference"] = message_reference
+            globals["message_reference"] = message_reference
         if proxy_message_info:
-            locals["proxy_message_info"] = proxy_message_info
+            globals["proxy_message_info"] = proxy_message_info
         # Execute script
-        exec(self.ide_pane.compiled_code, locals, locals)
+        exec(self.ide_pane.compiled_code, globals)
         # Reimport API variables
-        self._session = locals['session']
+        self._session = globals['session']
         self._ref = self._ref + 1
 
 
@@ -2683,7 +2676,8 @@ _is_enabled = is_enabled"""
         try:
             # Setup API
             self._session = {}
-            locals = {
+
+            globals = {
                 'callbacks': self._extender.callbacks,
                 'xerceslib': self._extender.xerces_classloader,
                 'plugin_id': self._plugin_id,
@@ -2717,12 +2711,12 @@ _is_enabled = is_enabled"""
                 'helpers': self._helpers
             }
             # Execute script
-            exec(self.ide_pane.compiled_code, locals, locals)
+            exec(self.ide_pane.compiled_code, globals)
             # Reimport API method implementations
             with self._lock:
-                self._set_message = locals['_set_message']
-                self._get_message = locals['_get_message']
-                self._is_enabled = locals['_is_enabled']
+                self._set_message = globals['_set_message']
+                self._get_message = globals['_get_message']
+                self._is_enabled = globals['_is_enabled']
         except:
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
