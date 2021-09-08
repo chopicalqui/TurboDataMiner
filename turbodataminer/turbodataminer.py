@@ -1333,6 +1333,26 @@ class ExportedMethods:
                 result.append(item)
         return result
 
+    def get_content_length(self, headers):
+        """
+        This method returns the first occurrence of the Content-Length from the given list of headers.
+
+        :param headers (List[str]): The list of headers that shall be searched for the first occurrence of the
+        Content-Length header. Usually, the list of headers is obtained via the getHeaders method implemented by
+        Burp Suite's IRequestInfo or IResponseInfo interfaces.
+        :return (int): Integer containing the content of the Content-Type header or None if it does not exist.
+        """
+        result = None
+        re_cl = re.compile("^Content-Length:\s*(?P<length>\d+)\s*$", re.IGNORECASE)
+        for header in headers:
+            if not self._ide_pane.activated:
+                return result
+            match = re_cl.match(header)
+            if match:
+                result = int(match.group("length"))
+                break
+        return result
+
     def get_content_type(self, headers):
         """
         This method returns the first occurrence of the Content-Type from the given list of headers.
@@ -1340,10 +1360,10 @@ class ExportedMethods:
         :param headers (List[str]): The list of headers that shall be searched for the first occurrence of the
         Content-Type header. Usually, the list of headers is obtained via the getHeaders method implemented by
         Burp Suite's IRequestInfo or IResponseInfo interfaces.
-        :return (str): String containing the content of the Content-Type header.
+        :return (str): String containing the content of the Content-Type header or None if it does not exist.
         """
         result = None
-        re_ct = re.compile("^Content-Type:\s(?P<type>.*?)(\s*;\s*.*)?$", re.IGNORECASE)
+        re_ct = re.compile("^Content-Type:\s*(?P<type>.*?)(\s*;\s*.*)?$", re.IGNORECASE)
         for header in headers:
             if not self._ide_pane.activated:
                 return result
@@ -1351,7 +1371,7 @@ class ExportedMethods:
             if match:
                 result = match.group("type")
                 break
-        return result
+        return unicode(result, errors="ignore")
 
     def get_cookie_attributes(self):
         """
@@ -1687,6 +1707,23 @@ class ExportedMethods:
         body_bytes = request_binary[body_offset:]
         new_request = self._extender.helpers.buildHttpMessage(headers, body_bytes)
         return self._extender.callbacks.makeHttpRequest(http_service, new_request)
+
+    def split_http_header(self, header):
+        """
+        This method splits the given header stringinto the header name and value. Usually this method is used in
+        combination with the getHeaders method of the IRequestInfo or IResponseInfo interface.
+
+        :param request (str): The header whose header name and value should be returned.
+        :return (tuple): The first element contains the header name and the second element the header value. If the
+        header is invalid (does not contain a colon), then the (None, None) is returned.
+        """
+        header_parts = header.split(":")
+        if len(header_parts) > 1:
+            header_name = header_parts[0]
+            header_value = ":".join(header_parts[1:])
+        else:
+            return None, None
+        return unicode(header_name, errors="ignore"), unicode(header_value, errors="ignore")
 
 
 class IdeTextAreaListener(DocumentListener):
@@ -2305,6 +2342,7 @@ class IntelTab(IntelBase):
             'compress_gzip': self._exported_methods.compress_gzip,
             'decompress_gzip': self._exported_methods.decompress_gzip,
             'get_hostname': self._exported_methods.get_hostname,
+            'get_content_length': self._exported_methods.get_content_length,
             'get_content_type': self._exported_methods.get_content_type,
             'analyze_signatures': self._exported_methods.analyze_signatures,
             'get_extension_info': self._exported_methods.get_extension_info,
@@ -2317,6 +2355,7 @@ class IntelTab(IntelBase):
             'decode_jwt': self._exported_methods.decode_jwt,
             'encode_jwt': self._exported_methods.encode_jwt,
             'send_http_message': self._exported_methods.send_http_message,
+            'split_http_header': self._exported_methods.split_http_header,
             'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
             'header': header,
@@ -2413,6 +2452,7 @@ class ModifierTab(IntelBase):
             'get_parameter_name': self._exported_methods.get_parameter_name,
             'compress_gzip': self._exported_methods.compress_gzip,
             'decompress_gzip': self._exported_methods.decompress_gzip,
+            'get_content_length': self._exported_methods.get_content_length,
             'get_content_type': self._exported_methods.get_content_type,
             'get_hostname': self._exported_methods.get_hostname,
             'analyze_signatures': self._exported_methods.analyze_signatures,
@@ -2426,6 +2466,7 @@ class ModifierTab(IntelBase):
             'decode_jwt': self._exported_methods.decode_jwt,
             'encode_jwt': self._exported_methods.encode_jwt,
             'send_http_message': self._exported_methods.send_http_message,
+            'split_http_header': self._exported_methods.split_http_header,
             'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
             'header': header,
@@ -2692,6 +2733,7 @@ _is_enabled = is_enabled"""
                 'get_hostname': self._exported_methods.get_hostname,
                 'compress_gzip': self._exported_methods.compress_gzip,
                 'decompress_gzip': self._exported_methods.decompress_gzip,
+                'get_content_length': self._exported_methods.get_content_length,
                 'get_content_type': self._exported_methods.get_content_type,
                 'analyze_signatures': self._exported_methods.analyze_signatures,
                 'get_extension_info': self._exported_methods.get_extension_info,
@@ -2704,6 +2746,7 @@ _is_enabled = is_enabled"""
                 'decode_jwt': self._exported_methods.decode_jwt,
                 'encode_jwt': self._exported_methods.encode_jwt,
                 'send_http_message': self._exported_methods.send_http_message,
+                'split_http_header': self._exported_methods.split_http_header,
                 'has_header': self._exported_methods.has_header,
                 '_set_message': self._set_message,
                 '_get_message': self._get_message,

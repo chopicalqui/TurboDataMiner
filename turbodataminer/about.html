@@ -311,6 +311,20 @@
             </td>
         </tr>
         <tr>
+            <td>get_content_length</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-get_content_length">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>get_content_type</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
@@ -783,6 +797,20 @@
             </code>
             </td>
         </tr>
+        <tr>
+            <td>split_http_header</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            refer to <a href="#ExportedMethods-split_http_header">Method Details</a> for more information.
+            </td>
+        </tr>
     </table>
 
     <h2>Method Details</h2>
@@ -859,12 +887,19 @@
     :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;List&nbsp;of&nbsp;dictionaries&nbsp;containing&nbsp;details&nbsp;about&nbsp;the&nbsp;identified&nbsp;software&nbsp;versions.<br>
     each&nbsp;dictionary&nbsp;contains&nbsp;the&nbsp;following&nbsp;keys:&nbsp;software,&nbsp;type,&nbsp;version,&nbsp;cpe,&nbsp;alias,&nbsp;source</tt></dd></dl>
 
+    <dl><dt><a name="ExportedMethods-get_content_length"><strong>get_content_length</strong></a>(self, headers)</dt><dd><tt>This method returns the first occurrence of the Content-Length from the given list of headers.<br>
+    <br>
+    :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the<br>
+    Content-Length&nbsp;header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by<br>
+    Burp&nbsp;Suite's&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
+    :return (int): Integer containing the content of the Content-Type header or None if it does not exist.</tt></dd></dl>
+
     <dl><dt><a name="ExportedMethods-get_content_type"><strong>get_content_type</strong></a>(self, headers)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the&nbsp;Content-Type&nbsp;from&nbsp;the&nbsp;given&nbsp;list&nbsp;of&nbsp;headers.<br>
     <br>
     :param&nbsp;headers&nbsp;(List[str]):&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;be&nbsp;searched&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;of&nbsp;the<br>
     Content-Type&nbsp;header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by<br>
     Burp&nbsp;Suite's&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
-    :return&nbsp;(str):&nbsp;String&nbsp;containing&nbsp;the&nbsp;content&nbsp;of&nbsp;the&nbsp;Content-Type&nbsp;header.</tt></dd></dl>
+    :return (str): String containing the content of the Content-Type header or None if it does not exist.</tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-get_cookie_attributes"><strong>get_cookie_attributes</strong></a>(self)</dt><dd><tt>This&nbsp;method&nbsp;returns&nbsp;a&nbsp;static&nbsp;list&nbsp;of&nbsp;all&nbsp;possible&nbsp;cookie&nbsp;attributes.&nbsp;This&nbsp;list&nbsp;can&nbsp;be&nbsp;used&nbsp;in&nbsp;combination&nbsp;with<br>
     API&nbsp;method&nbsp;get_cookies&nbsp;to&nbsp;convert&nbsp;all&nbsp;obtained&nbsp;cookies&nbsp;from&nbsp;a&nbsp;dictionary&nbsp;into&nbsp;a&nbsp;list/table&nbsp;format.<br>
@@ -974,7 +1009,7 @@
     re_names&nbsp;list&nbsp;({item.pattern:&nbsp;[]&nbsp;for&nbsp;item&nbsp;in&nbsp;re_names})&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;dictionary&nbsp;values&nbsp;contain&nbsp;the<br>
     IParameter&nbsp;objects&nbsp;whose&nbsp;names&nbsp;matched&nbsp;the&nbsp;corresponding&nbsp;regular&nbsp;expression.</tt></dd></dl>
 
-    <dl><dt><a name="ExportedMethods-has_hea:&nbsp;The&nbsp;list&nbsp;of&nbsp;headers&nbsp;that&nbsp;shall&nbsp;bder"><strong>has_header</strong></a>(self, headers, name)</dt><dd><tt>This method checks whether the given header name exists in the given list of headers.<br>
+    <dl><dt><a name="ExportedMethods-has_header"><strong>has_header</strong></a>(self, headers, name)</dt><dd><tt>This method checks whether the given header name exists in the given list of headers.<br>
     <br>
     :param headers (List[str]): The list of headers that shall be searched to determine if the given header name exists.<br>
     :param name (str): The header name that shall be searched.<br>
@@ -985,5 +1020,12 @@
     :param request (str): The request (including the request headers and body) that shall be sent.<br>
     :param http_service (IHttpService): The service to which the given request shall be sent.<br>
     :return (IHttpRequestResponse): Object containing the sent and received data.<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-split_http_header"><strong>split_http_header</strong></a>(self, header)</dt><dd><tt>This method splits the given header string into the header name and value. Usually this method is used in<br>
+    combination with the getHeaders method of the IRequestInfo or IResponseInfo interface.<br>
+    <br>
+    :param request (str): The header whose header name and value should be returned.<br>
+    :return (tuple): The first element contains the header name and the second element the header value. If the<br>
+    header is invalid (does not contain a colon), then the (None, None) is returned.<br></tt></dd></dl>
 </body>
 </html>
