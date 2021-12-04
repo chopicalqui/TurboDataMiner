@@ -343,7 +343,7 @@ class MessageViewPane(JPanel):
 
 class IntelTable(JTable, IMessageEditorController):
     """
-    The component that shows the extracted information in the graphical user interface in a JTable.
+    The component shows the extracted information in the graphical user interface in a JTable.
 
     This class uses the data model implemented by the IntelDataModel class.
     """
@@ -2225,7 +2225,6 @@ class DynamicMessageViewer(JTabbedPane):
 
     def __init__(self, extender, message_editor_controller):
         self._message_infos = {}
-        self._messge_info_panes = []
         self._extender = extender
         self._message_editor_controller = message_editor_controller
 
@@ -2236,18 +2235,27 @@ class DynamicMessageViewer(JTabbedPane):
     @message_infos.setter
     def message_infos(self, value):
         if isinstance(value, dict):
-            # Set new message infos
+            # Remove invalid elements
+            value = {key: message_info for key, message_info in value.items()
+                     if isinstance(message_info, IHttpRequestResponse) and isinstance(key, str)}
+            # Remove unneeded tabs from UI
+            original_titles = set([item for item in self._message_infos.keys()])
+            new_titles = set([item for item in value.keys()])
+            for tab_title in original_titles - new_titles:
+                tab_index = self.indexOfTab(tab_title)
+                if 0 <= tab_index:
+                    pane = self.getComponentAt(tab_index)
+                    self.remove(pane)
+            # Update existing tabs
             self._message_infos = value
-            # Remove current tabs and reset message info pane list
-            for pane in self._messge_info_panes:
-                self.remove(pane)
-            self._messge_info_panes = []
-            # Add new tabs
             for key, message_info in self._message_infos.items():
-                if isinstance(message_info, IHttpRequestResponse) and isinstance(key, str):
+                tab_index = self.indexOfTab(key)
+                if 0 <= tab_index:
+                    pane = self.getComponentAt(tab_index)
+                    pane.set_message_info(message_info)
+                else:
                     pane = MessageViewPane(self._extender, self._message_editor_controller)
                     pane.set_message_info(message_info)
-                    self._messge_info_panes.append(pane)
                     self.addTab(key, pane)
 
 
