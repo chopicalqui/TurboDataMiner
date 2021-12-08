@@ -826,7 +826,7 @@ class ScriptInformation:
         self._author = author
         self._version = version
         self._plugins = plugins
-        self._script = script
+        self._script = script if script is not None else ""
 
     @property
     def uuid(self):
@@ -1726,32 +1726,6 @@ class ExportedMethods:
         return unicode(header_name, errors="ignore"), unicode(header_value, errors="ignore")
 
 
-class IdeTextAreaListener(DocumentListener):
-    """
-    This class keeps track whether the Python code has changed
-    """
-
-    def __init__(self):
-        self._changed = False
-
-    @property
-    def changed(self):
-        return self._changed
-
-    @changed.setter
-    def changed(self, value):
-        self._changed = value
-
-    def removeUpdate(self, event):
-        self._changed = True
-
-    def insertUpdate(self, event):
-        self._changed = True
-
-    def changedUpdate(self, event):
-        self._changed = True
-
-
 class IdePane(JPanel):
     """
     This class implements the text area used for writing the Python code
@@ -1774,20 +1748,16 @@ class IdePane(JPanel):
         self._pre_script_code = pre_script_code
         self._post_script_code = post_script_code
         self._cb_list = DefaultComboBoxModel()
-        self._change_listener = IdeTextAreaListener()
+        # This flag is required to remember the state of the self._text_area component.
+        self._code_changed_state = False
         IdePane.INSTANCES.append(self)
 
         JScrollPane.__init__(self)
         self.setLayout(BorderLayout())
 
-        scroll_pane = JScrollPane()
-        self._text_area = JTextArea()
-        self._text_area.getDocument().addDocumentListener(self._change_listener)
-        self._text_area.setFont(Font('Monospaced', Font.PLAIN, 11))
+        self._text_area = self._intel_base.callbacks.createTextEditor()
         self._text_area.setEditable(True)
-        self._text_area.setTabSize(1)
-        scroll_pane.setViewportView(self._text_area)
-        self.add(scroll_pane, BorderLayout.CENTER)
+        self.add(self._text_area.getComponent(), BorderLayout.CENTER)
 
         components_pane = JPanel()
         self._button_pane = JPanel()
@@ -1831,21 +1801,25 @@ class IdePane(JPanel):
 
     @property
     def code_changed(self):
-        return self._change_listener.changed
+        return self._text_area.isTextModified() or self._code_changed_state
 
     @code_changed.setter
     def code_changed(self, value):
-        self._change_listener.changed = value
+        self._code_changed_state = value
+        if not self._code_changed_state:
+            tmp = self._text_area.getText()
+            self._text_area.setText(tmp)
 
     @property
     def script_info(self):
-        self._script_info._script = self._text_area.getText()
+        self._script_info._script = self.getScriptText()
         return self._script_info
 
     @script_info.setter
     def script_info(self, value):
         self._script_info = value
-        self._text_area.setText(value.script)
+        self._text_area.setText(self._intel_base.callbacks.getHelpers().stringToBytes(value.script))
+        self._code_changed_state = False
         self._cb_list.setSelectedItem(value)
 
     @property
@@ -1873,7 +1847,8 @@ class IdePane(JPanel):
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
 
-    def copy_to_clipboard(self, content):
+    @staticmethod
+    def copy_to_clipboard(content):
         """This method takes the parameter and copies it into the clipboard."""
         string_selection = StringSelection(unicode(content))
         clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
@@ -1898,6 +1873,13 @@ class IdePane(JPanel):
         if return_value == JFileChooser.APPROVE_OPTION:
             file = chooser.getSelectedFile().getPath()
         return file
+
+    def getScriptText(self):
+        """
+        Returns the script code as string
+        :return:
+        """
+        return self._intel_base.callbacks.getHelpers().bytesToString(self._text_area.getText())
 
     def refresh(self):
         """This method iterates the given script directory and populates the combo box"""
@@ -1976,7 +1958,7 @@ class IdePane(JPanel):
 
     def compile(self):
         """Creates a new compiled version of the script."""
-        self._script_info._script = self._text_area.getText()
+        self._script_info._script = self.getScriptText()
         pre_code = "{}{}".format(self._pre_script_code, os.linesep) if self._pre_script_code else ""
         post_code = "{}{}".format(os.linesep, self._post_script_code) if self._post_script_code else ""
         self._compiled_code = compile(pre_code + self._script_info.script + post_code, '<string>', 'exec')
