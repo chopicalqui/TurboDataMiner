@@ -27,6 +27,7 @@ import threading
 from threading import Lock
 from threading import RLock
 from burp import IHttpListener
+from burp import IBurpExtenderCallbacks
 from javax.swing import JSplitPane
 from javax.swing import JScrollPane
 from java.awt import BorderLayout

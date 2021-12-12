@@ -22,13 +22,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import os
 import csv
 import traceback
 import threading
+from java.net import URL
+from java.awt import Toolkit
 from javax.swing import JTable
 from javax.swing import JMenuItem
 from javax.swing import JPopupMenu
 from javax.swing import JOptionPane
+from javax.swing import TransferHandler
 from burp import IMessageEditorController
 from javax.swing.filechooser import FileNameExtensionFilter
 from turbodataminer.ui.core.scripting import IdePane

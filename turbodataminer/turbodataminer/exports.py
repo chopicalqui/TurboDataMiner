@@ -27,6 +27,8 @@ import os
 import json
 import HTMLParser
 from burp import IParameter
+from burp import IRequestInfo
+from burp import IResponseInfo
 from java.net import URL
 from java.io import BufferedReader
 from java.io import InputStreamReader

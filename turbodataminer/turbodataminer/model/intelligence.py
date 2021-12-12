@@ -22,7 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import time
+import traceback
 from java.lang import Float
+from java.lang import String
+from java.lang import Integer
 from java.lang import Boolean
 from javax.swing.table import AbstractTableModel
 

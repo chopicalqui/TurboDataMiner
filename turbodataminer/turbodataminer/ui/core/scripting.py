@@ -24,12 +24,16 @@ __version__ = 1.0
 
 import os
 import json
+import traceback
 from threading import Lock
 from javax.swing import JList
+from javax.swing import JLabel
 from javax.swing import JPanel
+from javax.swing import JFrame
 from javax.swing import JButton
 from javax.swing import JDialog
 from javax.swing import JComboBox
+from javax.swing import JTextArea
 from javax.swing import JTextField
 from javax.swing import JOptionPane
 from javax.swing import JScrollPane
