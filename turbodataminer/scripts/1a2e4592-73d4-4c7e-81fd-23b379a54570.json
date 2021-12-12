@@ -1,0 +1,11 @@
+{
+    "author": "Lukas Reiter", 
+    "plugins": [
+        0, 
+        6
+    ], 
+    "uuid": "1a2e4592-73d4-4c7e-81fd-23b379a54570", 
+    "version": "v0.1", 
+    "script": "\"\"\"\r\nThis script adds all IHttpRequestResponse items that are not in scope to the above table.\r\n\r\nYou can use this script to perform a review on the current scope configuration.\r\nFurthermore, you can use the above table's context menu, entry \"Add Selected Host(s) To Scope\"\r\nto include certain IHttpRequestResponse items to Burp Suite's scope. \r\n\"\"\"\r\n\r\nif ref == 1 or \"dedup\" not in session:\n\theader = [\"Ref.\", \"Host\"]\n\tsession[\"dedup\"] = {}\n\nif not in_scope:\n\thost = url.getHost()\n\tif host not in session[\"dedup\"]:\n\t\trows = [[ref, url.getHost()]]\n\t\tsession[\"dedup\"][host] = None", 
+    "name": "Misc - Template Script To Obtain List of All Out-Of-Scope Hostnames"
+}

@@ -1,0 +1,11 @@
+{
+    "author": "Lukas Reiter", 
+    "plugins": [
+        0, 
+        6
+    ], 
+    "uuid": "f0cfa6f0-70d7-4d82-91c2-24bbf7efd61d", 
+    "version": "v0.1", 
+    "script": "\"\"\"\nThis script extracts all cookie information from in-scope HTTP requests and adds\nthe information to the above table.\n\"\"\"\n# Do the initial setup\nif ref == 1:\n\theader = [\"Ref.\", \"Host\", \"Path\", \"Cookie Name\", \"Cookie Value\", \"JavaScript Set Cookie\"]\n\n# Process only in-scope HTTP requests\nif in_scope or True:\n\t_, cookies = get_header(request_info.getHeaders(), \"Cookie\")\n\tif cookies:\n\t\tfor cookie in cookies.split(\";\"):\n\t\t\tcookie = cookie.strip()\n\t\t\ttmp = cookie.split(\"=\")\n\t\t\tcookie_name = tmp[0]\n\t\t\tcookie_value = \"=\".join(tmp[1:])\n\t\t\trows.append([ref, url.getHost(), url.getPath(), cookie_name, cookie_value, 'document.cookie=\"{}\"'.format(cookie)])", 
+    "name": "Cookie - Template Script to Extract Cookie Information From HTTP Requests"
+}
