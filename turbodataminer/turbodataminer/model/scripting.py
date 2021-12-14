@@ -24,7 +24,6 @@ __version__ = 1.0
 
 import uuid
 import json
-from turbodataminer.model.plugins import PluginInformation
 
 
 class PluginType:
