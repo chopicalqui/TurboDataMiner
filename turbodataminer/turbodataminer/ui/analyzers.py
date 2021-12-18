@@ -47,7 +47,7 @@ class IntelTab(IntelBase):
     This abstract class holds all GUI elements like JTable or IDEPanel to implement to implement an analyzer GUI
     """
 
-    def __init__(self, extender, id, plugin_id):
+    def __init__(self, extender, **kwargs):
         """
         :param extender:
         :param id: Usually the class name. This information is used for storing the current state in Burp Suite in case
@@ -55,7 +55,10 @@ class IntelTab(IntelBase):
         :param plugin_id:
         :param script_dir: The files system directory where the scripts are stored
         """
-        IntelBase.__init__(self, extender, id, plugin_id, PluginCategory.analyzer)
+        IntelBase.__init__(self,
+                           extender=extender,
+                           plugin_category_id=PluginCategory.analyzer,
+                           **kwargs)
         self._table_model_lock = RLock()
         self._data_model = IntelDataModel()
         self._table = IntelTable(self, self._data_model, self._table_model_lock)
@@ -205,8 +208,8 @@ class AnalyzerBase(IntelTab):
     This class implements the base functionality for the proxy history and site map analyzer
     """
 
-    def __init__(self, extender, name, type):
-        IntelTab.__init__(self, extender, name, type)
+    def __init__(self, **kwargs):
+        IntelTab.__init__(self, **kwargs)
         self._process_thread = None
         self._lock = Lock()
 
@@ -278,13 +281,17 @@ class AnalyzerBase(IntelTab):
             self._ide_pane.activated = False
 
 
-class ProxyHistoryAnalyzerBase(AnalyzerBase):
+class ProxyHistoryAnalyzer(AnalyzerBase):
     """
     This class implements the proxy history analyzer
     """
 
-    def __init__(self, extender):
-        AnalyzerBase.__init__(self, extender, ProxyHistoryAnalyzerBase.__name__, PluginType.proxy_history_analyzer)
+    def __init__(self, **kwargs):
+        AnalyzerBase.__init__(self,
+                              id=ProxyHistoryAnalyzer.__name__,
+                              plugin_id=PluginType.proxy_history_analyzer,
+                              executable_on_startup=False,
+                              **kwargs)
 
     def start_analysis(self):
         with self._lock:
@@ -292,13 +299,17 @@ class ProxyHistoryAnalyzerBase(AnalyzerBase):
         self._start_analysis(entries)
 
 
-class SiteMapAnalyzerBase(AnalyzerBase):
+class SiteMapAnalyzer(AnalyzerBase):
     """
     This class implements the site map analyzer
     """
 
-    def __init__(self, extender):
-        AnalyzerBase.__init__(self, extender, SiteMapAnalyzerBase.__name__, PluginType.site_map_analyzer)
+    def __init__(self, **kwargs):
+        AnalyzerBase.__init__(self,
+                              id=SiteMapAnalyzer.__name__,
+                              plugin_id=PluginType.site_map_analyzer,
+                              executable_on_startup=False,
+                              **kwargs)
 
     def start_analysis(self):
         with self._lock:
@@ -311,8 +322,12 @@ class HttpListenerAnalyzer(IntelTab, IHttpListener):
     Analyzes information delivered through the IHttpListener interface
     """
 
-    def __init__(self, extender):
-        IntelTab.__init__(self, extender, HttpListenerAnalyzer.__name__, PluginType.http_listener_analyzer)
+    def __init__(self, **kwargs):
+        IntelTab.__init__(self,
+                          id=HttpListenerAnalyzer.__name__,
+                          plugin_id=PluginType.http_listener_analyzer,
+                          executable_on_startup=True,
+                          **kwargs)
 
     def start_analysis(self):
         """This method is invoked when the analysis is started"""

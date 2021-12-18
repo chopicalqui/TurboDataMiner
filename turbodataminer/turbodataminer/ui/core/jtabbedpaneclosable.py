@@ -27,8 +27,9 @@ __version__ = 1.0
 
 from javax.swing import JPanel
 from javax.swing import JLabel
-from javax.swing import JTabbedPane
 from javax.swing import JTextField
+from javax.swing import JTabbedPane
+from javax.swing import JOptionPane
 from javax.swing.event import ChangeListener
 from java.awt import Font
 from java.awt import Color
@@ -39,9 +40,16 @@ from java.awt.event import MouseAdapter
 from java.awt.event import FocusAdapter
 from java.awt.event import MouseListener
 from java.awt.event import ComponentAdapter
+from turbodataminer.ui.analyzers import HttpListenerAnalyzer
+from turbodataminer.ui.modifiers import HttpListenerModifier
+from turbodataminer.ui.modifiers import ProxyListenerModifier
 
 
 class CloseListenerMouseAdapter(MouseAdapter):
+    """
+    Each tab contains a JTextField before the x. This listener class enables editing the JTextField if the user
+    double-clicks on it.
+    """
 
     def __init__(self, tab, text_field):
         MouseAdapter.__init__(self)
@@ -54,14 +62,17 @@ class CloseListenerMouseAdapter(MouseAdapter):
         :param event:
         :return:
         """
-        if event.getClickCount() == 1:
-            tabbed_pane = self._text_field.getParent().getParent().getParent()
-            tabbed_pane.setSelectedIndex(tabbed_pane.indexOfComponent(self._tab))
-        elif event.getClickCount() == 2:
+        tabbed_pane = self._text_field.getParent().getParent().getParent()
+        tabbed_pane.setSelectedIndex(tabbed_pane.indexOfComponent(self._tab))
+        if event.getClickCount() == 2:
             self._text_field.setEditable(True)
 
 
 class CloseListenerFocusAdapter(FocusAdapter):
+    """
+    Each tab contains a JTextField before the x. CloseListenerMouseAdapter enables editing the JTextField if the user
+    double-clicks on it. This class is the counterpart that disables editing as soon as the focus is lost.
+    """
 
     def __init__(self, text_field):
         FocusAdapter.__init__(self)
@@ -78,16 +89,39 @@ class CloseListenerFocusAdapter(FocusAdapter):
 
 class CloseListener(MouseListener):
 
-    def __init__(self, tab):
+    def __init__(self, extender, tab):
         MouseListener.__init__(self)
-        self.tab = tab
+        self._extender = extender
+        self._tab = tab
 
     def mouseClicked(self, event):
+        """
+        This method is called when button x is clicked to close the tab.
+        :param event:
+        :return:
+        """
         if isinstance(event.getSource(), JLabel):
             clicked_button = event.getSource()
             tabbed_pane = clicked_button.getParent().getParent().getParent()
-            tabbed_pane.clicked_delete = True
-            tabbed_pane.remove(self.tab)
+            result = self._pre_closing_activities()
+            if result != JOptionPane.CANCEL_OPTION:
+                # Remove tab from UI
+                tabbed_pane.clicked_delete = True
+                tabbed_pane.remove(self._tab)
+
+    def _pre_closing_activities(self):
+        """
+        This method performs all necessary activities before the tab can be closed.
+        :return:
+        """
+        # Check if the script has to be saved and continue operation based on the user's decision
+        result = self._tab.ide_pane.save_current_script()
+        if result != JOptionPane.CANCEL_OPTION:
+            # Stop script execution
+            self._tab.ide_pane.activated = False
+            # Remove Burp Suite Listener
+            JTabbedPaneClosable.remove_listener(self._extender.callbacks, self._tab)
+        return result
 
     def mousePressed(self, event):
         pass
@@ -104,8 +138,9 @@ class CloseListener(MouseListener):
 
 class CloseButtonTab(JPanel):
 
-    def __init__(self, tab, title, icon):
+    def __init__(self, extender, tab, title, icon):
         JPanel.__init__(self)
+        self._extender = extender
         self.tab = tab
         self._text_field = JTextField(title)
         self.setOpaque(False)
@@ -121,14 +156,16 @@ class CloseButtonTab(JPanel):
         self._text_field.setBackground(Color(0, 0, 0, 0))
         self._text_field.setBorder(None)
         self._text_field.setEditable(False)
+        # The following two listeners enable editing in case the user double clicks on the text field and disables
+        # editing as soon as the focus is lost.
         self._text_field.addMouseListener(CloseListenerMouseAdapter(self.tab, self._text_field))
         self._text_field.addFocusListener(CloseListenerFocusAdapter(self._text_field))
         self.add(self._text_field, c)
         close = JLabel("x")
-        close.setFont(Font("Courier", Font.PLAIN, 10))
+        close.setFont(Font("Courier New", Font.PLAIN, 10))
         close.setPreferredSize(Dimension(10, 10))
         close.setBorder(None)
-        close.addMouseListener(CloseListener(self.tab))
+        close.addMouseListener(CloseListener(self._extender, self.tab))
         c.gridx = 1
         self.add(close, c)
 
@@ -140,6 +177,13 @@ class CloseButtonTab(JPanel):
         """
         self._text_field.setEditable(False)
 
+    def get_title(self):
+        """
+        This method returns the tab's title.
+        :return:
+        """
+        return self._text_field.getText()
+
 
 class JTabbedPaneClosableComponentAdapter(ComponentAdapter):
 
@@ -150,15 +194,14 @@ class JTabbedPaneClosableComponentAdapter(ComponentAdapter):
     def componentShown(self, event):
         if self._tabbed_pane.getSelectedIndex() == -1:
             return
-        # TODO: Is this for unloading a tab? In this case, we might have to unregister things.
 
 
 class JTabbedPaneClosableChangeListener(ChangeListener):
 
-    def __init__(self, tabbed_pane):
+    def __init__(self, tabbed_pane, tab_count):
         ComponentAdapter.__init__(self)
         self._tabbed_pane = tabbed_pane
-        self._tab_count = 1
+        self._tab_count = tab_count
 
     def stateChanged(self, event):
         if self._tabbed_pane.getSelectedIndex() >= 0:
@@ -181,28 +224,99 @@ class JTabbedPaneClosable(JTabbedPane):
     """
     Implements a JTabbedPane which allows users to add and close tabs.
     """
-    TAB_COUNT = 1
 
-    def __init__(self, extender, component_class):
+    def __init__(self, extender, component_class, configuration=None):
         JTabbedPane.__init__(self)
+        tab_count = 0
+        print("Load: {}".format(component_class.__name__))
         self.clicked_delete = False
         self._extender = extender
-        self.component_class = component_class
+        self._component_class = component_class
         self.addComponentListener(JTabbedPaneClosableComponentAdapter(self))
-        self.addTab("1", None, self.create_component())
+        # Read configuration and load tabs
+        if configuration and "tabs" in configuration:
+            for tab_index in configuration["tabs"]:
+                if tab_index in configuration:
+                    tab_info = configuration[tab_index]
+                    if "title" in tab_info and "script_info" in tab_info:
+                        title = tab_info["title"]
+                        script_info = tab_info["script_info"]
+                        self.addTab(title, None, self.create_component(script_info))
+                        print("- Load tab: {}".format(title))
+                        tab_count += 1
+        if tab_count == 0:
+            self.addTab("1", None, self.create_component())
+            tab_count += 1
         self.addTab("...", None, JPanel())
-        self.addChangeListener(JTabbedPaneClosableChangeListener(self))
+        self.addChangeListener(JTabbedPaneClosableChangeListener(self, tab_count))
 
-    def create_component(self):
-        return self.component_class(self._extender)
+    def create_component(self, configuration=None):
+        return self._component_class(extender=self._extender, configuration=configuration)
 
     def addTab(self, title, icon, component, tip=None):
+        # Register Burp Suite listeners
+        self.register_listener(self._extender.callbacks, component)
         JTabbedPane.addTab(self, title, icon, component, tip)
 
     def insertTab(self, title, icon, component, tip, index):
         JTabbedPane.insertTab(self, title, icon, component, tip, index)
         if title != "...":
-            self.setTabComponentAt(index, CloseButtonTab(component, title, icon))
+            self.setTabComponentAt(index, CloseButtonTab(self._extender, component, title, icon))
 
-    def addTabNoExit(self, title, icon, component, tip):
-        JTabbedPane.addTab(title, icon, component, tip)
+    def get_json(self):
+        """
+        This method returns the tab's current state. The method is used by Turbo Miner to persist the current
+        configuration.
+        :return:
+        """
+        tabs = []
+        result = {"tabs": tabs}
+        for i in range(0, self.getTabCount() - 1):
+            index = str(i)
+            tab_component = self.getTabComponentAt(i)
+            component = self.getComponentAt(i)
+            title = tab_component.get_title()
+            tabs.append(index)
+            result[index] = {"title": title, "script_info": component.get_json()}
+        return result
+
+    def stop_scripts(self):
+        """
+        This method sends the stop signal to all intel tabs.
+        :return:
+        """
+        for i in range(0, self.getTabCount() - 1):
+            component = self.getComponentAt(i)
+            component.ide_pane.activated = False
+
+    @staticmethod
+    def register_listener(callbacks, component):
+        """
+        This static method performs all Burp Suite listener registrations
+        :param callbacks:
+        :param component:
+        :return:
+        """
+        # TODO: Update in case of new intel component
+        if isinstance(component, HttpListenerAnalyzer):
+            callbacks.registerHttpListener(component)
+        elif isinstance(component, HttpListenerModifier):
+            callbacks.registerHttpListener(component)
+        elif isinstance(component, ProxyListenerModifier):
+            callbacks.registerProxyListener(component)
+
+    @staticmethod
+    def remove_listener(callbacks, component):
+        """
+        This static method performs all Burp Suite listener registrations
+        :param callbacks:
+        :param component:
+        :return:
+        """
+        # TODO: Update in case of new intel component
+        if isinstance(component, HttpListenerAnalyzer):
+            callbacks.removeHttpListener(component)
+        elif isinstance(component, HttpListenerModifier):
+            callbacks.removeHttpListener(component)
+        elif isinstance(component, ProxyListenerModifier):
+            callbacks.removeProxyListener(component)

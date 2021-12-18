@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import os
 import uuid
 import json
 
@@ -106,60 +107,24 @@ class ScriptInformation:
     """
 
     def __init__(self, guid=str(uuid.uuid4()), name=None, author=None, version=None, plugins=[], script=None):
-        self._uuid = guid
-        self._name = name
-        self._author = author
-        self._version = version
-        self._plugins = plugins
-        self._script = script if script is not None else ""
-
-    @property
-    def uuid(self):
-        return self._uuid
-
-    @uuid.setter
-    def uuid(self, value):
-        self._uuid = value
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-    @property
-    def author(self):
-        return self._author
-
-    @author.setter
-    def author(self, value):
-        self._author = value
+        self.uuid = guid
+        self.name = name
+        self.author = author
+        self.version = version
+        self.plugins = plugins
+        self._script = script
 
     @property
     def script(self):
-        return self._script
+        return self._script if self._script else ""
 
     @script.setter
     def script(self, value):
-        self._script = value
+        self._script = value if value else ""
 
     @property
-    def version(self):
-        return self._version
-
-    @version.setter
-    def version(self, value):
-        self._version = value
-
-    @property
-    def plugins(self):
-        return self._plugins
-
-    @plugins.setter
-    def plugins(self, value):
-        self._plugins = value
+    def file_name(self):
+        return "{}.json".format(self.uuid)
 
     @staticmethod
     def load_json(object):
@@ -168,23 +133,28 @@ class ScriptInformation:
         plugins = []
         if "plugins" in json_object:
             plugins = [PluginInformation.get_plugin_by_id(plugin_id) for plugin_id in json_object["plugins"]]
-        return ScriptInformation(json_object["uuid"] if "uuid" in json_object else None,
-                                 json_object["name"] if "name" in json_object else None,
-                                 json_object["author"] if "author" in json_object else None,
-                                 json_object["version"] if "version" in json_object else None,
-                                 plugins,
-                                 json_object["script"] if "script" in json_object else None)
+        return ScriptInformation(guid=json_object["uuid"] if "uuid" in json_object else None,
+                                 name=json_object["name"] if "name" in json_object else None,
+                                 author=json_object["author"] if "author" in json_object else None,
+                                 version=json_object["version"] if "version" in json_object else None,
+                                 plugins=plugins,
+                                 script=json_object["script"] if "script" in json_object else None)
+
+    def is_new(self, script_path):
+        """This method returns true if the given script is new."""
+        full_path = os.path.join(script_path, self.file_name)
+        return not os.path.isfile(full_path)
 
     def get_json(self):
         """This method returns a json object representing the object"""
-        return {"uuid": self._uuid,
-                "name": self._name,
-                "author": self._author,
-                "version": self._version,
-                "plugins": [item.plugin_id for item in self._plugins],
-                "script": self._script if self._script else ""}
+        return {"uuid": self.uuid,
+                "name": self.name,
+                "author": self.author,
+                "version": self.version,
+                "plugins": [item.plugin_id for item in self.plugins],
+                "script": self.script}
 
     def __repr__(self):
-        if self._name:
-            return "{} ({}) - {} - {} - {}".format(self._name, self._uuid, self._version, self._author, self._plugins)
+        if self.name:
+            return "{} ({}) - {} - {} - {}".format(self.name, self.uuid, self.version, self.author, self.plugins)
         return ""

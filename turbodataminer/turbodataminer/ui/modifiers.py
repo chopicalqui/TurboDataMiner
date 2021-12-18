@@ -34,8 +34,8 @@ class ModifierTab(IntelBase):
     This class implements the GUI and base class for on the fly modifications.
     """
 
-    def __init__(self, extender, id, plugin_id):
-        IntelBase.__init__(self, extender, id, plugin_id, PluginCategory.modifier)
+    def __init__(self, **kwargs):
+        IntelBase.__init__(self, plugin_category_id=PluginCategory.modifier, executable_on_startup=True, **kwargs)
 
     def start_analysis(self):
         """This method is invoked when the analysis is started"""
@@ -120,8 +120,11 @@ class HttpListenerModifier(ModifierTab, IHttpListener):
     Modifies requests and responses on the fly through the IHttpListener interface
     """
 
-    def __init__(self, extender):
-        ModifierTab.__init__(self, extender, HttpListenerModifier.__name__, PluginType.http_listener_modifier)
+    def __init__(self, **kwargs):
+        ModifierTab.__init__(self,
+                             id=HttpListenerModifier.__name__,
+                             plugin_id=PluginType.http_listener_modifier,
+                             **kwargs)
         self.add(self._ide_pane)
 
     def processHttpMessage(self, tool_flag, is_request, message_info):
@@ -146,8 +149,11 @@ class ProxyListenerModifier(ModifierTab, IProxyListener):
     Modifies requests and responses on the fly through the IProxyListener interface
     """
 
-    def __init__(self, extender):
-        ModifierTab.__init__(self, extender, HttpListenerModifier.__name__, PluginType.proxy_listener_modifier)
+    def __init__(self, **kwargs):
+        ModifierTab.__init__(self,
+                             id=HttpListenerModifier.__name__,
+                             plugin_id=PluginType.proxy_listener_modifier,
+                             **kwargs)
         self.add(self._ide_pane)
 
     def processProxyMessage(self, is_request, message):

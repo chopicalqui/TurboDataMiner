@@ -40,6 +40,7 @@ from javax.swing import JScrollPane
 from javax.swing import JFileChooser
 from javax.swing import JToggleButton
 from javax.swing import DefaultComboBoxModel
+from java.awt import Font
 from java.awt import Toolkit
 from java.awt import GridLayout
 from java.awt import BorderLayout
@@ -57,6 +58,7 @@ class ErrorDialog(JDialog):
         JFrame.__init__(self, owner, "Compile error", size=(800, 400))
         self._exception = exception
         text_area = JTextArea()
+        text_area.setFont(Font("Courier", Font.PLAIN, 11))
         text_area.setText(exception)
         text_area.setEditable(False)
         self.add(JScrollPane(text_area))
@@ -71,19 +73,19 @@ class SaveDialog(JDialog):
     """
     This dialog implements all functionality to save a new or update an existing script.
     """
-    def __init__(self, owner,  plugin_category, script_info=ScriptInformation()):
-        JDialog.__init__(self, owner, "Save Script", size=(800, 400))
+    def __init__(self, owner,  plugin_category, script_info=ScriptInformation(), title="Save Script"):
+        JDialog.__init__(self, owner, title, size=(800, 400))
         if script_info.uuid:
-            self._script_info = script_info
+            self.script_info = script_info
         else:
-            self._script_info = ScriptInformation(name=script_info.name,
+            self.script_info = ScriptInformation(name=script_info.name,
                                                   author=script_info.author,
                                                   version=script_info.version,
                                                   plugins=script_info.plugins,
                                                   script=script_info.script)
         self.setLayout(GridLayout(1, 1))
         self.setModal(True)
-        self._canceled = None
+        self.result = None
         self.windowClosing = self.cancel_action
 
         main_panel = JPanel()
@@ -102,7 +104,7 @@ class SaveDialog(JDialog):
 
         l_guid = JLabel("GUID (Filename)")
         tf_guid = JTextField()
-        tf_guid.setText(self._script_info.uuid)
+        tf_guid.setText(self.script_info.uuid)
         tf_guid.setEditable(False)
         tf_guid.setToolTipText("The unique ID and internal file name of this script.")
         main_panel.add(l_guid)
@@ -111,20 +113,20 @@ class SaveDialog(JDialog):
         l_name = JLabel("Name")
         self._tf_name = JTextField()
         self._tf_name.setToolTipText("Insert a short description for the script.")
-        self._tf_name.setText(self._script_info.name)
+        self._tf_name.setText(self.script_info.name)
         main_panel.add(l_name)
         main_panel.add(self._tf_name)
 
         l_author = JLabel("Author")
         self._ta_author = JTextField()
         self._ta_author.setToolTipText("This field usually contains your name.")
-        self._ta_author.setText(self._script_info.author)
+        self._ta_author.setText(self.script_info.author)
         main_panel.add(l_author)
         main_panel.add(JScrollPane(self._ta_author))
 
         l_version = JLabel("Version")
         self._ta_version = JTextField()
-        self._ta_version.setText(self._script_info.version)
+        self._ta_version.setText(self.script_info.version)
         self._ta_version.setToolTipText("This script's current version.")
         main_panel.add(l_version)
         main_panel.add(JScrollPane(self._ta_version))
@@ -166,23 +168,19 @@ class SaveDialog(JDialog):
                                           "Missing Plugin",
                                           JOptionPane.ERROR_MESSAGE)
             return
-        self._script_info._plugins = [self._plugins[index] for index in selections]
-        self._script_info._name = name
-        self._script_info._author = author
-        self._script_info._version = version
-        self._canceled = False
+        self.script_info.plugins = [self._plugins[index] for index in selections]
+        self.script_info.name = name
+        self.script_info.author = author
+        self.script_info.version = version
+        self.result = JOptionPane.YES_OPTION
         self.setVisible(False)
 
     def cancel_action(self, event):
         """
         This method is invoked when the cancel button is clicked.
         """
-        self._canceled = True
+        self.result = JOptionPane.CANCEL_OPTION
         self.setVisible(False)
-
-    @property
-    def canceled(self):
-        return self._canceled
 
 
 class IdePane(JPanel):
@@ -241,6 +239,8 @@ class IdePane(JPanel):
         self._save_button.setToolTipText("Press this button to save the new or update the existing script.")
         self._refresh_button = JButton("Refresh", actionPerformed=self.refresh_button_pressed)
         self._refresh_button.setToolTipText("Press this button to refresh the combobox.")
+        self._delete_button = JButton("Delete Script", actionPerformed=self.delete_button_pressed)
+        self._delete_button.setToolTipText("Press this button to delete the currently loaded script.")
         self._code_chooser.setMaximumRowCount(21)
         components_pane.add(self._code_chooser, BorderLayout.NORTH)
         components_pane.add(self._button_pane, BorderLayout.SOUTH)
@@ -251,6 +251,7 @@ class IdePane(JPanel):
         self._button_pane.add(self._new_button)
         self._button_pane.add(self._load_button)
         self._button_pane.add(self._refresh_button)
+        self._button_pane.add(self._delete_button)
         self.add(components_pane, BorderLayout.SOUTH)
         self.refresh()
 
@@ -361,35 +362,67 @@ class IdePane(JPanel):
         self._code_chooser.setModel(self._cb_list)
         self._cb_list.setSelectedItem(selected_item)
 
-    def force_save_script(self, script_info):
+    def _force_save_script(self, script_info):
         """
         This file writes the script code to the file regardless whether it already exists.
         Use save_script if you want to ask the user whether file should be overwritten or not
         """
         if not os.path.exists(self._scripts_dir):
             os.makedirs(self._scripts_dir)
-        path = os.path.join(self._scripts_dir, "{}.json".format(script_info.uuid))
+        path = os.path.join(self._scripts_dir, script_info.file_name)
         with open(path, "w") as f:
             json_object = script_info.get_json()
             f.write(json.dumps(json_object, indent=4))
         # Now we refresh all instances
         for instance in IdePane.INSTANCES:
             instance.refresh()
-            instance.code_changed = False
 
-    def save_script(self, script_info):
-        """This method is invoked to save the given script to a file"""
-        if not os.path.exists(self._scripts_dir):
-            os.makedirs(self._scripts_dir)
-        path = os.path.join(self._scripts_dir, "{}.json".format(script_info.uuid))
-        if os.path.exists(path):
-            answer = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
-                                                   "File already exists. Do you want to overwrite it?",
-                                                   "Overwrite File?",
-                                                   JOptionPane.YES_NO_OPTION)
-            if answer == JOptionPane.NO_OPTION:
-                return
-        self.force_save_script(script_info)
+    def save_current_script(self):
+        """
+        This method checks checks the status of the current script and if necessary saves it.
+        :return: Returns JOptionPane.YES_OPTION, JOptionPane.NO_OPTION or JOptionPane.CANCEL_OPTION. If
+        JOptionPane.CANCEL_OPTION is returned, then the caller might also have to cancel the current operation
+        (e.g., closing the tab, creating a new script, loading a new script, etc.).
+        """
+        result = JOptionPane.YES_OPTION
+        # We only need to save the script if something changed.
+        if self.code_changed:
+            # As the user how to proceed.
+            result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
+                                                   "Do you want to save the changes before you continue?",
+                                                   "Save Changed Script Code?",
+                                                   JOptionPane.YES_NO_CANCEL_OPTION)
+            if result == JOptionPane.YES_OPTION:
+                if self.script_info.is_new(self._scripts_dir):
+                    # The script is new and therefore we need additional information about the script before we can
+                    # save it.
+                    save_dialog = SaveDialog(self._intel_base.extender.parent,
+                                             self._intel_base.plugin_category_id,
+                                             self.script_info,
+                                             title="Save New Script")
+                    save_dialog.pack()
+                    save_dialog.setVisible(True)
+                    result = save_dialog.result
+                    if result == JOptionPane.YES_OPTION:
+                        self.script_info = save_dialog.script_info
+                        self._force_save_script(self.script_info)
+                        if self._cb_list.getSelectedItem() == 0:
+                            self._cb_list.addElement(self.script_info)
+                        self.code_changed = False
+                else:
+                    # In this case, the script exists already on the file system and therefore, we ask the user
+                    # whether overwriting it is okay.
+                    result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
+                                                           "The script already exists. Do you want to overwrite it?",
+                                                           "Overwrite Script File?",
+                                                           JOptionPane.YES_NO_CANCEL_OPTION)
+                    if result == JOptionPane.YES_OPTION:
+                        # In this case, the script exists already on the file system and therefore, we overwrite it.
+                        self._force_save_script(self.script_info)
+                        self.code_changed = False
+            elif result == JOptionPane.NO_OPTION:
+                self.code_changed = False
+        return result
 
     def register_start_analysis_function(self, function):
         """
@@ -453,24 +486,20 @@ class IdePane(JPanel):
     def refresh_button_pressed(self, event):
         self.refresh()
 
-    def save_current_script(self):
-        """
-        This method is used by methods new_button_pressed and load_button_pressed to save the current
-        script if desired and update all internal structures accordingly.
-        """
-        result = None
-        if self.code_changed:
-            result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
-                                                   "Do you want to save the changes before you continue?",
-                                                   "Save Changed Script Code?",
-                                                   JOptionPane.YES_NO_CANCEL_OPTION)
-            # If yes, then we save the script to the file system
-            if result == JOptionPane.YES_OPTION:
-                self.force_save_script(self.script_info)
+    def delete_button_pressed(self, event):
+        result = JOptionPane.showConfirmDialog(self._intel_base.extender.parent,
+                                               "Do you really want to delete the currently loaded script?",
+                                               "Delete Current Script?",
+                                               JOptionPane.YES_NO_OPTION)
+        # If yes, then we save the script to the file system
+        if result == JOptionPane.YES_OPTION:
+            full_path = os.path.join(self._scripts_dir, self.script_info.file_name)
+            if os.path.isfile(full_path):
+                os.unlink(full_path)
+                self.script_info = ScriptInformation(plugins=[PluginInformation.get_plugin_by_id(self._intel_base.plugin_id)])
+                self._cb_list.setSelectedItem(self.script_info)
                 self.code_changed = False
-            elif result == JOptionPane.NO_OPTION:
-                self.code_changed = False
-        return result
+                self.refresh()
 
     def new_button_pressed(self, event):
         """This method is invoked when the new script button is pressed"""
@@ -489,17 +518,18 @@ class IdePane(JPanel):
         save_dialog = SaveDialog(self._intel_base.extender.parent, self._intel_base.plugin_category_id, self.script_info)
         save_dialog.pack()
         save_dialog.setVisible(True)
-        if not save_dialog.canceled:
-            self.save_script(self.script_info)
+        if save_dialog.result == JOptionPane.YES_OPTION:
+            self.script_info = save_dialog.script_info
+            self._force_save_script(self.script_info)
             if self._cb_list.getSelectedItem() == 0:
                 self._cb_list.addElement(self.script_info)
             self._cb_list.setSelectedItem(self.script_info)
             self.code_changed = False
-        return JOptionPane.NO_OPTION if save_dialog.canceled else JOptionPane.YES_OPTION
 
     def load_button_pressed(self, event):
         """This method is invoked when the load button is clicked"""
         new_script = self._cb_list.getSelectedItem()
+        # Only do something, if another script was selected.
         if new_script and self.script_info.uuid != new_script.uuid:
             result = self.save_current_script()
             if result == JOptionPane.CANCEL_OPTION:

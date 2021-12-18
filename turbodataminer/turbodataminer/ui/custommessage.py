@@ -36,9 +36,12 @@ class CustomMessageEditorTabBase(IntelBase):
     This class implements the GUI and base class for on the fly modifications.
     """
 
-    def __init__(self, extender, id, plugin_id, pre_code=None, post_code=None):
-        IntelBase.__init__(self, extender, id, plugin_id, PluginCategory.custom_message_editor,
-                           pre_code, post_code)
+    def __init__(self, pre_code=None, post_code=None, **kwargs):
+        IntelBase.__init__(self,
+                           plugin_category_id=PluginCategory.custom_message_editor,
+                           pre_code=pre_code,
+                           post_code=post_code,
+                           **kwargs)
 
 
 class CustomMessageEditorBase(IMessageEditorTab):
@@ -154,8 +157,11 @@ _get_message = get_message
 _is_enabled = is_enabled"""
 
     def __init__(self, extender):
-        CustomMessageEditorTabBase.__init__(self, extender, CustomMessageEditorTab.__name__,
-                                            PluginType.custom_message_editor,
+        CustomMessageEditorTabBase.__init__(self,
+                                            extender=extender,
+                                            id=CustomMessageEditorTab.__name__,
+                                            executable_on_startup=False,
+                                            plugin_id=PluginType.custom_message_editor,
                                             post_code=CustomMessageEditorTab.POST_CODE)
         self._extender = extender
         self._is_enabled = None

@@ -36,6 +36,7 @@ from burp import IBurpExtender
 from burp import IMessageEditorTab
 from burp import IContextMenuFactory
 from burp import IContextMenuInvocation
+from burp import IExtensionStateListener
 from burp import IMessageEditorTabFactory
 from threading import Lock
 from javax.swing import JScrollPane
@@ -48,25 +49,30 @@ from java.awt import Desktop
 from java.lang import Thread
 from java.net import URL
 from java.net import URLClassLoader
+from turbodataminer.model.scripting import PluginType
+from turbodataminer.model.scripting import PluginCategory
 from turbodataminer.model.intelligence import IntelDataModel
+from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.ui.analyzers import AnalyzerBase
-from turbodataminer.ui.analyzers import SiteMapAnalyzerBase
+from turbodataminer.ui.analyzers import SiteMapAnalyzer
 from turbodataminer.ui.analyzers import HttpListenerAnalyzer
-from turbodataminer.ui.analyzers import ProxyHistoryAnalyzerBase
+from turbodataminer.ui.analyzers import ProxyHistoryAnalyzer
 from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
 from turbodataminer.ui.custommessage import CustomMessageEditorTab
 from turbodataminer.ui.custommessage import CustomTextEditorImplementation
+from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 
 
-class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFactory):
+class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFactory, IExtensionStateListener):
     """
     This class puts it all together by implementing the burp.IBurpExtender interface
     """
 
     def __init__(self):
-        self._callbacks = None
-        self._helpers = None
+        self.callbacks = None
+        self.helpers = None
+        self.xerces_classloader = None
         self._main_tabs = None
         self._pha = None
         self._sma = None
@@ -75,9 +81,9 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._hlm = None
         self._plm = None
         self._mef = None
-        self._custom_editor_tab = None
-        self._home_dir = None
-        self._parent = None
+        self.custom_editor_tab = None
+        self.home_dir = None
+        self.parent = None
         self._context_menu_invocation = None
         self._about = None
 
@@ -87,12 +93,12 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         :return:
         """
         # keep a reference to our callbacks object
-        self._callbacks = callbacks
+        self.callbacks = callbacks
         # obtain an extension helpers object
-        self._helpers = callbacks.getHelpers()
-        self._home_dir = os.path.dirname(callbacks.getExtensionFilename())
+        self.helpers = callbacks.getHelpers()
+        self.home_dir = os.path.dirname(callbacks.getExtensionFilename())
         # Set up About tab
-        about_file = os.path.join(self._home_dir, "about.html")
+        about_file = os.path.join(self.home_dir, "about.html")
         about_file_content = ""
         if os.path.isfile(about_file):
             with open(about_file, "r") as f:
@@ -102,48 +108,76 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._about.setEditable(False)
         self._about.setText(about_file_content)
         self._about.addHyperlinkListener(self.hyperlink_listener)
+        # load saved configuration
+        json_object = {}
+        try:
+            json_object = self.callbacks.loadExtensionSetting("config")
+            if json_object:
+                json_object = base64.b64decode(json_object)
+                json_object = json.JSONDecoder().decode(json_object)
+            else:
+                json_object = {}
+            # At first load the dictionary does not contain any values.
+        except:
+            traceback.print_exc(file=self.callbacks.getStderr())
+            ErrorDialog.Show(self.parent, traceback.format_exc())
+        # Initialize configuration if it is empty or incomplete
+        for item in dir(PluginType):
+            if not item.startswith("_"):
+                key_value = unicode(getattr(PluginType, item))
+                if key_value not in json_object:
+                    json_object[key_value] = {}
         # set our extension name
         callbacks.setExtensionName("Turbo Data Miner")
-        self._pha = ProxyHistoryAnalyzerBase(self)
-        self._sma = SiteMapAnalyzerBase(self)
-        self._hla = HttpListenerAnalyzer(self)
-        self._hlm = HttpListenerModifier(self)
-        self._plm = ProxyListenerModifier(self)
-        self._custom_editor_tab = CustomMessageEditorTab(self)
+        # TODO: Update in case of new intel component
+        self._pha = JTabbedPaneClosable(self,
+                                        ProxyHistoryAnalyzer,
+                                        configuration=json_object[unicode(PluginType.proxy_history_analyzer)])
+        self._sma = JTabbedPaneClosable(self,
+                                        SiteMapAnalyzer,
+                                        configuration=json_object[unicode(PluginType.site_map_analyzer)])
+        self._hla = JTabbedPaneClosable(self,
+                                        HttpListenerAnalyzer,
+                                        configuration=json_object[unicode(PluginType.http_listener_analyzer)])
+        self._hlm = JTabbedPaneClosable(self,
+                                        HttpListenerModifier,
+                                        configuration=json_object[unicode(PluginType.http_listener_modifier)])
+        self._plm = JTabbedPaneClosable(self,
+                                        ProxyListenerModifier,
+                                        configuration=json_object[unicode(PluginType.proxy_listener_modifier)])
+        self.custom_editor_tab = CustomMessageEditorTab(self)
         self._main_tabs = JTabbedPane()
         analyzer_tabs = JTabbedPane()
         modifier_tabs = JTabbedPane()
-        analyzer_tabs.addTab("Proxy History Analyzer", self._pha)
-        analyzer_tabs.addTab("Site Map Analyzer", self._sma)
-        analyzer_tabs.addTab("HTTP Listener Analyzer", self._hla)
-        modifier_tabs.addTab("HTTP Listener Modifier", self._hlm)
-        modifier_tabs.addTab("Proxy Listener Modifier", self._plm)
+        analyzer_tabs.addTab("Proxy History Analyzers", self._pha)
+        analyzer_tabs.addTab("Site Map Analyzers", self._sma)
+        analyzer_tabs.addTab("HTTP Listener Analyzers", self._hla)
+        modifier_tabs.addTab("HTTP Listener Modifiers", self._hlm)
+        modifier_tabs.addTab("Proxy Listener Modifiers", self._plm)
         self._main_tabs.addTab("Analyzers", analyzer_tabs)
         self._main_tabs.addTab("Modifiers", modifier_tabs)
-        self._main_tabs.addTab("Custom Message Editor", self._custom_editor_tab)
+        self._main_tabs.addTab("Custom Message Editor", self.custom_editor_tab)
         self._main_tabs.addTab("About", JScrollPane(self._about))
         # add the custom tab to Burp Suite's UI
-        self._callbacks.addSuiteTab(self)
-        self._callbacks.customizeUiComponent(self._main_tabs)
-        self._callbacks.customizeUiComponent(self._pha)
-        self._callbacks.customizeUiComponent(self._hla)
-        self._callbacks.customizeUiComponent(self._hlm)
-        self._callbacks.customizeUiComponent(self._plm)
-        self._callbacks.registerHttpListener(self._hla)
-        self._callbacks.registerHttpListener(self._hlm)
-        self._callbacks.registerProxyListener(self._plm)
-        self._callbacks.registerContextMenuFactory(self)
-        self._callbacks.registerMessageEditorTabFactory(self)
-        self._parent = SwingUtilities.getRoot(self._main_tabs)
+        self.callbacks.addSuiteTab(self)
+        self.callbacks.customizeUiComponent(self._main_tabs)
+        self.callbacks.customizeUiComponent(self._pha)
+        self.callbacks.customizeUiComponent(self._hla)
+        self.callbacks.customizeUiComponent(self._hlm)
+        self.callbacks.customizeUiComponent(self._plm)
+        self.callbacks.registerContextMenuFactory(self)
+        self.callbacks.registerExtensionStateListener(self)
+        self.callbacks.registerMessageEditorTabFactory(self)
+        self.parent = SwingUtilities.getRoot(self._main_tabs)
         # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
         # http://xerces.apache.org/mirrors.cgi
         # Note that the files integrity was verified prior its incorporation into Turbo Data Miner.
         # For more information about the issue refer to:
         # https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a
-        xerces_path = os.path.join(self._home_dir, "data", "xercesImpl.jar")
-        self._xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
-                                                  Thread.currentThread().getContextClassLoader())
-        sys.path.append(os.path.join(self._home_dir, "data", "libs"))
+        xerces_path = os.path.join(self.home_dir, "data", "xercesImpl.jar")
+        self.xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
+                                                 Thread.currentThread().getContextClassLoader())
+        sys.path.append(os.path.join(self.home_dir, "data", "libs"))
 
     def getTabCaption(self):
         return "Turbo Miner"
@@ -196,28 +230,32 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
                 elif Desktop.isDesktopSupported():
                     Desktop.getDesktop().browse(event.getURL().toURI())
             except:
-                self._callbacks.printError(traceback.format_exc())
+                self.callbacks.printError(traceback.format_exc())
 
-    @property
-    def callbacks(self):
-        return self._callbacks
-
-    @property
-    def helpers(self):
-        return self._helpers
-
-    @property
-    def parent(self):
-        return self._parent
-
-    @property
-    def home_dir(self):
-        return self._home_dir
-
-    @property
-    def xerces_classloader(self):
-        return self._xerces_classloader
-
-    @property
-    def custom_editor_tab(self):
-        return self._custom_editor_tab
+    def extensionUnloaded(self):
+        """
+        This method is called when the extension is unloaded.
+        """
+        result = {}
+        try:
+            # TODO: Update in case of new intel component
+            # Store configuration
+            result[unicode(PluginType.proxy_history_analyzer)] = self._pha.get_json()
+            result[unicode(PluginType.site_map_analyzer)] = self._sma.get_json()
+            result[unicode(PluginType.http_listener_analyzer)] = self._hla.get_json()
+            result[unicode(PluginType.http_listener_modifier)] = self._hlm.get_json()
+            result[unicode(PluginType.proxy_listener_modifier)] = self._plm.get_json()
+            result[unicode(PluginType.custom_message_editor)] = self.custom_editor_tab.get_json()
+            result = json.JSONEncoder().encode(result)
+            result = base64.b64encode(result)
+            self.callbacks.saveExtensionSetting("config", result)
+            # Stop all running scripts
+            self._pha.stop_scripts()
+            self._sma.stop_scripts()
+            self._hla.stop_scripts()
+            self._hlm.stop_scripts()
+            self._plm.stop_scripts()
+            # TODO: self.custom_editor_tab.get_json()
+        except:
+            traceback.print_exc(file=self.callbacks.getStderr())
+            ErrorDialog.Show(self.parent, traceback.format_exc())
