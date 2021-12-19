@@ -318,8 +318,7 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.registerHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.registerProxyListener(component)
-        elif isinstance(component, CustomMessageEditorTab):
-            callbacks.registerMessageEditorTabFactory(component)
+        # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab
 
     @staticmethod
     def remove_listener(callbacks, component):
@@ -336,5 +335,4 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.removeHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.removeProxyListener(component)
-        elif isinstance(component, CustomMessageEditorTab):
-            callbacks.removeMessageEditorTabFactory(component)
+        # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab

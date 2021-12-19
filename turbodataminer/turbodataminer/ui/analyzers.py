@@ -216,7 +216,6 @@ class AnalyzerBase(IntelTab):
     def _start_analysis(self, entries):
         """This method is invoked when the analysis is started"""
         self._ref = 1
-
         try:
             self._process_thread = threading.Thread(target=self.process_proxy_history_entries, args=(entries, ))
             self._process_thread.daemon = True
@@ -228,7 +227,8 @@ class AnalyzerBase(IntelTab):
 
     def stop_analysis(self):
         """This method is invoked when the analysis is stopped"""
-        self._process_thread.join()
+        if self._process_thread:
+            self._process_thread.join()
 
     def process_proxy_history_entries(self, entries):
         """Iterates through all entries of the HTTP proxy history and processes them."""

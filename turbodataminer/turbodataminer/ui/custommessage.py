@@ -141,9 +141,10 @@ class CustomTextEditorImplementation(CustomMessageEditorBase):
         try:
             closable_tabbed_pane = self._custom_editor_tab.closable_tabbed_pane
             if closable_tabbed_pane:
-                index = closable_tabbed_pane.indexOfComponent(self._custom_editor_tab)
-                if index >= 0:
-                    result = closable_tabbed_pane.getTitleAt(index)
+                tab_index = closable_tabbed_pane.indexOfComponent(self._custom_editor_tab)
+                if tab_index >= 0:
+                    tab_component = closable_tabbed_pane.getTabComponentAt(tab_index)
+                    result = tab_component.get_title()
         except:
             traceback.print_exc(file=self._extender.callbacks.getStdout())
         return result
@@ -190,7 +191,6 @@ _is_enabled = is_enabled"""
 
     def start_analysis(self):
         try:
-            print("start_analysis")
             # Setup API
             self._session = {}
             globals = {
@@ -230,6 +230,7 @@ _is_enabled = is_enabled"""
             }
             # Execute script
             exec(self.ide_pane.compiled_code, globals)
+            self._extender.callbacks.registerMessageEditorTabFactory(self)
             # Reimport API method implementations
             with self._lock:
                 self._set_message = globals['_set_message']
@@ -242,6 +243,7 @@ _is_enabled = is_enabled"""
 
     def stop_analysis(self):
         with self._lock:
+            self._extender.callbacks.removeMessageEditorTabFactory(self)
             self._set_message = None
             self._get_message = None
             self._is_enabled = None

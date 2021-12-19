@@ -33,6 +33,7 @@ from turbodataminer.exports import ExportedMethods
 from turbodataminer.ui.core.scripting import IdePane
 from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.model.scripting import ScriptInformation
+from turbodataminer.model.scripting import PluginInformation
 
 
 class IntelBaseConfiguration:
@@ -97,9 +98,11 @@ class IntelBase(JPanel):
         self._ide_pane.code_changed = False
         self.closable_tabbed_pane = closable_tabbed_pane
         # Load configuration
+        if not configuration:
+            configuration = IntelBaseConfiguration()
+            configuration.script_info = ScriptInformation(plugins=[PluginInformation.get_plugin_by_id(self._plugin_id)])
         configuration.activated = configuration.activated and executable_on_startup
-        self._ide_pane.script_info = configuration.script_info if configuration.script_info else ScriptInformation(
-            plugins=[PluginInformation.get_plugin_by_id(self._plugin_id)])
+        self._ide_pane.script_info = configuration.script_info
         self._ide_pane.code_changed = configuration.code_changed
         # Register start, stop and cleaning methods
         self._ide_pane.register_start_analysis_function(self.start_analysis)

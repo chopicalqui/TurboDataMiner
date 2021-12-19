@@ -306,6 +306,8 @@ class IdePane(JPanel):
             self._refresh_button.setEnabled(not value)
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
+        if self._stop_analysis_function:
+            self._stop_analysis_function()
 
     @staticmethod
     def copy_to_clipboard(content):
@@ -429,17 +431,13 @@ class IdePane(JPanel):
         This method starts or stops the script depending on the status of the button self._start_stop_button.
         """
         try:
-            print("start_stop_script")
             self.activated = self._start_stop_button.isSelected()
             if self.activated:
-                print("start_stop_script: activated")
                 self.compile()
                 if self._start_analysis_function:
-                    print("execute function")
                     self._start_analysis_function()
-            else:
-                if self._stop_analysis_function:
-                    self._stop_analysis_function()
+            elif self._stop_analysis_function:
+                self._stop_analysis_function()
         except:
             ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
             self.activated = False
