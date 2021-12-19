@@ -35,6 +35,23 @@ from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.model.scripting import ScriptInformation
 
 
+class IntelBaseConfiguration:
+    """
+    This class parses an API for reading an intel plugin's JSON configuration.
+    """
+
+    def __init__(self, configuration=None):
+        """The JSON object that shall be loaded"""
+        self.script_info = None
+        self.code_changed = False
+        self.activated = False
+        if configuration:
+            self.script_info = ScriptInformation.load_json(
+                configuration["script_info"] if "script_info" in configuration else {})
+            self.code_changed = configuration["code_changed"] if "code_changed" in configuration else False
+            self.activated = configuration["activated"] if "activated" in configuration else False
+
+
 class IntelBase(JPanel):
     """
     This abstract class is the base class for all analyzers, modifiers, and custom message panes GUIs.
@@ -44,7 +61,7 @@ class IntelBase(JPanel):
     SCRIPTS_DIR = "scripts"
 
     def __init__(self, extender, id, plugin_id, plugin_category_id, pre_code=None, post_code=None, configuration=None,
-                 executable_on_startup=False):
+                 executable_on_startup=False, closable_tabbed_pane=None):
         """
         :param extender:
         :param id: Usually the class name. This information is used for storing the current state in Burp Suite in case
@@ -58,6 +75,8 @@ class IntelBase(JPanel):
         this configuration is obtained from Burp Suite's configuration storage at startup.
         :param executable_on_startup: Boolean that specifies whether the given plugin type is allowed (True) to
         automatically execute after startup.
+        :closable_tabbed_pane: Is of type JTabbedPaneClosable and allows the intelligence plugin to access content of
+        the tabbed pane like the current tab's title.
         """
         JPanel.__init__(self)
         self._id = "{}:{:03d}".format(id, IntelBase.INSTANCE_COUNT)
@@ -76,19 +95,13 @@ class IntelBase(JPanel):
         self._ref = 1
         self._executable_on_startup = executable_on_startup
         self._ide_pane.code_changed = False
-        # load configuration
-        if configuration:
-            try:
-                self._ide_pane.script_info = ScriptInformation.load_json(
-                    configuration["script_info"] if "script_info" in configuration else {})
-                self._ide_pane.code_changed = configuration["code_changed"] \
-                    if "code_changed" in configuration else False
-                self._ide_pane.activated = configuration["activated"] \
-                    if "activated" in configuration and self._executable_on_startup else False
-            except:
-                traceback.print_exc(file=self._callbacks.getStderr())
-                ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-                self._ide_pane.script_info = ScriptInformation(plugins=[PluginInformation.get_plugin_by_id(self._plugin_id)])
+        self.closable_tabbed_pane = closable_tabbed_pane
+        # Load configuration
+        configuration.activated = configuration.activated and executable_on_startup
+        self._ide_pane.script_info = configuration.script_info if configuration.script_info else ScriptInformation(
+            plugins=[PluginInformation.get_plugin_by_id(self._plugin_id)])
+        self._ide_pane.code_changed = configuration.code_changed
+        # Register start, stop and cleaning methods
         self._ide_pane.register_start_analysis_function(self.start_analysis)
         self._ide_pane.register_stop_analysis_function(self.stop_analysis)
         self._ide_pane.register_clear_session_function(self.clear_session)

@@ -222,9 +222,9 @@ class AnalyzerBase(IntelTab):
             self._process_thread.daemon = True
             self._process_thread.start()
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
 
     def stop_analysis(self):
         """This method is invoked when the analysis is stopped"""
@@ -241,9 +241,9 @@ class AnalyzerBase(IntelTab):
                 self.process_proxy_history_entry(message_info, IBurpExtenderCallbacks.TOOL_PROXY, row_count=row_count)
             self._ide_pane.activated = False
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
 
     def _menu_invocation_pressed(self, invocation):
         """
@@ -263,9 +263,9 @@ class AnalyzerBase(IntelTab):
                                                  row_count=row_count)
             self._ide_pane.activated = False
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
 
     def menu_invocation_pressed(self, invocation):
         """This method is invoked when Turbo Data Miner's context menu is selected"""
@@ -276,9 +276,9 @@ class AnalyzerBase(IntelTab):
             self._process_thread.daemon = True
             self._process_thread.start()
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
 
 
 class ProxyHistoryAnalyzer(AnalyzerBase):
@@ -345,6 +345,6 @@ class HttpListenerAnalyzer(IntelTab, IHttpListener):
             if self._ide_pane.activated and not is_request:
                 self.process_proxy_history_entry(message_info, is_request, tool_flag)
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False

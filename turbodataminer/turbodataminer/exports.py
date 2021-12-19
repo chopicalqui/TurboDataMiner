@@ -70,10 +70,17 @@ class ExportedMethods:
                                                         "software version database: {0}".format(details["regex"]))
 
     def _decode_jwt(self, item):
-        result = json.dumps(item)
-        result = result.replace('_', '/')
+        result = item.replace('_', '/')
         result = result.replace('-', '+')
-        result += '=' * (4 - len(unicode(result)) % 4)
+        padding = len(unicode(result)) % 4
+        if padding == 0:
+            pass
+        elif padding == 2:
+            result += "=="
+        elif padding == 3:
+            result += "="
+        else:
+            raise ValueError("illegal base64 string.")
         result = self._extender.helpers.bytesToString(self._extender.helpers.base64Decode(result))
         return result
 
@@ -566,7 +573,7 @@ class ExportedMethods:
                 break
         return current_position if current_position else default_value
 
-    def get_jwt(self, headers, re_header="^Authorization:\s+Bearer\s+(?P<jwt>.+?\..+?\..+?)$"):
+    def get_jwt(self, headers, re_header="^Authorization:\s+Bearer\s+(?P<jwt>eyJ\w+?\.eyJ\w+?\..+?)$"):
         """
         This method searches the given array of headers for the first occurrence that matches the given authorization
         header and extracts as well as decodes and returns the given JSON Web Token (JWT).

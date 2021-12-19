@@ -171,8 +171,8 @@ class IntelTable(JTable, IMessageEditorController):
                                               "Export completed ...",
                                               JOptionPane.DEFAULT_OPTION)
             except:
-                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
                 traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             self._setEnablePopupMenu(True)
 
     def export_csv_menu_pressed(self, event):
@@ -195,8 +195,8 @@ class IntelTable(JTable, IMessageEditorController):
                                               "Copying completed ...",
                                               JOptionPane.DEFAULT_OPTION)
             except:
-                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
                 traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+                ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
 
     def _copy_selected_values_menu_pressed(self):
         """This helper method is invoked by a thread when the copy all menu is selected"""
@@ -210,8 +210,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def copy_selected_values_menu_pressed(self, event):
@@ -256,8 +256,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
 
     def _copy_all_column_values_menu_pressed(self):
         """This helper method is invoked by a thread when the copy column values menu is selected"""
@@ -274,8 +274,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def copy_all_column_values_menu_pressed(self, event):
@@ -299,8 +299,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def copy_selected_column_values_menu_pressed(self, event):
@@ -325,8 +325,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def copy_all_column_values_dedup_menu_pressed(self, event):
@@ -351,8 +351,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Copying completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def copy_selected_column_values_dedup_menu_pressed(self, event):
@@ -379,8 +379,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Deleting completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def delete_rows_menu_pressed(self, event):
@@ -420,8 +420,8 @@ class IntelTable(JTable, IMessageEditorController):
                                               "Deleting from scope completed ...",
                                               JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def include_hosts_in_scope(self, event):
@@ -460,8 +460,8 @@ class IntelTable(JTable, IMessageEditorController):
                                           "Sending completed ...",
                                           JOptionPane.DEFAULT_OPTION)
         except:
-            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
+            ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
 
     def send_to_repeater(self, event):

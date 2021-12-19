@@ -81,7 +81,9 @@ This analyzer implements the interface `IProxyListener` of the
 [Burp Suite Extender API](https://portswigger.net/Burp/extender/api/index.html). Thereby, it executes the Python 
 script after each request sent and response received.
 
-## 3. Custom Message Editor
+## 3. Others
+
+### Custom Message Editor
 
 This tab implements the interface `IMessageEditorTab` of the 
 [Burp Suite Extender API](https://portswigger.net/Burp/extender/api/index.html). Use it to implement an encoder 

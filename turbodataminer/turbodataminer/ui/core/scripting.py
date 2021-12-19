@@ -424,6 +424,26 @@ class IdePane(JPanel):
                 self.code_changed = False
         return result
 
+    def start_stop_script(self):
+        """
+        This method starts or stops the script depending on the status of the button self._start_stop_button.
+        """
+        try:
+            print("start_stop_script")
+            self.activated = self._start_stop_button.isSelected()
+            if self.activated:
+                print("start_stop_script: activated")
+                self.compile()
+                if self._start_analysis_function:
+                    print("execute function")
+                    self._start_analysis_function()
+            else:
+                if self._stop_analysis_function:
+                    self._stop_analysis_function()
+        except:
+            ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
+            self.activated = False
+
     def register_start_analysis_function(self, function):
         """
         This method must be used to register a function that performs the analysis.
@@ -466,18 +486,7 @@ class IdePane(JPanel):
 
     def start_stop_button_pressed(self, event):
         """This method is invoked when the start button is pressed"""
-        try:
-            self.activated = self._start_stop_button.isSelected()
-            if self.activated:
-                self.compile()
-                if self._start_analysis_function:
-                    self._start_analysis_function()
-            else:
-                if self._stop_analysis_function:
-                    self._stop_analysis_function()
-        except:
-            ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
-            self.activated = False
+        self.start_stop_script()
 
     def clear_session_button_pressed(self, event):
         """This method is invoked when the clear session button is pressed"""

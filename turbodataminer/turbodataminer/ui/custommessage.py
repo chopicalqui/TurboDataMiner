@@ -25,6 +25,7 @@ __version__ = 1.0
 import traceback
 from threading import Lock
 from burp import IMessageEditorTab
+from burp import IMessageEditorTabFactory
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.model.scripting import PluginCategory
 from turbodataminer.ui.core.intelbase import IntelBase
@@ -49,10 +50,19 @@ class CustomMessageEditorBase(IMessageEditorTab):
     This class implements the base functionalities for the custom editors
     """
 
-    def __init__(self, extender, controller, editable):
-        self._extender = extender
+    def __init__(self, custom_editor_tab, controller, editable):
+        """
+        Initializes the IMessageEditorTab instance. This constructor is called by
+        CustomMessageEditorTab.createNewInstance
+        :param custom_editor_tab: The CustomMessageEditorTab that is displayed in the custom message editor tab. This
+        object provides access to all necessary information like extender.
+        :param controller: Provided by IMessageEditorTabFactory
+        :param editable: Provided by IMessageEditorTabFactory
+        """
+        self._custom_editor_tab = custom_editor_tab
+        self._extender = custom_editor_tab.extender
+        self._controller = controller
         self._editable = editable
-        self._custom_editor_tab = extender.custom_editor_tab
         self._current_message = None
 
     def isEnabled(self, content, is_request):
@@ -63,7 +73,7 @@ class CustomMessageEditorBase(IMessageEditorTab):
                                                             is_request,
                                                             self._custom_editor_tab.session)
         except:
-            self._extender.callbacks.printError(traceback.format_exc())
+            traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
         return rvalue
 
@@ -77,7 +87,7 @@ class CustomMessageEditorBase(IMessageEditorTab):
             else:
                 self._set_message("", is_request, False)
         except:
-            self._extender.callbacks.printError(traceback.format_exc())
+            traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             # clear our display
             self._set_message("", is_request, False)
@@ -90,7 +100,7 @@ class CustomMessageEditorBase(IMessageEditorTab):
             else:
                 return None
         except:
-            self._extender.callbacks.printError(traceback.format_exc())
+            traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             return None
 
@@ -119,15 +129,24 @@ class CustomTextEditorImplementation(CustomMessageEditorBase):
     GUI. Internally, this class uses class CustomMessageEditorTab to allow the management of custom editors in the
     Turbo Data Miner extension.
     """
-    def __init__(self, extender, controller, editable):
-        CustomMessageEditorBase.__init__(self, extender, controller, editable)
 
+    def __init__(self, editable, **kwargs):
+        CustomMessageEditorBase.__init__(self, editable=editable, **kwargs)
         # create an instance of Burp Suite's text editor, to display our deserialized data
-        self._text_editor = extender.callbacks.createTextEditor()
+        self._text_editor = self._extender.callbacks.createTextEditor()
         self._text_editor.setEditable(editable)
 
     def getTabCaption(self):
-        return "Turbo Miner"
+        result = "Turbo Miner"
+        try:
+            closable_tabbed_pane = self._custom_editor_tab.closable_tabbed_pane
+            if closable_tabbed_pane:
+                index = closable_tabbed_pane.indexOfComponent(self._custom_editor_tab)
+                if index >= 0:
+                    result = closable_tabbed_pane.getTitleAt(index)
+        except:
+            traceback.print_exc(file=self._extender.callbacks.getStdout())
+        return result
 
     def getUiComponent(self):
         return self._text_editor.getComponent()
@@ -146,7 +165,7 @@ class CustomTextEditorImplementation(CustomMessageEditorBase):
         return self._text_editor.getSelectedText()
 
 
-class CustomMessageEditorTab(CustomMessageEditorTabBase):
+class CustomMessageEditorTab(CustomMessageEditorTabBase, IMessageEditorTabFactory):
     """
     This class is used by the CustomTextEditorImplementation class. It implements the logic to write, compile, and
     integrate the code into Burp Suite's message editor tab.
@@ -156,14 +175,13 @@ class CustomMessageEditorTab(CustomMessageEditorTabBase):
 _get_message = get_message
 _is_enabled = is_enabled"""
 
-    def __init__(self, extender):
+    def __init__(self, **kwargs):
         CustomMessageEditorTabBase.__init__(self,
-                                            extender=extender,
                                             id=CustomMessageEditorTab.__name__,
-                                            executable_on_startup=False,
+                                            executable_on_startup=True,
                                             plugin_id=PluginType.custom_message_editor,
-                                            post_code=CustomMessageEditorTab.POST_CODE)
-        self._extender = extender
+                                            post_code=CustomMessageEditorTab.POST_CODE,
+                                            **kwargs)
         self._is_enabled = None
         self._set_message = None
         self._get_message = None
@@ -172,9 +190,9 @@ _is_enabled = is_enabled"""
 
     def start_analysis(self):
         try:
+            print("start_analysis")
             # Setup API
             self._session = {}
-
             globals = {
                 'callbacks': self._extender.callbacks,
                 'xerceslib': self._extender.xerces_classloader,
@@ -218,16 +236,15 @@ _is_enabled = is_enabled"""
                 self._get_message = globals['_get_message']
                 self._is_enabled = globals['_is_enabled']
         except:
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             self._ide_pane.activated = False
+            traceback.print_exc(file=self._extender.callbacks.getStdout())
+            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
     def stop_analysis(self):
         with self._lock:
             self._set_message = None
             self._get_message = None
             self._is_enabled = None
-            self._tab_caption = None
 
     @property
     def is_enabled(self):
@@ -248,8 +265,12 @@ _is_enabled = is_enabled"""
     def session(self):
         return self._session
 
+    def createNewInstance(self, controller, editable):
+        """This method implements IMessageEditorTabFactory.createNewInstance"""
+        return CustomTextEditorImplementation(custom_editor_tab=self, controller=controller, editable=editable)
+
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None,
-                                received_date=None, listener_interface=None, client_ip_address=None,
-                                timedout=None, message_reference=None, proxy_message_info=None, time_delta=None,
-                                in_scope=None):
+                                    received_date=None, listener_interface=None, client_ip_address=None,
+                                    timedout=None, message_reference=None, proxy_message_info=None, time_delta=None,
+                                    in_scope=None):
         pass

@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import traceback
 from javax.swing import JPanel
 from javax.swing import JLabel
 from javax.swing import JTextField
@@ -43,6 +44,8 @@ from java.awt.event import ComponentAdapter
 from turbodataminer.ui.analyzers import HttpListenerAnalyzer
 from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
+from turbodataminer.ui.custommessage import CustomMessageEditorTab
+from turbodataminer.ui.core.intelbase import IntelBaseConfiguration
 
 
 class CloseListenerMouseAdapter(MouseAdapter):
@@ -230,20 +233,31 @@ class JTabbedPaneClosable(JTabbedPane):
         tab_count = 0
         print("Load: {}".format(component_class.__name__))
         self.clicked_delete = False
-        self._extender = extender
+        self.extender = extender
         self._component_class = component_class
         self.addComponentListener(JTabbedPaneClosableComponentAdapter(self))
-        # Read configuration and load tabs
+        # Read configuration and load plugins
         if configuration and "tabs" in configuration:
             for tab_index in configuration["tabs"]:
                 if tab_index in configuration:
                     tab_info = configuration[tab_index]
                     if "title" in tab_info and "script_info" in tab_info:
                         title = tab_info["title"]
-                        script_info = tab_info["script_info"]
-                        self.addTab(title, None, self.create_component(script_info))
                         print("- Load tab: {}".format(title))
+                        # Parse the plugin's configuration
+                        try:
+                            script_info = IntelBaseConfiguration(tab_info["script_info"])
+                        except:
+                            traceback.print_exc(file=self.extender.callbacks.getStderr())
+                            script_info = IntelBaseConfiguration()
+                        # Load and add plugin UI with the configuration
+                        component = self.create_component(script_info)
+                        self.addTab(title, None, component)
                         tab_count += 1
+                        # Launch plugin script it has been running at the last unload
+                        if script_info.activated:
+                            component.ide_pane.activated = True
+                            component.ide_pane.start_stop_script()
         if tab_count == 0:
             self.addTab("1", None, self.create_component())
             tab_count += 1
@@ -251,17 +265,17 @@ class JTabbedPaneClosable(JTabbedPane):
         self.addChangeListener(JTabbedPaneClosableChangeListener(self, tab_count))
 
     def create_component(self, configuration=None):
-        return self._component_class(extender=self._extender, configuration=configuration)
+        return self._component_class(extender=self.extender, configuration=configuration, closable_tabbed_pane=self)
 
     def addTab(self, title, icon, component, tip=None):
-        # Register Burp Suite listeners
-        self.register_listener(self._extender.callbacks, component)
         JTabbedPane.addTab(self, title, icon, component, tip)
+        # Register Burp Suite listeners
+        self.register_listener(self.extender.callbacks, component)
 
     def insertTab(self, title, icon, component, tip, index):
         JTabbedPane.insertTab(self, title, icon, component, tip, index)
         if title != "...":
-            self.setTabComponentAt(index, CloseButtonTab(self._extender, component, title, icon))
+            self.setTabComponentAt(index, CloseButtonTab(self.extender, component, title, icon))
 
     def get_json(self):
         """
@@ -304,6 +318,8 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.registerHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.registerProxyListener(component)
+        elif isinstance(component, CustomMessageEditorTab):
+            callbacks.registerMessageEditorTabFactory(component)
 
     @staticmethod
     def remove_listener(callbacks, component):
@@ -320,3 +336,5 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.removeHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.removeProxyListener(component)
+        elif isinstance(component, CustomMessageEditorTab):
+            callbacks.removeMessageEditorTabFactory(component)

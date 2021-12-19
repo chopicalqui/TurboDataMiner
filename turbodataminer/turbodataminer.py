@@ -29,7 +29,6 @@ import os
 import sys
 import json
 import base64
-import threading
 import traceback
 from burp import ITab
 from burp import IBurpExtender
@@ -37,8 +36,6 @@ from burp import IMessageEditorTab
 from burp import IContextMenuFactory
 from burp import IContextMenuInvocation
 from burp import IExtensionStateListener
-from burp import IMessageEditorTabFactory
-from threading import Lock
 from javax.swing import JScrollPane
 from javax.swing import JTabbedPane
 from javax.swing import JMenuItem
@@ -50,21 +47,17 @@ from java.lang import Thread
 from java.net import URL
 from java.net import URLClassLoader
 from turbodataminer.model.scripting import PluginType
-from turbodataminer.model.scripting import PluginCategory
-from turbodataminer.model.intelligence import IntelDataModel
 from turbodataminer.ui.core.scripting import ErrorDialog
-from turbodataminer.ui.analyzers import AnalyzerBase
 from turbodataminer.ui.analyzers import SiteMapAnalyzer
 from turbodataminer.ui.analyzers import HttpListenerAnalyzer
 from turbodataminer.ui.analyzers import ProxyHistoryAnalyzer
 from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
 from turbodataminer.ui.custommessage import CustomMessageEditorTab
-from turbodataminer.ui.custommessage import CustomTextEditorImplementation
 from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 
 
-class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFactory, IExtensionStateListener):
+class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateListener):
     """
     This class puts it all together by implementing the burp.IBurpExtender interface
     """
@@ -81,7 +74,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._hlm = None
         self._plm = None
         self._mef = None
-        self.custom_editor_tab = None
+        self._met = None
         self.home_dir = None
         self.parent = None
         self._context_menu_invocation = None
@@ -145,18 +138,22 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self._plm = JTabbedPaneClosable(self,
                                         ProxyListenerModifier,
                                         configuration=json_object[unicode(PluginType.proxy_listener_modifier)])
-        self.custom_editor_tab = CustomMessageEditorTab(self)
+        self._met = JTabbedPaneClosable(self, CustomMessageEditorTab,
+                                        configuration=json_object[unicode(
+                                            PluginType.custom_message_editor)])
         self._main_tabs = JTabbedPane()
         analyzer_tabs = JTabbedPane()
         modifier_tabs = JTabbedPane()
+        others_tabs = JTabbedPane()
         analyzer_tabs.addTab("Proxy History Analyzers", self._pha)
         analyzer_tabs.addTab("Site Map Analyzers", self._sma)
         analyzer_tabs.addTab("HTTP Listener Analyzers", self._hla)
         modifier_tabs.addTab("HTTP Listener Modifiers", self._hlm)
         modifier_tabs.addTab("Proxy Listener Modifiers", self._plm)
+        others_tabs.addTab("Custom Message Editor", self._met)
         self._main_tabs.addTab("Analyzers", analyzer_tabs)
         self._main_tabs.addTab("Modifiers", modifier_tabs)
-        self._main_tabs.addTab("Custom Message Editor", self.custom_editor_tab)
+        self._main_tabs.addTab("Others", others_tabs)
         self._main_tabs.addTab("About", JScrollPane(self._about))
         # add the custom tab to Burp Suite's UI
         self.callbacks.addSuiteTab(self)
@@ -167,7 +164,6 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
         self.callbacks.customizeUiComponent(self._plm)
         self.callbacks.registerContextMenuFactory(self)
         self.callbacks.registerExtensionStateListener(self)
-        self.callbacks.registerMessageEditorTabFactory(self)
         self.parent = SwingUtilities.getRoot(self._main_tabs)
         # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
         # http://xerces.apache.org/mirrors.cgi
@@ -211,9 +207,6 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
                                         actionPerformed=self.menu_invocation_pressed))
         return menu_items
 
-    def createNewInstance(self, controller, editable):
-        return CustomTextEditorImplementation(self, controller, editable)
-
     def menu_invocation_pressed(self, event):
         """This method will be called when one of the menu items are pressed."""
         self._pha.menu_invocation_pressed(self._context_menu_invocation)
@@ -245,7 +238,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
             result[unicode(PluginType.http_listener_analyzer)] = self._hla.get_json()
             result[unicode(PluginType.http_listener_modifier)] = self._hlm.get_json()
             result[unicode(PluginType.proxy_listener_modifier)] = self._plm.get_json()
-            result[unicode(PluginType.custom_message_editor)] = self.custom_editor_tab.get_json()
+            result[unicode(PluginType.custom_message_editor)] = self._met.get_json()
             result = json.JSONEncoder().encode(result)
             result = base64.b64encode(result)
             self.callbacks.saveExtensionSetting("config", result)
@@ -255,7 +248,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
             self._hla.stop_scripts()
             self._hlm.stop_scripts()
             self._plm.stop_scripts()
-            # TODO: self.custom_editor_tab.get_json()
+            self._met.stop_scripts()
         except:
             traceback.print_exc(file=self.callbacks.getStderr())
             ErrorDialog.Show(self.parent, traceback.format_exc())

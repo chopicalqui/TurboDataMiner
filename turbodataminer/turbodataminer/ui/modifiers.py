@@ -22,9 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import traceback
 from burp import IHttpListener
 from burp import IProxyListener
 from turbodataminer.ui.core.intelbase import IntelBase
+from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.model.scripting import PluginCategory
 
@@ -139,9 +141,9 @@ class HttpListenerModifier(ModifierTab, IHttpListener):
             if self._ide_pane.activated:
                 self.process_proxy_history_entry(message_info, is_request, tool_flag)
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
 
 
 class ProxyListenerModifier(ModifierTab, IProxyListener):
@@ -169,6 +171,6 @@ class ProxyListenerModifier(ModifierTab, IProxyListener):
                                                  is_request,
                                                  proxy_message_info=message)
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-            self._ide_pane.activated = False
