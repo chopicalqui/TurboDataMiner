@@ -33,12 +33,9 @@ import traceback
 from burp import ITab
 from burp import IBurpExtender
 from burp import IMessageEditorTab
-from burp import IContextMenuFactory
-from burp import IContextMenuInvocation
 from burp import IExtensionStateListener
 from javax.swing import JScrollPane
 from javax.swing import JTabbedPane
-from javax.swing import JMenuItem
 from javax.swing import JTextPane
 from javax.swing import SwingUtilities
 from javax.swing.event import HyperlinkEvent
@@ -46,6 +43,7 @@ from java.awt import Desktop
 from java.lang import Thread
 from java.net import URL
 from java.net import URLClassLoader
+from turbodataminer.exports import IntelFiles
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.ui.analyzers import SiteMapAnalyzer
@@ -55,9 +53,10 @@ from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
 from turbodataminer.ui.custommessage import CustomMessageEditorTab
 from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
+from turbodataminer.ui.core.analyzers import JTabbedPaneClosableProxyHistoryAnalyzer
 
 
-class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateListener):
+class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
     """
     This class puts it all together by implementing the burp.IBurpExtender interface
     """
@@ -77,8 +76,8 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateList
         self._met = None
         self.home_dir = None
         self.parent = None
-        self._context_menu_invocation = None
         self._about = None
+        self.database_files = None
 
     def registerExtenderCallbacks(self, callbacks):
         """
@@ -90,6 +89,8 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateList
         # obtain an extension helpers object
         self.helpers = callbacks.getHelpers()
         self.home_dir = os.path.dirname(callbacks.getExtensionFilename())
+        # Load data from files
+        self.intel_files = IntelFiles(self.home_dir)
         # Set up About tab
         about_file = os.path.join(self.home_dir, "about.html")
         about_file_content = ""
@@ -123,24 +124,25 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateList
         # set our extension name
         callbacks.setExtensionName("Turbo Data Miner")
         # TODO: Update in case of new intel component
-        self._pha = JTabbedPaneClosable(self,
-                                        ProxyHistoryAnalyzer,
-                                        configuration=json_object[unicode(PluginType.proxy_history_analyzer)])
-        self._sma = JTabbedPaneClosable(self,
-                                        SiteMapAnalyzer,
+        self._pha = JTabbedPaneClosableProxyHistoryAnalyzer(extender=self,
+                                                            component_class=ProxyHistoryAnalyzer,
+                                                            configuration=json_object[
+                                                                unicode(PluginType.proxy_history_analyzer)])
+        self._sma = JTabbedPaneClosable(extender=self,
+                                        component_class=SiteMapAnalyzer,
                                         configuration=json_object[unicode(PluginType.site_map_analyzer)])
-        self._hla = JTabbedPaneClosable(self,
-                                        HttpListenerAnalyzer,
+        self._hla = JTabbedPaneClosable(extender=self,
+                                        component_class=HttpListenerAnalyzer,
                                         configuration=json_object[unicode(PluginType.http_listener_analyzer)])
-        self._hlm = JTabbedPaneClosable(self,
-                                        HttpListenerModifier,
+        self._hlm = JTabbedPaneClosable(extender=self,
+                                        component_class=HttpListenerModifier,
                                         configuration=json_object[unicode(PluginType.http_listener_modifier)])
-        self._plm = JTabbedPaneClosable(self,
-                                        ProxyListenerModifier,
+        self._plm = JTabbedPaneClosable(extender=self,
+                                        component_class=ProxyListenerModifier,
                                         configuration=json_object[unicode(PluginType.proxy_listener_modifier)])
-        self._met = JTabbedPaneClosable(self, CustomMessageEditorTab,
-                                        configuration=json_object[unicode(
-                                            PluginType.custom_message_editor)])
+        self._met = JTabbedPaneClosable(extender=self,
+                                        component_class=CustomMessageEditorTab,
+                                        configuration=json_object[unicode(PluginType.custom_message_editor)])
         self._main_tabs = JTabbedPane()
         analyzer_tabs = JTabbedPane()
         modifier_tabs = JTabbedPane()
@@ -162,7 +164,6 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateList
         self.callbacks.customizeUiComponent(self._hla)
         self.callbacks.customizeUiComponent(self._hlm)
         self.callbacks.customizeUiComponent(self._plm)
-        self.callbacks.registerContextMenuFactory(self)
         self.callbacks.registerExtensionStateListener(self)
         self.parent = SwingUtilities.getRoot(self._main_tabs)
         # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
@@ -180,36 +181,6 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IExtensionStateList
 
     def getUiComponent(self):
         return self._main_tabs
-
-    def createMenuItems(self, invocation):
-        """
-        This method will be called by Burp Suite when the user invokes a context menu anywhere within Burp Suite. The
-        factory can then provide any custom context menu items that should be displayed in the context menu, based on
-        the details of the menu invocation.
-
-        :param invocation An object that implements the IMessageEditorTabFactory interface, which the extension can
-        query to obtain details of the context menu invocation.
-        :return: A list of custom menu items (which may include sub-menus, checkbox menu items, etc.) that should be
-        displayed. Extensions may return null from this method, to indicate that no menu items are required.
-        """
-        self._context_menu_invocation = invocation
-        menu_items = []
-        if invocation.getInvocationContext() in [
-            IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_REQUEST,
-            IContextMenuInvocation.CONTEXT_MESSAGE_EDITOR_RESPONSE,
-            IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_REQUEST,
-            IContextMenuInvocation.CONTEXT_MESSAGE_VIEWER_RESPONSE,
-            IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TREE,
-            IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TABLE,
-            IContextMenuInvocation.CONTEXT_PROXY_HISTORY,
-            IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS]:
-            menu_items.append(JMenuItem("Process in Turbo Data Miner (Proxy History Analyzer tab)",
-                                        actionPerformed=self.menu_invocation_pressed))
-        return menu_items
-
-    def menu_invocation_pressed(self, event):
-        """This method will be called when one of the menu items are pressed."""
-        self._pha.menu_invocation_pressed(self._context_menu_invocation)
 
     def hyperlink_listener(self, event):
         """This event handler processes hyperlink click events"""

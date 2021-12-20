@@ -197,6 +197,8 @@ class IdePane(JPanel):
         self._intel_base = intel_base
         self._scripts_dir = intel_base.scripts_dir
         self._activated_lock = Lock()
+        self._start_analysis_function_lock = Lock()
+        self._stop_analysis_function_lock = Lock()
         self._start_analysis_function = None
         self._stop_analysis_function = None
         self._save_script_function = None
@@ -306,8 +308,6 @@ class IdePane(JPanel):
             self._refresh_button.setEnabled(not value)
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
-        if self._stop_analysis_function:
-            self._stop_analysis_function()
 
     @staticmethod
     def copy_to_clipboard(content):
@@ -434,13 +434,31 @@ class IdePane(JPanel):
             self.activated = self._start_stop_button.isSelected()
             if self.activated:
                 self.compile()
-                if self._start_analysis_function:
-                    self._start_analysis_function()
-            elif self._stop_analysis_function:
-                self._stop_analysis_function()
+                self.start_analysis_function()
+            else:
+                self.stop_analysis_function()
         except:
             ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
             self.activated = False
+
+    def start_analysis_function(self):
+        """
+        This method is called to start the respective analysis.
+        :return:
+        """
+        with self._start_analysis_function_lock:
+            if self._start_analysis_function:
+                self._start_analysis_function()
+
+    def stop_analysis_function(self):
+        """
+        This method is used after stopping/finishing the respective analysis. Thereby, it functions as a cleanup
+        function.
+        :return:
+        """
+        with self._stop_analysis_function_lock:
+            if self._stop_analysis_function:
+                self._stop_analysis_function()
 
     def register_start_analysis_function(self, function):
         """
@@ -448,7 +466,8 @@ class IdePane(JPanel):
         :param function:
         :return:
         """
-        self._start_analysis_function = function
+        with self._start_analysis_function_lock:
+            self._start_analysis_function = function
 
     def register_stop_analysis_function(self, function):
         """
@@ -456,7 +475,8 @@ class IdePane(JPanel):
         :param function:
         :return:
         """
-        self._stop_analysis_function = function
+        with self._stop_analysis_function_lock:
+            self._stop_analysis_function = function
 
     def register_clear_session_function(self, function):
         """

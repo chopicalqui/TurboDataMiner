@@ -120,8 +120,10 @@ class CloseListener(MouseListener):
         # Check if the script has to be saved and continue operation based on the user's decision
         result = self._tab.ide_pane.save_current_script()
         if result != JOptionPane.CANCEL_OPTION:
-            # Stop script execution
+            # Closing the tab is like clicking the Stop button and as a result, we re-enable the IDE pane components
+            # as well as call the cleanup function.
             self._tab.ide_pane.activated = False
+            self._tab.ide_pane.stop_analysis_function()
             # Remove Burp Suite Listener
             JTabbedPaneClosable.remove_listener(self._extender.callbacks, self._tab)
         return result
@@ -296,12 +298,16 @@ class JTabbedPaneClosable(JTabbedPane):
 
     def stop_scripts(self):
         """
-        This method sends the stop signal to all intel tabs.
+        This method sends the stop signal to all intel tabs. This method is called by the extender when the app
+        is unloaded.
         :return:
         """
         for i in range(0, self.getTabCount() - 1):
             component = self.getComponentAt(i)
+            # Unloading the app is like clicking the Stop button and as a result, we re-enable the IDE pane components
+            # as well as call the cleanup functions.
             component.ide_pane.activated = False
+            component.ide_pane.stop_analysis_function()
 
     @staticmethod
     def register_listener(callbacks, component):

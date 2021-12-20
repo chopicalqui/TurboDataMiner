@@ -238,6 +238,7 @@ _is_enabled = is_enabled"""
                 self._is_enabled = globals['_is_enabled']
         except:
             self._ide_pane.activated = False
+            self.stop_analysis()
             traceback.print_exc(file=self._extender.callbacks.getStdout())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 

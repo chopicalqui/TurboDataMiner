@@ -25,6 +25,7 @@ __version__ = 1.0
 import re
 import os
 import json
+import traceback
 import HTMLParser
 from burp import IParameter
 from burp import IRequestInfo
@@ -38,6 +39,47 @@ from java.util.zip import GZIPInputStream
 from java.util.zip import GZIPOutputStream
 
 
+class IntelFiles:
+    """
+    This file loads all static data.
+    """
+
+    def __init__(self, home_dir):
+        self._signatures = {}
+        self._extensions = {}
+        self._vulners_rules = {}
+        self.top_level_domains = []
+        self.re_domain_name = \
+            re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?")
+        with open(os.path.join(home_dir, "data/top-level-domains.json"), "r") as f:
+            json_object = json.loads(f.read())
+            self.top_level_domains = json_object["data"] if "data" in json_object else []
+        with open(os.path.join(home_dir, "data/file-signatures.json"), "r") as f:
+            self._signatures = json.loads(f.read(), strict=False)
+        with open(os.path.join(home_dir, "data/file-extensions.json"), "r") as f:
+            self._extensions = json.loads(f.read())
+        with open(os.path.join(home_dir, "data/version-vulns.json"), "r") as f:
+            self._vulners_rules = json.loads(f.read())
+            for name, details in self._vulners_rules["data"]["rules"].items():
+                try:
+                    tmp = re.compile(details["regex"])
+                    details["regex"] = tmp
+                except:
+                    traceback.print_exc(file=self._extender.callbacks.getStderr())
+
+    @property
+    def signatures(self):
+        return self._signatures
+
+    @property
+    def extensions(self):
+        return self._extensions
+
+    @property
+    def vulners_rules(self):
+        return self._vulners_rules
+
+
 class ExportedMethods:
     """
     This class implements Turbo Data Miner's API
@@ -47,27 +89,11 @@ class ExportedMethods:
         self._extender = extender
         self._ide_pane = ide_pane
         self._html_parser = HTMLParser.HTMLParser()
-        self._signatures = {}
-        self._extensions = {}
-        self._vulners_rules = {}
-        self.top_level_domains = []
-        self.re_domain_name = \
-            re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?")
-        with open(os.path.join(extender.home_dir, "data/top-level-domains.json"), "r") as f:
-            json_object = json.loads(f.read())
-            self.top_level_domains = json_object["data"] if "data" in json_object else []
-        with open(os.path.join(extender.home_dir, "data/file-signatures.json"), "r") as f:
-            self._signatures = eval(f.read())
-        with open(os.path.join(extender.home_dir, "data/file-extensions.json"), "r") as f:
-            self._extensions = eval(f.read())
-        with open(os.path.join(extender.home_dir, "data/version-vulns.json"), "r") as f:
-            self._vulners_rules = eval(f.read())
-            for name, details in self._vulners_rules["data"]["rules"].items():
-                try:
-                    details["regex"] = re.compile("{}".format(details["regex"]))
-                except:
-                    self._extender.callbacks.printError("Failed to compile regex while loading "
-                                                        "software version database: {0}".format(details["regex"]))
+        self._signatures = extender.intel_files.signatures
+        self._extensions = extender.intel_files.extensions
+        self._vulners_rules = extender.intel_files.vulners_rules
+        self.top_level_domains = extender.intel_files.top_level_domains
+        self.re_domain_name = extender.intel_files.re_domain_name
 
     def _decode_jwt(self, item):
         result = item.replace('_', '/')

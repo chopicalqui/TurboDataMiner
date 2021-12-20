@@ -78,6 +78,11 @@
         "regex": "Powered by <a href=[^>]+atlassian\\.com/software/confluence(?:[^>]+>Atlassian Confluence</a> ([\\d.]+))?",
         "type": "cpe"
       },
+      "Atlassian Confluence, text": {
+        "alias": "cpe:/a:atlassian:confluence",
+        "regex": "Printed by Atlassian Confluence ([\\d.]+)?",
+        "type": "cpe"
+      },
       "Atlassian FishEye, html": {
         "alias": "cpe:/a:atlassian:fisheye",
         "regex": "<title>(?:Log in to )?FishEye (?:and Crucible )?([\\d.]+)?</title>",

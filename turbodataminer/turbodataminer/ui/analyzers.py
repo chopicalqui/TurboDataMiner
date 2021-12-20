@@ -225,6 +225,20 @@ class AnalyzerBase(IntelTab):
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
+    def menu_invocation_pressed(self, invocation):
+        """This method is invoked when Turbo Data Miner's context menu is selected"""
+        self._ref = 1
+        try:
+            self._ide_pane.compile()
+            self._ide_pane.activated = True
+            self._process_thread = threading.Thread(target=self._menu_invocation_pressed, args=(invocation, ))
+            self._process_thread.daemon = True
+            self._process_thread.start()
+        except:
+            self._ide_pane.activated = False
+            traceback.print_exc(file=self._callbacks.getStderr())
+            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+
     def stop_analysis(self):
         """This method is invoked when the analysis is stopped"""
         if self._process_thread:
@@ -236,9 +250,11 @@ class AnalyzerBase(IntelTab):
             self._data_model.clear_data()
             row_count = len(entries)
             for message_info in entries:
+                # Check if the user clicked the Stop button to immediately stop execution.
                 if not self._ide_pane.activated:
                     break
                 self.process_proxy_history_entry(message_info, IBurpExtenderCallbacks.TOOL_PROXY, row_count=row_count)
+            # This notifies the user that execution is complete by re-enabling the IDE components.
             self._ide_pane.activated = False
         except:
             self._ide_pane.activated = False
@@ -251,32 +267,19 @@ class AnalyzerBase(IntelTab):
         Turbo Data Miner's context menu.
         """
         try:
-            self._ref = 1
-            self._ide_pane.compile()
-            self._ide_pane.activated = True
             messages = invocation.getSelectedMessages()
             row_count = len(messages)
             for message_info in messages:
+                # Check if the user clicked the Stop button to immediately stop execution.
+                if not self._ide_pane.activated:
+                    break
                 self.process_proxy_history_entry(message_info,
                                                  invocation.getToolFlag(),
                                                  in_scope=True,
                                                  row_count=row_count)
+            # This notifies the user that execution is complete by re-enabling the IDE components.
             self._ide_pane.activated = False
         except:
-            self._ide_pane.activated = False
-            traceback.print_exc(file=self._callbacks.getStderr())
-            ErrorDialog.Show(self._extender.parent, traceback.format_exc())
-
-    def menu_invocation_pressed(self, invocation):
-        """This method is invoked when Turbo Data Miner's context menu is selected"""
-        self._ref = 1
-
-        try:
-            self._process_thread = threading.Thread(target=self._menu_invocation_pressed, args=(invocation, ))
-            self._process_thread.daemon = True
-            self._process_thread.start()
-        except:
-            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
