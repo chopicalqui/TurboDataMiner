@@ -910,7 +910,8 @@
     <dl><dt><a name="ExportedMethods-get_cookies"><strong>get_cookies</strong></a>(self, item, filter<font color="#909090">=[]</font>)</dt><dd><tt>This&nbsp;method&nbsp;takes&nbsp;an&nbsp;IResponseInfo&nbsp;or&nbsp;IRequestInfo&nbsp;object&nbsp;as&nbsp;the&nbsp;first&nbsp;argument&nbsp;and&nbsp;extracts&nbsp;all&nbsp;its&nbsp;cookie<br>
     information.&nbsp;The&nbsp;second&nbsp;optional&nbsp;argument&nbsp;acts&nbsp;as&nbsp;a&nbsp;filtering&nbsp;option&nbsp;that&nbsp;limits&nbsp;the&nbsp;cookies&nbsp;to&nbsp;be&nbsp;extracted.<br>
     <br>
-    :param&nbsp;item&nbsp;(IRequestInfo/IResponseInfo):&nbsp;The&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;item&nbsp;whose&nbsp;session&nbsp;information<br>
+    :param&nbsp;item&nbsp;(IRequestInfo/IResponseInfo):&nbsp;The&nbsp;IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;item&nbsp;whose&nbsp;session&nbsp;information shall<br>
+    be obtained.<br>
     :param&nbsp;filter&nbsp;(List[str]):&nbsp;List&nbsp;of&nbsp;cookie&nbsp;names&nbsp;whose&nbsp;attributes&nbsp;shall&nbsp;be&nbsp;extracted&nbsp;and&nbsp;returned.<br>
     :return&nbsp;(List[Dict[str,&nbsp;str]]):&nbsp;The&nbsp;method&nbsp;returns&nbsp;a&nbsp;list&nbsp;of&nbsp;dictionaries.&nbsp;Each&nbsp;dictionary&nbsp;contains&nbsp;the<br>
     following&nbsp;keys,&nbsp;which&nbsp;are&nbsp;also&nbsp;returned&nbsp;by&nbsp;API&nbsp;method&nbsp;get_cookie_attributes:&nbsp;"name",&nbsp;"value",&nbsp;"expires",<br>

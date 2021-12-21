@@ -123,10 +123,7 @@ class HttpListenerModifier(ModifierTab, IHttpListener):
     """
 
     def __init__(self, **kwargs):
-        ModifierTab.__init__(self,
-                             id=HttpListenerModifier.__name__,
-                             plugin_id=PluginType.http_listener_modifier,
-                             **kwargs)
+        ModifierTab.__init__(self, plugin_id=PluginType.http_listener_modifier, **kwargs)
         self.add(self._ide_pane)
 
     def processHttpMessage(self, tool_flag, is_request, message_info):
@@ -152,10 +149,7 @@ class ProxyListenerModifier(ModifierTab, IProxyListener):
     """
 
     def __init__(self, **kwargs):
-        ModifierTab.__init__(self,
-                             id=HttpListenerModifier.__name__,
-                             plugin_id=PluginType.proxy_listener_modifier,
-                             **kwargs)
+        ModifierTab.__init__(self, plugin_id=PluginType.proxy_listener_modifier, **kwargs)
         self.add(self._ide_pane)
 
     def processProxyMessage(self, is_request, message):

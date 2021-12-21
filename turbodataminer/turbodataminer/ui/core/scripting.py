@@ -280,7 +280,7 @@ class IdePane(JPanel):
     @script_info.setter
     def script_info(self, value):
         self._script_info = value
-        self._text_area.setText(self._intel_base.callbacks.getHelpers().stringToBytes(value.script))
+        self._text_area.setText(value.script)
         self._code_changed_state = False
         self._cb_list.setSelectedItem(value)
 

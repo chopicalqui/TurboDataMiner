@@ -525,7 +525,7 @@ class ExportedMethods:
                 name = tmp[0]
                 value = ":".join(tmp[1:])
                 if regex.match(name):
-                    result[regex.pattern].append(value)
+                    result[regex.pattern].append(value.strip())
         return result
 
     def get_hostname(self, url):
@@ -741,4 +741,4 @@ class ExportedMethods:
             header_value = ":".join(header_parts[1:])
         else:
             return None, None
-        return unicode(header_name, errors="ignore"), unicode(header_value, errors="ignore")
+        return unicode(header_name, errors="ignore"), unicode(header_value, errors="ignore").strip()

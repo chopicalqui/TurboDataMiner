@@ -58,10 +58,9 @@ class IntelBase(JPanel):
     This abstract class is the base class for all analyzers, modifiers, and custom message panes GUIs.
     """
 
-    INSTANCE_COUNT = 1
     SCRIPTS_DIR = "scripts"
 
-    def __init__(self, extender, id, plugin_id, plugin_category_id, pre_code=None, post_code=None, configuration=None,
+    def __init__(self, extender, plugin_id, plugin_category_id, pre_code=None, post_code=None, configuration=None,
                  executable_on_startup=False, closable_tabbed_pane=None):
         """
         :param extender:
@@ -80,8 +79,6 @@ class IntelBase(JPanel):
         the tabbed pane like the current tab's title.
         """
         JPanel.__init__(self)
-        self._id = "{}:{:03d}".format(id, IntelBase.INSTANCE_COUNT)
-        IntelBase.INSTANCE_COUNT = IntelBase.INSTANCE_COUNT + 1
         self.setLayout(BorderLayout())
         self._extender = extender
         self._callbacks = extender.callbacks
@@ -108,10 +105,6 @@ class IntelBase(JPanel):
         self._ide_pane.register_start_analysis_function(self.start_analysis)
         self._ide_pane.register_stop_analysis_function(self.stop_analysis)
         self._ide_pane.register_clear_session_function(self.clear_session)
-
-    @property
-    def id(self):
-        return self._id
 
     @property
     def ide_pane(self):

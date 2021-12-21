@@ -178,7 +178,6 @@ _is_enabled = is_enabled"""
 
     def __init__(self, **kwargs):
         CustomMessageEditorTabBase.__init__(self,
-                                            id=CustomMessageEditorTab.__name__,
                                             executable_on_startup=True,
                                             plugin_id=PluginType.custom_message_editor,
                                             post_code=CustomMessageEditorTab.POST_CODE,

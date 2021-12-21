@@ -290,11 +290,7 @@ class ProxyHistoryAnalyzer(AnalyzerBase):
     """
 
     def __init__(self, **kwargs):
-        AnalyzerBase.__init__(self,
-                              id=ProxyHistoryAnalyzer.__name__,
-                              plugin_id=PluginType.proxy_history_analyzer,
-                              executable_on_startup=False,
-                              **kwargs)
+        AnalyzerBase.__init__(self, plugin_id=PluginType.proxy_history_analyzer, executable_on_startup=False, **kwargs)
 
     def start_analysis(self):
         with self._lock:
@@ -308,11 +304,7 @@ class SiteMapAnalyzer(AnalyzerBase):
     """
 
     def __init__(self, **kwargs):
-        AnalyzerBase.__init__(self,
-                              id=SiteMapAnalyzer.__name__,
-                              plugin_id=PluginType.site_map_analyzer,
-                              executable_on_startup=False,
-                              **kwargs)
+        AnalyzerBase.__init__(self, plugin_id=PluginType.site_map_analyzer, executable_on_startup=False, **kwargs)
 
     def start_analysis(self):
         with self._lock:
@@ -326,11 +318,7 @@ class HttpListenerAnalyzer(IntelTab, IHttpListener):
     """
 
     def __init__(self, **kwargs):
-        IntelTab.__init__(self,
-                          id=HttpListenerAnalyzer.__name__,
-                          plugin_id=PluginType.http_listener_analyzer,
-                          executable_on_startup=True,
-                          **kwargs)
+        IntelTab.__init__(self, plugin_id=PluginType.http_listener_analyzer, executable_on_startup=True, **kwargs)
 
     def start_analysis(self):
         """This method is invoked when the analysis is started"""
