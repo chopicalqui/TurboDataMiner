@@ -148,15 +148,54 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         modifier_tabs = JTabbedPane()
         others_tabs = JTabbedPane()
         analyzer_tabs.addTab("Proxy History Analyzers", self._pha)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Proxy
+History. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.""")
         analyzer_tabs.addTab("Site Map Analyzers", self._sma)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Site
+Map. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.""")
         analyzer_tabs.addTab("HTTP Listener Analyzers", self._hla)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This analyzer implements the interface IHttpListener of the Burp Suite Extender API. Thereby, it executes the current
+Python script after each response was received by Burp. Thus, if a request times out, then the Python script is not
+called for this request/response pair, and, as a result, this analyzer might not deliver complete results. Use this
+analyzer to gather intelligence from requests or responses that are currently sent or received (e.g., sent or
+received by Burp's Intruder for example).""")
         modifier_tabs.addTab("HTTP Listener Modifiers", self._hlm)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This modifier implements the interface IHttpListener of the Burp Suite Extender API. Thereby, it executes the current
+Python script after each response was received by Burp. Thus, if a request times out, then the Python script is not
+called for this request/response pair, and, as a result, this analyzer might not deliver complete results. Use this
+analyzer to gather intelligence from requests or responses that are currently sent or received (e.g., sent or
+received by Burp's Intruder for example).""")
         modifier_tabs.addTab("Proxy Listener Modifiers", self._plm)
-        others_tabs.addTab("Custom Message Editor", self._met)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This analyzer implements the interface IProxyListener of the Burp Suite Extender API. Thereby, it executes the Python
+script after each request sent and response received.""")
+        others_tabs.addTab("Custom Message Editors", self._met)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                       """This tab implements the interface IMessageEditorTab of the Burp Suite Extender API. Use it to implement an encoder
+and decoder tab, which is automatically added to each message editor. Your Python script must implement the following
+three methods; for more information refer to the `IMessageEditorTab` specification.""")
         self._main_tabs.addTab("Analyzers", analyzer_tabs)
+        self._main_tabs.setToolTipTextAt(self._main_tabs.getTabCount() - 1,
+                                         """The Python scripts in this tab usually structure the extracted information in a GUI table. From there, the results can
+be copied (as is or deduplicated) into the clipboard (e.g., to use them as payloads in the Intruder) or exported into
+a spreadsheet application for further (statistical) analyses.
+
+In this tab, you will find the following three analyzer plugins to extract and to display information in a
+structured way.""")
         self._main_tabs.addTab("Modifiers", modifier_tabs)
+        self._main_tabs.setToolTipTextAt(self._main_tabs.getTabCount() - 1,
+                                         """Python scripts in this tab allow on the fly modifications on requests sent or responses received by Burp Suite. The
+following two modifiers are available.""")
         self._main_tabs.addTab("Others", others_tabs)
+        self._main_tabs.setToolTipTextAt(self._main_tabs.getTabCount() - 1,
+                                         """This tab contains plugins that do not belong to plugin types Analyzers and Modifiers.""")
         self._main_tabs.addTab("About", JScrollPane(self._about))
+        self._main_tabs.setToolTipTextAt(self._main_tabs.getTabCount() - 1,
+                                         """This tab contains the documentation about Turbo Intruder's Application Programming Interface (API).""")
         # add the custom tab to Burp Suite's UI
         self.callbacks.addSuiteTab(self)
         self.callbacks.customizeUiComponent(self._main_tabs)

@@ -304,10 +304,10 @@ class IdePane(JPanel):
             self._clear_session_button.setEnabled(not value)
             self._compile_button.setEnabled(not value)
             self._load_button.setEnabled(not value)
-            self._save_button.setEnabled(not value)
             self._refresh_button.setEnabled(not value)
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
+            self._delete_button.setEnabled(not value)
 
     @staticmethod
     def copy_to_clipboard(content):

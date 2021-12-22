@@ -7,15 +7,16 @@
 <body>
     <h1>Turbo Data Miner</h1>
 
-    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's GUI as well as a new entry
-    <code>Process in Turbo Miner</code> to Burp Suite's context menu. In the new tab, you are able to write new or select
-    existing Python scripts that are executed on each request/response item currently stored in the Proxy History,
-    Side Map, or on each request/response item that is sent or received by Burp Suite.
+    This extension adds a new tab <code>Turbo Miner</code> to Burp Suite's UI as well as a new entry
+    <code>Turbo Data Miner</code> to Burp Suite's <code>Extensions</code> context menu entry. In the new tab, you
+    are able to write new or select existing Python scripts that are executed on each request/response item
+    currently stored in the Proxy History, Side Map, or on each request/response item that is sent or received by
+    Burp Suite.
     <br /><br />
     The objective of these Python scripts is the flexible and dynamic extraction, correlation, and structured
-    presentation of information from the Burp Suite project as well as the flexible and dynamic on-the-fly modification
-    of outgoing or incoming HTTP requests. Thus, Turbo Data Miner shall aid in gaining a better and faster understanding of
-    the data collected and processed by Burp Suite.
+    presentation of information from the Burp Suite state as well as the flexible and dynamic on-the-fly
+    modification of outgoing or incoming HTTP requests. Thus, Turbo Data Miner shall aid in gaining a better and
+    faster understanding of the data collected and processed by Burp Suite.
     <br /><br />
     This extension requires Python scripting skills as well as an understanding of the
     <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Nevertheless, Turbo
@@ -980,7 +981,7 @@
     :raise&nbsp;ValueError:&nbsp;This&nbsp;exception&nbsp;is&nbsp;thrown&nbsp;when&nbsp;the&nbsp;given&nbsp;body&nbsp;cannot&nbsp;be&nbsp;converted&nbsp;into&nbsp;a<br>
     dictionary.</tt></dd></dl>
 
-    <dl><dt><a name="ExportedMethods-get_jwt"><strong>get_jwt</strong></a>(self, headers, re_header<font color="#909090">=r'^Authorization:\s+Bearer\s+(?P&lt;jwt&gt;.+?)$'</font>)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;array&nbsp;of&nbsp;headers&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;authorization<br>
+    <dl><dt><a name="ExportedMethods-get_jwt"><strong>get_jwt</strong></a>(self, headers, re_header<font color="#909090">=r'^Authorization:\s+Bearer\s+(?P<jwt>eyJ\w+?\.eyJ\w+?\..+?)$'</font>)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;array&nbsp;of&nbsp;headers&nbsp;for&nbsp;the&nbsp;first&nbsp;occurrence&nbsp;that&nbsp;matches&nbsp;the&nbsp;given&nbsp;authorization<br>
     header&nbsp;and&nbsp;extracts&nbsp;as&nbsp;well&nbsp;as&nbsp;decodes&nbsp;and&nbsp;returns&nbsp;the&nbsp;given&nbsp;JSON&nbsp;Web&nbsp;Token&nbsp;(JWT).<br>
     <br>
     :param&nbsp;headers&nbsp;(List[str]):&nbsp;List&nbsp;of&nbsp;strings&nbsp;that&nbsp;contain&nbsp;the&nbsp;headers&nbsp;to&nbsp;be&nbsp;searched.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of<br>
