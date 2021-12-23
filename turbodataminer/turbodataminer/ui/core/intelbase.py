@@ -89,7 +89,6 @@ class IntelBase(JPanel):
         self._ide_pane = IdePane(self, pre_code, post_code)
         self._exported_methods = ExportedMethods(extender, self._ide_pane)
         self._session = {}
-        self._ref_lock = Lock()
         self._ref = 1
         self._executable_on_startup = executable_on_startup
         self._ide_pane.code_changed = False
@@ -129,6 +128,10 @@ class IntelBase(JPanel):
     @property
     def scripts_dir(self):
         return self._scripts_dir
+
+    @property
+    def session(self):
+        return self._session
 
     def get_json(self):
         result = {}

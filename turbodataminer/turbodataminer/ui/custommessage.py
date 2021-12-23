@@ -182,11 +182,13 @@ _is_enabled = is_enabled"""
                                             plugin_id=PluginType.custom_message_editor,
                                             post_code=CustomMessageEditorTab.POST_CODE,
                                             **kwargs)
+        self._is_enabled_lock = Lock()
         self._is_enabled = None
+        self._set_message_lock = Lock()
         self._set_message = None
+        self._get_message_lock = Lock()
         self._get_message = None
         self.add(self._ide_pane)
-        self._lock = Lock()
 
     def start_analysis(self):
         try:
@@ -231,10 +233,9 @@ _is_enabled = is_enabled"""
             exec(self.ide_pane.compiled_code, globals)
             self._extender.callbacks.registerMessageEditorTabFactory(self)
             # Reimport API method implementations
-            with self._lock:
-                self._set_message = globals['_set_message']
-                self._get_message = globals['_get_message']
-                self._is_enabled = globals['_is_enabled']
+            self.set_message = globals['_set_message']
+            self.get_message = globals['_get_message']
+            self.is_enabled = globals['_is_enabled']
         except:
             self._ide_pane.activated = False
             self.stop_analysis()
@@ -242,30 +243,43 @@ _is_enabled = is_enabled"""
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
     def stop_analysis(self):
-        with self._lock:
-            self._extender.callbacks.removeMessageEditorTabFactory(self)
-            self._set_message = None
-            self._get_message = None
-            self._is_enabled = None
+        self.set_message = None
+        self.get_message = None
+        self.is_enabled = None
+        self._extender.callbacks.removeMessageEditorTabFactory(self)
 
     @property
     def is_enabled(self):
-        with self._lock:
-            return self._is_enabled
+        with self._is_enabled_lock:
+            result = self._is_enabled
+        return result
+
+    @is_enabled.setter
+    def is_enabled(self, value):
+        with self._is_enabled_lock:
+            self._is_enabled = value
 
     @property
     def set_message(self):
-        with self._lock:
-            return self._set_message
+        with self._set_message_lock:
+            result = self._set_message
+        return result
+
+    @set_message.setter
+    def set_message(self, value):
+        with self._set_message_lock:
+            self._set_message = value
 
     @property
     def get_message(self):
-        with self._lock:
-            return self._get_message
+        with self._get_message_lock:
+            result = self._get_message
+        return result
 
-    @property
-    def session(self):
-        return self._session
+    @get_message.setter
+    def get_message(self, value):
+        with self._get_message_lock:
+            self._get_message = value
 
     def createNewInstance(self, controller, editable):
         """This method implements IMessageEditorTabFactory.createNewInstance"""

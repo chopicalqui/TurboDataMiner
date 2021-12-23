@@ -50,7 +50,8 @@ class JTabbedPaneClosableProxyHistoryAnalyzer(JTabbedPaneClosable, IContextMenuF
     @property
     def _context_menu_invocation(self):
         with self._context_menu_invocation_lock:
-            return self.__context_menu_invocation
+            result = self.__context_menu_invocation
+        return result
 
     @_context_menu_invocation.setter
     def _context_menu_invocation(self, value):
