@@ -47,13 +47,14 @@ from turbodataminer.exports import IntelFiles
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.ui.analyzers import SiteMapAnalyzer
+from turbodataminer.ui.analyzers import ContextMenuAnalyzer
 from turbodataminer.ui.analyzers import HttpListenerAnalyzer
 from turbodataminer.ui.analyzers import ProxyHistoryAnalyzer
 from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
 from turbodataminer.ui.custommessage import CustomMessageEditorTab
 from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
-from turbodataminer.ui.core.analyzers import JTabbedPaneClosableProxyHistoryAnalyzer
+from turbodataminer.ui.core.analyzers import JTabbedPaneClosableContextMenuAnalyzer
 
 
 class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
@@ -66,8 +67,10 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         self.helpers = None
         self.xerces_classloader = None
         self._main_tabs = None
+        # TODO: Update in case of new intel component
         self._pha = None
         self._sma = None
+        self._cma = None
         self._hla = None
         self._pla = None
         self._hlm = None
@@ -124,13 +127,16 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         # set our extension name
         callbacks.setExtensionName("Turbo Data Miner")
         # TODO: Update in case of new intel component
-        self._pha = JTabbedPaneClosableProxyHistoryAnalyzer(extender=self,
-                                                            component_class=ProxyHistoryAnalyzer,
-                                                            configuration=json_object[
-                                                                unicode(PluginType.proxy_history_analyzer)])
+        self._pha = JTabbedPaneClosable(extender=self,
+                                        component_class=ProxyHistoryAnalyzer,
+                                        configuration=json_object[unicode(PluginType.proxy_history_analyzer)])
         self._sma = JTabbedPaneClosable(extender=self,
                                         component_class=SiteMapAnalyzer,
                                         configuration=json_object[unicode(PluginType.site_map_analyzer)])
+        self._cma = JTabbedPaneClosableContextMenuAnalyzer(extender=self,
+                                                           component_class=ContextMenuAnalyzer,
+                                                           configuration=json_object[
+                                                               unicode(PluginType.context_menu_analyzer)])
         self._hla = JTabbedPaneClosable(extender=self,
                                         component_class=HttpListenerAnalyzer,
                                         configuration=json_object[unicode(PluginType.http_listener_analyzer)])
@@ -155,6 +161,10 @@ History. Use this analyzer to gather intelligence based on the data already stor
         analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
                                        """This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Site
 Map. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.""")
+        analyzer_tabs.addTab("Context Menu Analyzers", self._cma)
+        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                             """In contrast to the Proxy History or Site Map Analyzers, this analyzer only processes request/response items that were
+sent via Burp Suite's context menu item Extensions.""")
         analyzer_tabs.addTab("HTTP Listener Analyzers", self._hla)
         analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
                                        """This analyzer implements the interface IHttpListener of the Burp Suite Extender API. Thereby, it executes the current
@@ -199,10 +209,6 @@ following two modifiers are available.""")
         # add the custom tab to Burp Suite's UI
         self.callbacks.addSuiteTab(self)
         self.callbacks.customizeUiComponent(self._main_tabs)
-        self.callbacks.customizeUiComponent(self._pha)
-        self.callbacks.customizeUiComponent(self._hla)
-        self.callbacks.customizeUiComponent(self._hlm)
-        self.callbacks.customizeUiComponent(self._plm)
         self.callbacks.registerExtensionStateListener(self)
         self.parent = SwingUtilities.getRoot(self._main_tabs)
         # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
@@ -245,6 +251,7 @@ following two modifiers are available.""")
             # Store configuration
             result[unicode(PluginType.proxy_history_analyzer)] = self._pha.get_json()
             result[unicode(PluginType.site_map_analyzer)] = self._sma.get_json()
+            result[unicode(PluginType.context_menu_analyzer)] = self._cma.get_json()
             result[unicode(PluginType.http_listener_analyzer)] = self._hla.get_json()
             result[unicode(PluginType.http_listener_modifier)] = self._hlm.get_json()
             result[unicode(PluginType.proxy_listener_modifier)] = self._plm.get_json()
@@ -255,6 +262,7 @@ following two modifiers are available.""")
             # Stop all running scripts
             self._pha.stop_scripts()
             self._sma.stop_scripts()
+            self._cma.stop_scripts()
             self._hla.stop_scripts()
             self._hlm.stop_scripts()
             self._plm.stop_scripts()

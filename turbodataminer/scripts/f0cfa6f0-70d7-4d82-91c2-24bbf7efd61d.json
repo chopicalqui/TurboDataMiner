@@ -2,7 +2,8 @@
     "author": "Lukas Reiter", 
     "plugins": [
         0, 
-        6
+        6, 
+        7
     ], 
     "uuid": "f0cfa6f0-70d7-4d82-91c2-24bbf7efd61d", 
     "version": "v1.0", 

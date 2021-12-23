@@ -43,6 +43,15 @@
     This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Site
     Map. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.
 
+    <h3>Context Menu Analyzers</h3>
+    In contrast to the Proxy History or Site Map Analyzers, this analyzer only processes request/response items that
+    were sent via Burp Suite's context menu item <code>Extensions</code>.
+    <br /><br />
+    In technical termis, this analyzer implements the interfaces <code>IContextMenuFactory</code> and
+    <code>IContextMenuInvocation</code> of the
+    <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. As a result, any
+    HTTP request/response items can be sent to this analyzers via Burp Suite's context menu item <code>Extensions</code>.
+
     <h3>HTTP Listener Analyzer</h3>
     This analyzer implements the interface <code>IHttpListener</code> of the
     <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Suite Extender API</a>. Thereby, it executes the
@@ -150,6 +159,7 @@
             <th>Scope</th>
             <th>Proxy History Analyzer</th>
             <th>Site Map Analyzer</th>
+            <th>Context Menu Analyzer</th>
             <th>HTTP Listener Analyzer</th>
             <th>HTTP Listener Modifier</th>
             <th>Proxy Listener Modifier</th>
@@ -160,6 +170,7 @@
             <td>analyze_request</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -180,6 +191,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-analyze_response">Method Details</a> for more information.
             </td>
@@ -194,6 +206,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-analyze_signatures">Method Details</a> for more information.
             </td>
@@ -202,6 +215,7 @@
             <td>callbacks</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -224,6 +238,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-compress_gzip">Method Details</a> for more information.
             </td>
@@ -232,6 +247,7 @@
             <td>decode_html</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -252,6 +268,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-decode_jwt">Method Details</a> for more information.
             </td>
@@ -260,6 +277,7 @@
             <td>decompress_gzip</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -280,6 +298,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-encode_jwt">Method Details</a> for more information.
             </td>
@@ -288,6 +307,7 @@
             <td>find_domains</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -308,6 +328,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-find_versions">Method Details</a> for more information.
             </td>
@@ -316,6 +337,7 @@
             <td>get_content_length</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -336,6 +358,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_content_type">Method Details</a> for more information.
             </td>
@@ -344,6 +367,7 @@
             <td>get_cookie_attributes</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -364,6 +388,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_cookies">Method Details</a> for more information.
             </td>
@@ -372,6 +397,7 @@
             <td>get_extension_info</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -392,6 +418,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_header">Method Details</a> for more information.
             </td>
@@ -400,6 +427,7 @@
             <td>get_headers</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -420,6 +448,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_hostname">Method Details</a> for more information.
             </td>
@@ -428,6 +457,7 @@
             <td>get_json_attribute_by_path</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -448,6 +478,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_json_attributes">Method Details</a> for more information.
             </td>
@@ -456,6 +487,7 @@
             <td>get_jwt</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -476,6 +508,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-get_parameter_name">Method Details</a> for more information.
             </td>
@@ -484,6 +517,7 @@
             <td>get_parameters</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -504,6 +538,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-has_header">Method Details</a> for more information.
             </td>
@@ -512,6 +547,7 @@
             <td>header</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -533,6 +569,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             This variable is of type <code>burp.IExtensionHelpers</code>, which can be used to access
             functionalities provided by Burp Suite. For more information refer to
@@ -543,6 +580,7 @@
             <td>in_scope</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -559,6 +597,7 @@
             <td>is_request</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
@@ -580,6 +619,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td><center></center></td>
             <td>
             This variable is of type <code>IHttpRequestResponse</code> and represents the request/response item that
@@ -593,6 +633,7 @@
             <td>message_infos</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -614,6 +655,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             This variable is of type <code>int</code> and specifies the Turbo Data Miner module that executes the
             script. Flag 0 stands for the Proxy History Analyzer, 1 for the HTTP Listener Analyzer, 3 for the HTTP
@@ -625,6 +667,7 @@
             <td>proxy_message_info</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
+            <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
@@ -647,6 +690,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td><center></center></td>
             <td>
             This variable is of type <code>int</code> and is reset to 1, if the Start button is pressed and
@@ -659,6 +703,7 @@
             <td>request_info</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -677,6 +722,7 @@
             <td><center>r</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
@@ -690,6 +736,7 @@
             <td>rows</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -713,6 +760,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             This variable is of type <code>dict</code>. You can use this variable to store information across
             processing iterations. For example, this variable can be used to deduplicate content
@@ -728,6 +776,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             refer to <a href="#ExportedMethods-send_http_message">Method Details</a> for more information.
             </td>
@@ -736,6 +785,7 @@
             <td>tool_flag</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
             <td><center>&#10004;</center></td>
@@ -758,6 +808,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td><center></center></td>
             <td>
             This variable is of type <code>java.net.URL</code> and holds the URL of the current
@@ -770,6 +821,7 @@
             <td>xerceslib</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -803,6 +855,7 @@
             <td>split_http_header</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>

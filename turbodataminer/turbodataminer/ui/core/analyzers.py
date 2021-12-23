@@ -30,13 +30,13 @@ from burp import IContextMenuInvocation
 from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 
 
-class ProxyHistoryAnalyzerMenuItem(JMenuItem):
+class ContextMenuAnalyzerMenuItem(JMenuItem):
     def __init__(self, analyzer, title, actionPerformed):
         JMenuItem.__init__(self, title, actionPerformed=actionPerformed)
         self.analyzer = analyzer
 
 
-class JTabbedPaneClosableProxyHistoryAnalyzer(JTabbedPaneClosable, IContextMenuFactory):
+class JTabbedPaneClosableContextMenuAnalyzer(JTabbedPaneClosable, IContextMenuFactory):
     """
     Implements a JTabbedPane which allows users to add and close tabs.
     """
@@ -82,15 +82,15 @@ class JTabbedPaneClosableProxyHistoryAnalyzer(JTabbedPaneClosable, IContextMenuF
             IContextMenuInvocation.CONTEXT_INTRUDER_PAYLOAD_POSITIONS,
             IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS,
             IContextMenuInvocation.CONTEXT_SEARCH_RESULTS]:
-            pha_menu = JMenu("Send to Proxy History Analyzer")
+            pha_menu = JMenu("Send to Context Menu Analyzer")
             # Obtain all tab names
             for index in range(0, self.getTabCount() - 1):
                 tab_component = self.getTabComponentAt(index)
                 component = self.getComponentAt(index)
                 title = tab_component.get_title()
-                pha_menu.add(ProxyHistoryAnalyzerMenuItem(component,
-                                                          "Tab: {}".format(title),
-                                                          actionPerformed=self.menu_invocation_pressed))
+                pha_menu.add(ContextMenuAnalyzerMenuItem(component,
+                                                         "Tab: {}".format(title),
+                                                         actionPerformed=self.menu_invocation_pressed))
             menu_items.append(pha_menu)
         return menu_items
 

@@ -44,9 +44,26 @@ from java.awt import Font
 from java.awt import Toolkit
 from java.awt import GridLayout
 from java.awt import BorderLayout
+from java.awt.event import ItemEvent
+from java.awt.event import ItemListener
 from java.awt.datatransfer import StringSelection
 from turbodataminer.model.scripting import ScriptInformation
 from turbodataminer.model.scripting import PluginInformation
+
+
+class ItemChangeListener(ItemListener):
+    """
+    This class is used by script combobox to automatically load the newly selected script.
+    """
+
+    def __init__(self, update_function):
+        ItemListener.__init__(self)
+        self._update_function = update_function
+
+    def itemStateChanged(self, event):
+        if event.getStateChange() == ItemEvent.SELECTED:
+            item = event.getItem()
+            self._update_function(event)
 
 
 class ErrorDialog(JDialog):
@@ -79,10 +96,10 @@ class SaveDialog(JDialog):
             self.script_info = script_info
         else:
             self.script_info = ScriptInformation(name=script_info.name,
-                                                  author=script_info.author,
-                                                  version=script_info.version,
-                                                  plugins=script_info.plugins,
-                                                  script=script_info.script)
+                                                 author=script_info.author,
+                                                 version=script_info.version,
+                                                 plugins=script_info.plugins,
+                                                 script=script_info.script)
         self.setLayout(GridLayout(1, 1))
         self.setModal(True)
         self.result = None
@@ -190,7 +207,8 @@ class IdePane(JPanel):
 
     INSTANCES = []
 
-    def __init__(self, intel_base, pre_script_code=None, post_script_code=None):
+    def __init__(self, intel_base, pre_script_code=None, post_script_code=None, disable_start_stop_button=False,
+                 disable_clear_session_button=False):
         self._compiled_code = None
         self._script_info = ScriptInformation(intel_base.plugin_id)
         self._activated = False
@@ -224,19 +242,16 @@ class IdePane(JPanel):
         self._button_pane.setLayout(GridLayout(1, 4))
         self._code_chooser = JComboBox()
         self._code_chooser.setToolTipText("Select a script and press the Load Script button to load it.")
+        self._code_chooser.addItemListener(ItemChangeListener(self.load_button_pressed))
         self._start_stop_button = JToggleButton("Start", self._activated, actionPerformed=self.start_stop_button_pressed)
+        self._start_stop_button.setEnabled(not disable_start_stop_button)
         self._start_stop_button.setToolTipText("Press this button to compile the code and start or stop the analysis.")
-        self._compile_button = JButton("Compile Code", actionPerformed=self.compile_button_pressed)
-        self._compile_button.setToolTipText("Press this button to compile the code. Afterwards, any request/response "
-                                            "item can be sent to this extension using Burp Suite's context menu item "
-                                            "'Process in Turbo Miner'.")
         self._clear_session_button = JButton("Clear Session", actionPerformed=self.clear_session_button_pressed)
+        self._clear_session_button.setEnabled(not disable_clear_session_button)
         self._clear_session_button.setToolTipText("Press this button to reset the session variable that is used by "
                                                   "the currently loaded script.")
         self._new_button = JButton("New Script", actionPerformed=self.new_button_pressed)
         self._new_button.setToolTipText("Press this button to create a new script.")
-        self._load_button = JButton("Load Script", actionPerformed=self.load_button_pressed)
-        self._load_button.setToolTipText("Select a script in the drop down menu and press this button to load it.")
         self._save_button = JButton("Save Script", actionPerformed=self.save_button_pressed)
         self._save_button.setToolTipText("Press this button to save the new or update the existing script.")
         self._refresh_button = JButton("Refresh", actionPerformed=self.refresh_button_pressed)
@@ -247,11 +262,9 @@ class IdePane(JPanel):
         components_pane.add(self._code_chooser, BorderLayout.NORTH)
         components_pane.add(self._button_pane, BorderLayout.SOUTH)
         self._button_pane.add(self._start_stop_button)
-        self._button_pane.add(self._compile_button)
         self._button_pane.add(self._clear_session_button)
         self._button_pane.add(self._save_button)
         self._button_pane.add(self._new_button)
-        self._button_pane.add(self._load_button)
         self._button_pane.add(self._refresh_button)
         self._button_pane.add(self._delete_button)
         self.add(components_pane, BorderLayout.SOUTH)
@@ -302,8 +315,6 @@ class IdePane(JPanel):
             self._start_stop_button.setText("Stop" if value else "Start")
             self._text_area.setEditable(not value)
             self._clear_session_button.setEnabled(not value)
-            self._compile_button.setEnabled(not value)
-            self._load_button.setEnabled(not value)
             self._refresh_button.setEnabled(not value)
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
@@ -494,14 +505,6 @@ class IdePane(JPanel):
         self._compiled_code = compile(pre_code + self._script_info.script + post_code, '<string>', 'exec')
         return self._compiled_code
 
-    def compile_button_pressed(self, event):
-        """This method is invoked when the compile button is pressed"""
-        try:
-            if not self.activated:
-                self.compile()
-        except:
-            ErrorDialog.Show(self._intel_base.extender.parent, traceback.format_exc())
-
     def start_stop_button_pressed(self, event):
         """This method is invoked when the start button is pressed"""
         self.start_stop_script()
@@ -564,6 +567,5 @@ class IdePane(JPanel):
                 self._cb_list.setSelectedItem(self.script_info)
                 self.code_changed = code_changed
             else:
-                self.refresh()
                 self.script_info = self._cb_list.getSelectedItem()
                 self.code_changed = False

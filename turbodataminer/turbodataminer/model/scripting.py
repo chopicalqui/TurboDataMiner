@@ -28,6 +28,7 @@ import json
 
 
 class PluginType:
+    # TODO: Update in case of new intel component
     proxy_history_analyzer = 0
     http_listener_analyzer = 1
     proxy_listener_analyzer = 2
@@ -35,9 +36,11 @@ class PluginType:
     proxy_listener_modifier = 4
     custom_message_editor = 5
     site_map_analyzer = 6
+    context_menu_analyzer = 7
 
 
 class PluginCategory:
+    # TODO: Update in case of new intel component
     analyzer = 0
     modifier = 1
     custom_message_editor = 2
@@ -93,9 +96,11 @@ class PluginInformation:
         return self._name
 
 
+# TODO: Update in case of new intel component
 LIST = [PluginInformation(PluginType.proxy_history_analyzer, "Proxy History Analyzer", PluginCategory.analyzer),
         PluginInformation(PluginType.site_map_analyzer, "Site Map Analyzer", PluginCategory.analyzer),
         PluginInformation(PluginType.http_listener_analyzer, "HTTP Listener Analyzer", PluginCategory.analyzer),
+        PluginInformation(PluginType.context_menu_analyzer, "Context Menu Analyzer", PluginCategory.analyzer),
         PluginInformation(PluginType.http_listener_modifier, "HTTP Listener Modifier", PluginCategory.modifier),
         PluginInformation(PluginType.proxy_listener_modifier, "Proxy Listener Modifier", PluginCategory.modifier),
         PluginInformation(PluginType.custom_message_editor, "Custom Message Editor", PluginCategory.custom_message_editor)]

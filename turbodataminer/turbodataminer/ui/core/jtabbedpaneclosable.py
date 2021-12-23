@@ -255,6 +255,7 @@ class JTabbedPaneClosable(JTabbedPane):
                         # Load and add plugin UI with the configuration
                         component = self.create_component(script_info)
                         self.addTab(title, None, component)
+                        self.extender.callbacks.customizeUiComponent(component)
                         tab_count += 1
                         # Launch plugin script it has been running at the last unload
                         if script_info.activated:

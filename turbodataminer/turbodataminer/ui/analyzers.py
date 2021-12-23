@@ -312,6 +312,23 @@ class SiteMapAnalyzer(AnalyzerBase):
         self._start_analysis(entries)
 
 
+class ContextMenuAnalyzer(AnalyzerBase):
+    """
+    This class implements the site map analyzer
+    """
+
+    def __init__(self, **kwargs):
+        AnalyzerBase.__init__(self,
+                              plugin_id=PluginType.context_menu_analyzer,
+                              executable_on_startup=False,
+                              disable_start_stop_button=True,
+                              disable_clear_session_button=True,
+                              **kwargs)
+
+    def start_analysis(self):
+        pass
+
+
 class HttpListenerAnalyzer(IntelTab, IHttpListener):
     """
     Analyzes information delivered through the IHttpListener interface

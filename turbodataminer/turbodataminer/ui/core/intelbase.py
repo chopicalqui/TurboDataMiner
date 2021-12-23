@@ -61,7 +61,8 @@ class IntelBase(JPanel):
     SCRIPTS_DIR = "scripts"
 
     def __init__(self, extender, plugin_id, plugin_category_id, pre_code=None, post_code=None, configuration=None,
-                 executable_on_startup=False, closable_tabbed_pane=None):
+                 executable_on_startup=False, closable_tabbed_pane=None, disable_start_stop_button=False,
+                 disable_clear_session_button=False):
         """
         :param extender:
         :param id: Usually the class name. This information is used for storing the current state in Burp Suite in case
@@ -86,7 +87,11 @@ class IntelBase(JPanel):
         self._helpers = self._callbacks.getHelpers()
         self._plugin_id = plugin_id
         self._scripts_dir = os.path.join(extender.home_dir, IntelBase.SCRIPTS_DIR)
-        self._ide_pane = IdePane(self, pre_code, post_code)
+        self._ide_pane = IdePane(self,
+                                 pre_script_code=pre_code,
+                                 post_script_code=post_code,
+                                 disable_start_stop_button=disable_start_stop_button,
+                                 disable_clear_session_button=disable_clear_session_button)
         self._exported_methods = ExportedMethods(extender, self._ide_pane)
         self._session = {}
         self._ref = 1

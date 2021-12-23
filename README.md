@@ -11,14 +11,14 @@ of outgoing or incoming HTTP requests. Thus, Turbo Data Miner shall aid in gaini
 the data collected and processed by Burp Suite.
 
 The following screenshot provides an example how Turbo Data Miner can be used to obtain a structured presentation of all 
-cookies (and their attributes) that are stored in the current Burp Suite project. At the bottom (see 1), we select 
-the corresponding Python script in the dropdown menu. By clicking button `Load Script`, the selected code is then 
-loaded into the IDE text area (see 2) and there, we can customize it, if needed. Alternatively, we can create our own 
-script by clicking button `New Script`. The analysis is started by clicking button `Start` (see 3). Afterwards, 
-Turbo Data Miner executes the compiled Python script on each Request/Response item. Thereby, the script extracts cookie 
+cookies (and their attributes) that are stored in the current Burp Suite project. At the bottom, we select the 
+corresponding Python script in the dropdown menu (see 1), which automatically loads the selected Python script into the 
+IDE text area (see 2) and there, we can customize it, if needed. Alternatively, we can create our own script by 
+clicking button `New Script`. The analysis is started by clicking button `Start` (see 3). Afterwards, Turbo Data Miner 
+executes the compiled Python script on each Request/Response item. Thereby, the script extracts cookie 
 information from each response (see source code in 2) and adds it to the table (see 4). Finally, in the table, we 
-can sort per column to gain a better understanding of each cookie attribute or perform additional operations via the 
-table's context menu (see 5).
+can sort per column to gain a better understanding of each cookie attribute or we can perform additional operations 
+via the table's context menu (see 5).
 
 ![Turbo Data Miner's Proxy History Analyzer](example.png)
 
@@ -51,6 +51,15 @@ History. Use this analyzer to gather intelligence based on the data already stor
 
 This analyzer executes the given Python script on each request/response item that is stored in Burp Suite's Site 
 Map. Use this analyzer to gather intelligence based on the data already stored in your Burp Suite project.
+
+### Context Menu Analyzers
+
+In contrast to the Proxy History or Site Map Analyzers, this analyzer only processes request/response items that were
+sent via Burp Suite's context menu item `Extensions`.
+
+In technical termis, this analyzer implements the interfaces `IContextMenuFactory` and `IContextMenuInvocation` of the 
+[Burp Suite Extender API](https://portswigger.net/Burp/extender/api/index.html). As a result, any HTTP request/response 
+items can be sent to this analyzers via Burp Suite's context menu item `Extensions`.
 
 ### HTTP Listener Analyzers
 
