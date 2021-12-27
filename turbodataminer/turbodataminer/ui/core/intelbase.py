@@ -160,5 +160,6 @@ class IntelBase(JPanel):
 
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
-                                    message_reference=None, proxy_message_info=None, time_delta=None, in_scope=None):
+                                    message_reference=None, proxy_message_info=None, time_delta=None, in_scope=None,
+                                    communication_manager=None, invocation=None):
         raise NotImplementedError("Method not implemented yet")

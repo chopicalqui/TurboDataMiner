@@ -39,6 +39,7 @@ from turbodataminer.ui.core.messageviewpane import DynamicMessageViewer
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.model.scripting import PluginCategory
 from turbodataminer.model.intelligence import IntelDataModel
+from turbodataminer.model.messaging import CommunicationManager
 from turbodataminer.model.intelligence import IntelDataModelEntry
 
 
@@ -105,7 +106,7 @@ class IntelTab(IntelBase):
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
                                     message_reference=None, proxy_message_info=None, time_delta=None, row_count=None,
-                                    in_scope=None):
+                                    in_scope=None, communication_manager=None, invocation=None):
         """
         This method executes the Python script for each HTTP request response item in the HTTP proxy history.
         :return: Returns True if exection was successful else False
@@ -119,12 +120,12 @@ class IntelTab(IntelBase):
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
         in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
-
         globals = {
             'callbacks': self._callbacks,
             'xerceslib': self._extender.xerces_classloader,
             'plugin_id': self._plugin_id,
             'row_count': row_count,
+            'CommunicationManager': CommunicationManager,
             'get_json_attributes': self._exported_methods.get_json_attributes,
             'get_json_attribute_by_path': self._exported_methods.get_json_attribute_by_path,
             'get_headers': self._exported_methods.get_headers,
@@ -178,8 +179,18 @@ class IntelTab(IntelBase):
             globals["message_reference"] = message_reference
         if time_delta:
             globals["time_delta"] = time_delta
+        if invocation:
+            globals["invocation"] = invocation
+        # Initialize and start communication manager with current HTTP request information
+        if communication_manager:
+            communication_manager.set_http_service(message_info.getHttpService())
+            communication_manager.register_arguments(**globals)
+            communication_manager.start(thread_count=5)
+            globals["manager"] = communication_manager
         # Execute compiled code
         exec(self.ide_pane.compiled_code, globals)
+        # Wait until communication manager completed processing
+        communication_manager.join()
         # Reimport writable API variables
         self._session = globals['session']
         rows = globals['rows']
@@ -200,7 +211,7 @@ class IntelTab(IntelBase):
         # Add new row to table
         with self._table_model_lock:
             self._data_model.add_rows(entries)
-        self._ref = self._ref + 1
+        self._ref += 1
 
 
 class AnalyzerBase(IntelTab):
@@ -269,17 +280,22 @@ class AnalyzerBase(IntelTab):
         try:
             messages = invocation.getSelectedMessages()
             row_count = len(messages)
+            # Initialize communication manager, which can be used by scripts for async HTTP request sending.
+            manager = CommunicationManager(extender=self._extender, ide_pane=self._ide_pane)
             for message_info in messages:
                 # Check if the user clicked the Stop button to immediately stop execution.
                 if not self._ide_pane.activated:
                     break
                 self.process_proxy_history_entry(message_info,
                                                  invocation.getToolFlag(),
+                                                 invocation=invocation,
                                                  in_scope=True,
-                                                 row_count=row_count)
+                                                 row_count=row_count,
+                                                 communication_manager=manager)
             # This notifies the user that execution is complete by re-enabling the IDE components.
             self._ide_pane.activated = False
         except:
+            self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
@@ -321,8 +337,6 @@ class ContextMenuAnalyzer(AnalyzerBase):
         AnalyzerBase.__init__(self,
                               plugin_id=PluginType.context_menu_analyzer,
                               executable_on_startup=False,
-                              disable_start_stop_button=True,
-                              disable_clear_session_button=True,
                               **kwargs)
 
     def start_analysis(self):
