@@ -190,7 +190,8 @@ class IntelTab(IntelBase):
         # Execute compiled code
         exec(self.ide_pane.compiled_code, globals)
         # Wait until communication manager completed processing
-        communication_manager.join()
+        if communication_manager:
+            communication_manager.join()
         # Reimport writable API variables
         self._session = globals['session']
         rows = globals['rows']
@@ -258,7 +259,7 @@ class AnalyzerBase(IntelTab):
     def process_proxy_history_entries(self, entries):
         """Iterates through all entries of the HTTP proxy history and processes them."""
         try:
-            self._data_model.clear_data()
+            self._table.clear_data()
             row_count = len(entries)
             for message_info in entries:
                 # Check if the user clicked the Stop button to immediately stop execution.

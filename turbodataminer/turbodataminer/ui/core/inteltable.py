@@ -22,21 +22,267 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 __version__ = 1.0
 
+import re
 import os
 import csv
 import traceback
 import threading
 from java.net import URL
+from java.awt import Color
 from java.awt import Toolkit
+from javax.swing import JMenu
 from javax.swing import JTable
 from javax.swing import JMenuItem
 from javax.swing import JPopupMenu
 from javax.swing import JOptionPane
 from javax.swing import TransferHandler
+from javax.swing import JCheckBoxMenuItem
+from javax.swing.event import PopupMenuListener
+from javax.swing.table import DefaultTableCellRenderer
+from java.lang import Float
+from java.lang import Double
+from java.lang import Integer
 from burp import IMessageEditorController
 from javax.swing.filechooser import FileNameExtensionFilter
 from turbodataminer.ui.core.scripting import IdePane
 from turbodataminer.ui.core.scripting import ErrorDialog
+
+
+class PalletIndex:
+    """
+    This class manages the minimal and maximal values of a heat map group. In addition, it allows the computation of
+    the index within the pallet list.
+    """
+
+    def __init__(self, min_value, max_value):
+        self._value_lock = threading.Lock()
+        self._min_value = min_value
+        self._max_value = max_value
+        self._normalized_max_value = max_value - min_value
+
+    def get_pallet_index(self, pallet_length, value):
+        """This method returns the index in the pallet for the given cell value."""
+        with self._value_lock:
+            if value < self._min_value:
+                self._min_value = value
+                self._normalized_max_value = self._max_value - self._min_value
+            if value > self._max_value:
+                self._max_value = value
+                self._normalized_max_value = self._max_value - self._min_value
+            i = pallet_length * (value - self._min_value) / self._normalized_max_value
+        return int(min(max(i, 0), pallet_length - 1))
+
+    def __repr__(self):
+        return "({}/{}/{})".format(self._min_value, self._max_value, self._normalized_max_value)
+
+
+class HeatMapMenuEntry:
+    """
+    This class implements a single heat map menu entry.
+    """
+
+    def __init__(self, column_name, class_type):
+        self.column_name = column_name
+        self.heat_map_groups = []
+        if class_type == Float or class_type == float:
+            self.class_type = Float
+        elif class_type == Double:
+            self.class_type = Double
+        elif class_type == Integer or class_type == int:
+            self.class_type = Integer
+        else:
+            raise NotImplementedError("Case not implemented")
+
+
+class HeatMapMenu(dict):
+    """
+    This class implements all logic to interact with the heat map menu.
+    """
+
+    def __init__(self, intel_table):
+        dict.__init__(self)
+        self._pallet = self._make_pallet()
+        self._intel_table = intel_table
+
+    def add_entry(self, entry):
+        """
+        This method adds the given menu entry to the heat map menu dictionary.
+        :param entry:
+        :return:
+        """
+        if entry.class_type.__name__ not in self:
+            self[entry.class_type.__name__] = {}
+        if entry.column_name not in self[entry.class_type.__name__]:
+            self[entry.class_type.__name__][entry.column_name] = entry
+
+    def _make_pallet(self):
+        """This method calculates all background colors for the heat map."""
+        result = []
+        n = 100
+        hue = 1/float(3)
+        for i in range(0, n):
+            result.append(Color.getHSBColor(hue - ( i * hue / float(n)), 0.5, 1))
+        return result
+
+    def create_menu_entries(self, heat_map_menu_item, actionPerformed):
+        """
+        This method creates the heat map menu.
+        :param heat_map_menu_item: The parent heat map menu.
+        :param actionPerformed: The method that is triggered, when the user clicks on the menu.
+        :return:
+        """
+        heat_map_menu_item.removeAll()
+        # For create heat map groups
+        for data_type, columns in self.items():
+            group_count = len(columns.values())
+            data_type_menu = JMenu(data_type)
+            heat_map_menu_item.add(data_type_menu)
+            for column_name, column_config in columns.items():
+                column_name_menu = JMenu(column_name)
+                data_type_menu.add(column_name_menu)
+                # If the heat map groups do not exist, then we have to create it first.
+                if not column_config.heat_map_groups:
+                    column_config.heat_map_groups = [False] * group_count
+                count = 1
+                group_selected = True not in column_config.heat_map_groups
+                for item in column_config.heat_map_groups:
+                    item_title = "Heat Map Group {}".format(count)
+                    heat_map_group_menu = JCheckBoxMenuItem(item_title, item, actionPerformed=actionPerformed)
+                    column_name_menu.add(heat_map_group_menu)
+                    count += 1
+
+    def set_selected(self, heat_map_group_menu_item):
+        """
+        This method updates the heat map configuration based on the user's selection.
+        :param heat_map_group_menu_item:
+        :return: Returns the data type that was updated.
+        """
+        result = None
+        group_name_title = heat_map_group_menu_item.getText()
+        column_name_title = heat_map_group_menu_item.getParent().getInvoker().getText()
+        data_type_title = heat_map_group_menu_item.getParent().getInvoker().getParent().getInvoker().getText()
+        match_index = re.match("^.*?\s+(?P<value>\d+)$", group_name_title)
+        if match_index:
+            index = int(match_index.group("value"))
+            settings = self[data_type_title][column_name_title]
+            settings.heat_map_groups = [False] * len(settings.heat_map_groups)
+            if heat_map_group_menu_item.isSelected():
+                settings.heat_map_groups[index - 1] = True
+        # Determine the data type that was updated. This is necessary to update the corresponding table cell renderer.
+        if data_type_title == "Integer":
+            result = Integer
+        elif data_type_title == "Float":
+            result = Float
+        elif data_type_title == "Double":
+            result = Double
+        return result
+
+    def get_table_cell_renderer(self, data_type):
+        """
+        Create the table cell renderer for the given data type.
+        :param data_type:
+        :return: IntelTableRenderer
+        """
+        group_names = {}
+        # Create inventory of selected columns
+        for column_name, settings in self[data_type.__name__].items():
+            try:
+                index = settings.heat_map_groups.index(True)
+                if index not in group_names:
+                    group_names[index] = {}
+                group_names[index][column_name] = settings
+            except ValueError:
+                pass
+        # Compile the pallet indices that is used by the table cell renderer
+        column_count = self._intel_table.get_column_count()
+        pallet_indices = [None] * column_count
+        heat_map_active = False
+        for group_index, column_names in group_names.items():
+            # Obtain min and max values for the current heat map group
+            column_names = [item for item in column_names.keys()]
+            min_value, max_value = self._intel_table.get_min_max_values(column_names)
+            min_max_pair = PalletIndex(min_value, max_value)
+            for i in range(0, column_count):
+                column_name = self._intel_table.get_column_name(i)
+                if column_name in column_names:
+                    pallet_indices[i] = min_max_pair
+                    heat_map_active = True
+        # Create the correct table cell renderer
+        if heat_map_active:
+            result = IntelTableCellRenderer(self._intel_table, self._pallet, pallet_indices)
+        else:
+            result = DefaultTableCellRenderer()
+        return result
+
+
+class IntelTableCellRenderer(DefaultTableCellRenderer):
+    """
+    This class implements a heat map for the UI table.
+    """
+
+    def __init__(self, intel_table, pallet, pallet_indices):
+        DefaultTableCellRenderer.__init__(self)
+        self._intel_table = intel_table
+        self._pallet = pallet
+        self._pallet_length = len(self._pallet)
+        self._pallet_indices = pallet_indices
+
+    def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
+        """This method is called by the UI table to calculate a row's background color."""
+        DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
+        pallet_index = self._pallet_indices[column]
+        if pallet_index:
+            index = pallet_index.get_pallet_index(self._pallet_length, value)
+            self.setBackground(self._pallet[index])
+        return self
+
+
+class IntelTablePopupMenuListener(PopupMenuListener):
+    def __init__(self, intel_table):
+        PopupMenuListener.__init__(self)
+        self._intel_table = intel_table
+        self._renderer = None
+        self._heat_map_menu_info = None
+
+    def popupMenuWillBecomeVisible(self, event):
+        """
+        This method is executed before the UI table's context menu is displayed.
+        :param event:
+        :return:
+        """
+        menu = event.getSource()
+        menu_item_count = menu.getComponentCount()
+        heat_map_item = None
+        # Obtain heat map menu item
+        for i in range(0, menu_item_count):
+            item = menu.getComponent(i)
+            if isinstance(item, JMenu) and item.getText() == "Heat Map":
+                heat_map_item = item
+        if heat_map_item:
+            self._intel_table.load_head_map_menu_entries()
+            self._intel_table.heat_map_menu.create_menu_entries(heat_map_item,
+                                                                actionPerformed=self.action_checked_menu_item)
+
+    def action_checked_menu_item(self, event):
+        """
+        This method is executed when a user clicks a heat map context menu entry.
+        :param event:
+        :return:
+        """
+        # Update user configuration
+        data_type = self._intel_table.heat_map_menu.set_selected(event.getSource())
+        if data_type:
+            table_cell_renderer = self._intel_table.heat_map_menu.get_table_cell_renderer(data_type)
+            self._intel_table.setDefaultRenderer(data_type, table_cell_renderer)
+
+    def refresh(self):
+        pass
+
+    def popupMenuCanceled(self, event):
+        pass
+
+    def popupMenuWillBecomeInvisible(self, event):
+        pass
 
 
 class IntelTable(JTable, IMessageEditorController):
@@ -50,10 +296,12 @@ class IntelTable(JTable, IMessageEditorController):
         self._table_model_lock = table_model_lock
         self._intel_tab = intel_tab
         self._data_model = data_model
+        self.heat_map_menu = HeatMapMenu(self)
         self.setAutoCreateRowSorter(True)
         self._currently_selected_message_info = None
         # table pop menu
         self._popup_menu = JPopupMenu()
+        self._popup_menu.addPopupMenuListener(IntelTablePopupMenuListener(self))
         # Clear Table
         item = JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed)
         item.setToolTipText("Remove all rows from the table.")
@@ -102,6 +350,10 @@ class IntelTable(JTable, IMessageEditorController):
                             "clipboard.")
         self._popup_menu.add(item)
         self._popup_menu.addSeparator()
+        item = JMenu("Heat Map")
+        item.setToolTipText("Creates a heat map on the selected column type(s).")
+        self._popup_menu.add(item)
+        self._popup_menu.addSeparator()
         # Delete Selected Row(s)
         item = JMenuItem("Delete Selected Row(s)", actionPerformed=self.delete_rows_menu_pressed)
         item.setToolTipText("Removes the selected rows from the table.")
@@ -134,8 +386,11 @@ class IntelTable(JTable, IMessageEditorController):
     def clear_data(self):
         """Clears the table's content"""
         with self._table_model_lock:
-            self._ref = 1
+            self.heat_map_menu = HeatMapMenu(self)
             self._data_model.clear_data()
+            self.setDefaultRenderer(Integer, DefaultTableCellRenderer())
+            self.setDefaultRenderer(Float, DefaultTableCellRenderer())
+            self.setDefaultRenderer(Double, DefaultTableCellRenderer())
 
     def clear_table_menu_pressed(self, event):
         """This method is invoked when the clear table menu is selected"""
@@ -308,6 +563,47 @@ class IntelTable(JTable, IMessageEditorController):
         thread = threading.Thread(target=self._copy_selected_column_values_menu_pressed)
         thread.daemon = True
         thread.start()
+
+    def load_head_map_menu_entries(self):
+        with self._table_model_lock:
+            count = self._data_model.getColumnCount()
+            numeric_columns = 0
+            # Setup menu structure as a dict
+            for i in range(0, count):
+                column_name = self._data_model.getColumnName(i)
+                class_type = self._data_model.getColumnClass(i)
+                if column_name and self._data_model.is_numeric(i):
+                    menu_entry = HeatMapMenuEntry(column_name, class_type)
+                    self.heat_map_menu.add_entry(menu_entry)
+
+    def get_value_at(self, row_index, column_index):
+        """Returns the element at row row_index and column column_index"""
+        with self._table_model_lock:
+            result = self._data_model.getValueAt(row_index, column_index)
+        return result
+
+    def get_column_name(self, column_index):
+        """Returns true if the column type at column_index is numeric"""
+        with self._table_model_lock:
+            result = self._data_model.getColumnName(column_index)
+        return result
+
+    def get_column_count(self):
+        """Returns the count of existing columns"""
+        with self._table_model_lock:
+            result = self._data_model.getColumnCount()
+        return result
+
+    def get_min_max_values(self, column_names):
+        """
+        Returns the smallest and largest value over the given volumn_names
+        :param column_names: List of columns over which the smallest and largest value should be found
+        :return: List with two elements. The first element contains the smallest and the second element the largest
+        value
+        """
+        with self._table_model_lock:
+            result = self._data_model.get_min_max_values(column_names)
+        return result
 
     def _copy_all_column_values_dedup_menu_pressed(self):
         """This method is invoked by a thread when the copy column values deduplicated menu is selected"""

@@ -85,6 +85,11 @@ class IntelDataModelEntry:
             return None
         return self._elements[i]
 
+    def is_numeric(self, i):
+        """Returns true if the column type at column_index is numeric"""
+        data_type = self.get_type_at(i)
+        return data_type == Integer or data_type == Float or data_type == int or data_type == float
+
     def get_type_at(self, i):
         """Returns the element type at position i"""
         return_value = String
@@ -213,6 +218,37 @@ class IntelDataModel(AbstractTableModel):
         except:
             print(traceback.format_exc())
         return None
+
+    def is_numeric(self, column_index):
+        """Returns true if the column type at column_index is numeric"""
+        data_type = self.getColumnClass(column_index)
+        return data_type == Integer or data_type == Float or data_type == int or data_type == float
+
+    def get_min_max_values(self, column_names):
+        """
+        Returns the smallest and largest value over the given volumn_names
+        :param column_names: List of columns over which the smallest and largest value should be found
+        :return: List with two elements. The first element contains the smallest and the second element the largest
+        value
+        """
+        min_value = 0
+        max_value = 0
+        first = True
+        for column_name in column_names:
+            index = self._header.index(column_name)
+            if index >= 0:
+                for item in self._content:
+                    column_value = item.get_value_at(index)
+                    if item.is_numeric(index):
+                        if first:
+                            first = False
+                            min_value = column_value
+                            max_value = column_value
+                        if min_value > column_value:
+                            min_value = column_value
+                        if max_value < column_value:
+                            max_value = column_value
+        return [min_value, max_value]
 
     def getColumnClass(self, column_index):
         """Returns the column type at column_index"""
