@@ -41,6 +41,7 @@ from javax.swing.event import PopupMenuListener
 from javax.swing.table import DefaultTableCellRenderer
 from java.lang import Float
 from java.lang import Double
+from java.lang import String
 from java.lang import Integer
 from burp import IMessageEditorController
 from javax.swing.filechooser import FileNameExtensionFilter
@@ -201,17 +202,18 @@ class HeatMapMenu(dict):
             # Obtain min and max values for the current heat map group
             column_names = [item for item in column_names.keys()]
             min_value, max_value = self._intel_table.get_min_max_values(column_names)
-            min_max_pair = PalletIndex(min_value, max_value)
-            for i in range(0, column_count):
-                column_name = self._intel_table.get_column_name(i)
-                if column_name in column_names:
-                    pallet_indices[i] = min_max_pair
-                    heat_map_active = True
+            if min_value != max_value:
+                min_max_pair = PalletIndex(min_value, max_value)
+                for i in range(0, column_count):
+                    column_name = self._intel_table.get_column_name(i)
+                    if column_name in column_names:
+                        pallet_indices[i] = min_max_pair
+                        heat_map_active = True
         # Create the correct table cell renderer
         if heat_map_active:
             result = IntelTableCellRenderer(self._intel_table, self._pallet, pallet_indices)
         else:
-            result = DefaultTableCellRenderer()
+            result = IntelDefaultTableCellRenderer()
         return result
 
 
@@ -229,12 +231,31 @@ class IntelTableCellRenderer(DefaultTableCellRenderer):
 
     def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
         """This method is called by the UI table to calculate a row's background color."""
-        DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
+        result = DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
         pallet_index = self._pallet_indices[column]
         if pallet_index:
             index = pallet_index.get_pallet_index(self._pallet_length, value)
-            self.setBackground(self._pallet[index])
-        return self
+            result.setBackground(self._pallet[index])
+        elif not is_selected:
+            result.setBackground(None)
+        return result
+
+
+class IntelDefaultTableCellRenderer(DefaultTableCellRenderer):
+    """
+    This class implements the default JTable background. This is necessary to ensure that the background stays the same
+    independent from whether the heat map is active or not.
+    """
+
+    def __init__(self):
+        DefaultTableCellRenderer.__init__(self)
+
+    def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
+        """This method is called by the UI table to calculate a row's background color."""
+        result = DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
+        if not is_selected:
+            result.setBackground(None)
+        return result
 
 
 class IntelTablePopupMenuListener(PopupMenuListener):
@@ -274,6 +295,7 @@ class IntelTablePopupMenuListener(PopupMenuListener):
         if data_type:
             table_cell_renderer = self._intel_table.heat_map_menu.get_table_cell_renderer(data_type)
             self._intel_table.setDefaultRenderer(data_type, table_cell_renderer)
+            self._intel_table.repaint()
 
     def refresh(self):
         pass
@@ -293,6 +315,10 @@ class IntelTable(JTable, IMessageEditorController):
     """
     def __init__(self, intel_tab, data_model, table_model_lock):
         JTable.__init__(self, data_model)
+        self.setDefaultRenderer(Integer, IntelDefaultTableCellRenderer())
+        self.setDefaultRenderer(String, IntelDefaultTableCellRenderer())
+        self.setDefaultRenderer(Float, IntelDefaultTableCellRenderer())
+        self.setDefaultRenderer(Double, IntelDefaultTableCellRenderer())
         self._table_model_lock = table_model_lock
         self._intel_tab = intel_tab
         self._data_model = data_model
@@ -388,9 +414,10 @@ class IntelTable(JTable, IMessageEditorController):
         with self._table_model_lock:
             self.heat_map_menu = HeatMapMenu(self)
             self._data_model.clear_data()
-            self.setDefaultRenderer(Integer, DefaultTableCellRenderer())
-            self.setDefaultRenderer(Float, DefaultTableCellRenderer())
-            self.setDefaultRenderer(Double, DefaultTableCellRenderer())
+            self.setDefaultRenderer(Integer, IntelDefaultTableCellRenderer())
+            self.setDefaultRenderer(String, IntelDefaultTableCellRenderer())
+            self.setDefaultRenderer(Float, IntelDefaultTableCellRenderer())
+            self.setDefaultRenderer(Double, IntelDefaultTableCellRenderer())
 
     def clear_table_menu_pressed(self, event):
         """This method is invoked when the clear table menu is selected"""
