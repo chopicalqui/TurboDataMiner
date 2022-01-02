@@ -1,0 +1,12 @@
+{
+    "author": "Lukas Reiter", 
+    "plugins": [
+        0, 
+        6, 
+        7
+    ], 
+    "uuid": "b61fc205-cf03-48d7-820a-75f2cbf12530", 
+    "version": "v1.0", 
+    "script": "\"\"\"\r\nThis script displays information about redirects in the table above.\r\n\r\nUse this script to identify potential redirects that for example leak information.\r\n\"\"\"\r\n\r\nif ref ==1:\r\n\theader = [\"Ref.\", \"Host\", \"URL\", \"Status Code\", \"Content Length\", \"Response Size\", \"Location\"]\r\n\r\nresponse = message_info.getResponse()\r\nif in_scope and response:\r\n\tresponse_info = helpers.analyzeResponse(response)\r\n\tstatus_code = response_info.getStatusCode()\r\n\tif 300 <= status_code < 400:\r\n\t\tcontent_length = get_content_length(response_info.getHeaders())\r\n\t\t_, location = get_header(response_info.getHeaders(), \"Location\")\r\n\t\tif content_length:\r\n\t\t\trows.append([ref, get_hostname(url), url.getPath(), status_code, content_length, len(response), location])", 
+    "name": "Redirect - Template Script to Analyze Redirects"
+}
