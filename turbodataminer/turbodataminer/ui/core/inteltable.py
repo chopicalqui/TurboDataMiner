@@ -55,11 +55,28 @@ class PalletIndex:
     the index within the pallet list.
     """
 
-    def __init__(self, min_value, max_value):
+    def __init__(self, min_value, max_value, column_names):
+        if min_value == max_value:
+            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
         self._value_lock = threading.Lock()
         self._min_value = min_value
         self._max_value = max_value
+        self.column_names = column_names
         self._normalized_max_value = max_value - min_value
+
+    def update_values(self, min_value, max_value):
+        """
+        Implementing a setter for min_value and max_value did not work. Therefore, we had to implement this workaround.
+        :param min_value:
+        :param max_value:
+        :return:
+        """
+        if min_value == max_value:
+            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
+        with self._value_lock:
+            self._min_value = min_value
+            self._max_value = max_value
+            self._normalized_max_value = max_value - min_value
 
     def get_pallet_index(self, pallet_length, value):
         """This method returns the index in the pallet for the given cell value."""
@@ -145,12 +162,27 @@ class HeatMapMenu(dict):
                 if not column_config.heat_map_groups:
                     column_config.heat_map_groups = [False] * group_count
                 count = 1
-                group_selected = True not in column_config.heat_map_groups
                 for item in column_config.heat_map_groups:
                     item_title = "Heat Map Group {}".format(count)
                     heat_map_group_menu = JCheckBoxMenuItem(item_title, item, actionPerformed=actionPerformed)
                     column_name_menu.add(heat_map_group_menu)
                     count += 1
+        if self.items():
+            heat_map_menu_item.addSeparator()
+            item = JMenuItem("Refresh All", actionPerformed=self.refresh_heat_maps_event)
+            item.setToolTipText("Refresh heat map colors. Might be useful after manually deleting table rows.")
+            heat_map_menu_item.add(item)
+            item = JMenuItem("Clear All", actionPerformed=self.clear_all_heat_maps_event)
+            item.setToolTipText("Deactivate all active heat maps.")
+            heat_map_menu_item.add(item)
+
+    def clear_all_heat_maps_event(self, event):
+        """This method removes all heat maps"""
+        self._intel_table.clear_heat_map()
+
+    def refresh_heat_maps_event(self, event):
+        """This method removes all heat maps"""
+        self._intel_table.refresh_heat_map_values()
 
     def set_selected(self, heat_map_group_menu_item):
         """
@@ -203,7 +235,7 @@ class HeatMapMenu(dict):
             column_names = [item for item in column_names.keys()]
             min_value, max_value = self._intel_table.get_min_max_values(column_names)
             if min_value != max_value:
-                min_max_pair = PalletIndex(min_value, max_value)
+                min_max_pair = PalletIndex(min_value, max_value, column_names)
                 for i in range(0, column_count):
                     column_name = self._intel_table.get_column_name(i)
                     if column_name in column_names:
@@ -227,12 +259,12 @@ class IntelTableCellRenderer(DefaultTableCellRenderer):
         self._intel_table = intel_table
         self._pallet = pallet
         self._pallet_length = len(self._pallet)
-        self._pallet_indices = pallet_indices
+        self.pallet_indices = pallet_indices
 
     def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
         """This method is called by the UI table to calculate a row's background color."""
         result = DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
-        pallet_index = self._pallet_indices[column]
+        pallet_index = self.pallet_indices[column]
         if pallet_index:
             index = pallet_index.get_pallet_index(self._pallet_length, value)
             result.setBackground(self._pallet[index])
@@ -409,15 +441,20 @@ class IntelTable(JTable, IMessageEditorController):
         with self._table_model_lock:
             self._data_model.fireTableStructureChanged()
 
-    def clear_data(self):
-        """Clears the table's content"""
+    def clear_heat_map(self):
+        """This method removes all heat maps"""
         with self._table_model_lock:
             self.heat_map_menu = HeatMapMenu(self)
-            self._data_model.clear_data()
             self.setDefaultRenderer(Integer, IntelDefaultTableCellRenderer())
             self.setDefaultRenderer(String, IntelDefaultTableCellRenderer())
             self.setDefaultRenderer(Float, IntelDefaultTableCellRenderer())
             self.setDefaultRenderer(Double, IntelDefaultTableCellRenderer())
+
+    def clear_data(self):
+        """Clears the table's content"""
+        self.clear_heat_map()
+        with self._table_model_lock:
+            self._data_model.clear_data()
 
     def clear_table_menu_pressed(self, event):
         """This method is invoked when the clear table menu is selected"""
@@ -594,7 +631,6 @@ class IntelTable(JTable, IMessageEditorController):
     def load_head_map_menu_entries(self):
         with self._table_model_lock:
             count = self._data_model.getColumnCount()
-            numeric_columns = 0
             # Setup menu structure as a dict
             for i in range(0, count):
                 column_name = self._data_model.getColumnName(i)
@@ -705,6 +741,32 @@ class IntelTable(JTable, IMessageEditorController):
             traceback.print_exc(file=self._intel_tab.callbacks.getStderr())
             ErrorDialog.Show(self._intel_tab.extender.parent, traceback.format_exc())
         self._setEnablePopupMenu(True)
+
+    def refresh_heat_map_values(self):
+        """
+        This method re-calculates the min/max values of the heat map so that the heat map is displayed correnctly after
+        an user update.
+        :return:
+        """
+        # Update colors of heat maps.
+        updated = False
+        for renderer_type in [Integer, Float, Double]:
+            renderer = self.getDefaultRenderer(renderer_type)
+            if isinstance(renderer, IntelTableCellRenderer):
+                done_list = []
+                for i in range(0, len(renderer.pallet_indices)):
+                    indices = renderer.pallet_indices[i]
+                    # The list might contain several references to the same object. Therefore, we just process it once.
+                    if indices and indices not in done_list:
+                        updated = True
+                        done_list.append(indices)
+                        min_value, max_value = self.get_min_max_values(indices.column_names)
+                        if min_value == max_value:
+                            renderer.pallet_indices[i] = None
+                        else:
+                            indices.update_values(min_value, max_value)
+        if updated:
+            self.repaint()
 
     def delete_rows_menu_pressed(self, event):
         """This method is invoked when the delete rows button is pressed"""
