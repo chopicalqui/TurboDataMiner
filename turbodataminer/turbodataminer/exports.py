@@ -37,6 +37,7 @@ from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
 from java.util.zip import GZIPInputStream
 from java.util.zip import GZIPOutputStream
+from turbodataminer.ui.scoping.scopedialog import ParameterScopeDialog
 
 
 class IntelFiles:
@@ -166,6 +167,35 @@ class ExportedMethods:
             elif 33 <= i <= 126:
                 rvalue = rvalue + (chr(i) if 33 <= i <= 126 else replace_char)
         return rvalue
+
+    def show_scope_parameter_dialog(self, request_info):
+        """
+        This method displays a JDialog displaying the given IRequestInfo's parameters. The user can then check
+        these parameters as well as specify whether the selection is a black- or whitelisting.
+        :param request_info (IRequestInfo): The request object whose parameters is displayed in the JDialog and whose
+        parameters can then be filtered using the JDialog object's match method (see below).
+        :return: ParameterScopeDialog object that exposes the following methods and variables:
+        - canceled: This variable is of type bool and specifies whether the user closed the dialog via the Cancel
+        button (canceled == True) or via the Ok button (canceled == False).
+        - match(IParameter): This method returns true if the given IParameter parameter was checked by the user in the
+        JDialog.
+        - whitelisting: This variable specifies whether the user's parameter selection is a white- or blacklisting.
+
+        The following code provides an example of how this method can be used:
+        scope_object = show_scope_parameter_dialog(request_info)
+        if not scope_object.canceled:
+	        for parameter in request_info.getParameters():
+                if scope_object.match(parameter):
+                    task = "Whitelisting" if scope_object.whitelisting else "Blacklisting"
+                else:
+                    task = ""
+                rows.append([task, get_parameter_name(parameter.getType()), parameter.getName()])
+        """
+        result = None
+        if len(request_info.getParameters()) > 0:
+            result = ParameterScopeDialog(owner=self._extender.parent)
+            result.display(request_info=request_info)
+        return result
 
     def analyze_request(self, message_info):
         """
@@ -634,22 +664,7 @@ class ExportedMethods:
         :param type (int): The integer value that shall be returned into the string.
         :return (str): The descriptive name that matches the given type parameter value or None.
         """
-        rvalue = None
-        if type == IParameter.PARAM_URL:
-            rvalue = "GET"
-        elif type == IParameter.PARAM_BODY:
-            rvalue = "POST"
-        elif type == IParameter.PARAM_COOKIE:
-            rvalue = "Cookie"
-        elif type == IParameter.PARAM_XML:
-            rvalue = "XML"
-        elif type == IParameter.PARAM_XML_ATTR:
-            rvalue = "XML Attr"
-        elif type == IParameter.PARAM_MULTIPART_ATTR:
-            rvalue = "Multipart Attr"
-        elif type == IParameter.PARAM_JSON:
-            rvalue = "JSON"
-        return rvalue
+        return ParameterScopeDialog.get_parameter_name(type)
 
     def get_parameters(self, request_info, re_names):
         """

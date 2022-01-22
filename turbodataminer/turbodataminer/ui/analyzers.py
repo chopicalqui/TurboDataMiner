@@ -156,6 +156,7 @@ class IntelTab(IntelBase):
             'header': header,
             'rows': rows,
             'url': url,
+            'show_scope_parameter_dialog': self._exported_methods.show_scope_parameter_dialog,
             'message_info': message_info,
             'message_infos': message_infos,
             'request_info': request_info,

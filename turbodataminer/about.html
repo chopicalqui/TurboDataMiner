@@ -799,6 +799,21 @@
             </td>
         </tr>
         <tr>
+            <td>show_scope_parameter_dialog</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            refer to <a href="#ExportedMethods-show_scope_parameter_dialog">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>tool_flag</td>
             <td><center>Variable</center></td>
             <td><center>r</center></td>
@@ -1076,7 +1091,7 @@
     :param&nbsp;request_info&nbsp;(RequestInfo): The IRequestInfo object, whose parameters shall be analysed.<br>
     header.&nbsp;Usually,&nbsp;the&nbsp;list&nbsp;of&nbsp;headers&nbsp;is&nbsp;obtained&nbsp;via&nbsp;the&nbsp;getHeaders&nbsp;method&nbsp;implemented&nbsp;by&nbsp;Burp&nbsp;Suite's<br>
     IRequestInfo&nbsp;or&nbsp;IResponseInfo&nbsp;interfaces.<br>
-    :param&nbsp;re_names&nbsp;(List[re.Pattern]): List of regular expressions that specify the patterns for parameter names,
+    :param&nbsp;re_names&nbsp;(List[re.Pattern]): List of regular expressions that specify the patterns for parameter names,<br>
     whose parameter values shall be returned.<br>
     :return&nbsp;(Dict[str,&nbsp;List[IParameter]]):&nbsp;The&nbsp;keys&nbsp;of&nbsp;the&nbsp;returned&nbsp;dictionary&nbsp;are&nbsp;always&nbsp;the&nbsp;strings&nbsp;of&nbsp;the<br>
     re_names&nbsp;list&nbsp;({item.pattern:&nbsp;[]&nbsp;for&nbsp;item&nbsp;in&nbsp;re_names})&nbsp;and&nbsp;the&nbsp;corresponding&nbsp;dictionary&nbsp;values&nbsp;contain&nbsp;the<br>
@@ -1093,6 +1108,37 @@
     :param request (str): The request (including the request headers and body) that shall be sent.<br>
     :param http_service (IHttpService): The service to which the given request shall be sent.<br>
     :return (IHttpRequestResponse): Object containing the sent and received data.<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-show_scope_parameter_dialog"><strong>show_scope_parameter_dialog</strong></a>(self, request)</dt><dd><tt>This method displays a JDialog displaying the given IRequestInfo's parameters. The user can then check<br>
+    these parameters as well as specify whether the selection is a black- or whitelisting.<br>
+    <br>
+    :param request (IRequestInfo): The request object whose parameters is displayed in the JDialog and whose<br>
+    parameters can then be filtered using the JDialog object's match method (see below).<br>
+    :return: ParameterScopeDialog object that exposes the following methods and variables:<br>
+    - canceled: This variable is of type bool and specifies whether the user closed the dialog via the Cancel<br>
+    button (canceled == True) or via the Ok button (canceled == False).<br>
+    - match(IParameter): This method returns true if the given IParameter parameter was checked by the user in the<br>
+    JDialog.<br>
+    - whitelisting: This variable specifies whether the user's parameter selection is a white- or blacklisting.<br>
+    <br>
+    The following code provides an example of how this method can be used:<br>
+    <br>
+    &nbsp;&nbsp;&nbsp;&nbsp;# Display the dialog so that the user can select the parameters to be processed<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;scope_object = show_scope_parameter_dialog(request_info)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;# Only if the user clicked the Ok button, the script continues<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;if not scope_object.canceled:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# We iterate over each of the request's parameters<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for parameter in request_info.getParameters():<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# We determine if the parameter was selected by the user<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if scope_object.match(parameter):<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# The user selected the current parameter for a white- or blacklisting approach<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task = "Whitelisting" if scope_object.whitelisting else "Blacklisting"<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else:<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# The user did not select the current parameter<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task = "Not selected"<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# We add the results to the UI table<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows.append([task, get_parameter_name(parameter.getType()), parameter.getName()])<br>
+        <br><br></tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-split_http_header"><strong>split_http_header</strong></a>(self, header)</dt><dd><tt>This method splits the given header string into the header name and value. Usually this method is used in<br>
     combination with the getHeaders method of the IRequestInfo or IResponseInfo interface.<br>

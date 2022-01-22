@@ -62,7 +62,6 @@ class ItemChangeListener(ItemListener):
 
     def itemStateChanged(self, event):
         if event.getStateChange() == ItemEvent.SELECTED:
-            item = event.getItem()
             self._update_function(event)
 
 
