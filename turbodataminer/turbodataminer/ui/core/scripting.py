@@ -71,13 +71,14 @@ class ErrorDialog(JDialog):
     error/exception
     """
     def __init__(self, owner, exception):
-        JFrame.__init__(self, owner, "Compile error", size=(800, 400))
+        super(JDialog, self).__init__(owner, "Compile error", size=(800, 400))
         self._exception = exception
         text_area = JTextArea()
         text_area.setFont(Font("Courier", Font.PLAIN, 11))
         text_area.setText(exception)
         text_area.setEditable(False)
         self.add(JScrollPane(text_area))
+        self.setLocationRelativeTo(owner)
 
     @staticmethod
     def Show(owner, message):
@@ -89,8 +90,9 @@ class SaveDialog(JDialog):
     """
     This dialog implements all functionality to save a new or update an existing script.
     """
+
     def __init__(self, owner,  plugin_category, script_info=ScriptInformation(), title="Save Script"):
-        JDialog.__init__(self, owner, title, size=(800, 400))
+        super(JDialog, self).__init__(owner, title, size=(800, 400))
         if script_info.uuid:
             self.script_info = script_info
         else:
@@ -99,6 +101,7 @@ class SaveDialog(JDialog):
                                                  version=script_info.version,
                                                  plugins=script_info.plugins,
                                                  script=script_info.script)
+        self.setLocationRelativeTo(owner)
         self.setLayout(GridLayout(1, 1))
         self.setModal(True)
         self.result = None

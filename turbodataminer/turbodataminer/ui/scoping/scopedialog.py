@@ -76,6 +76,7 @@ class BaseScopeDialog(JDialog):
         # Initialize variables
         self.canceled = None
         self.filter_results = []
+        self.setLocationRelativeTo(owner)
 
     @property
     def data_model(self):

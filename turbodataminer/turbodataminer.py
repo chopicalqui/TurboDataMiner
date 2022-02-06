@@ -39,6 +39,7 @@ from javax.swing import JTabbedPane
 from javax.swing import JTextPane
 from javax.swing import SwingUtilities
 from javax.swing.event import HyperlinkEvent
+from java.awt import Frame
 from java.awt import Desktop
 from java.lang import Thread
 from java.net import URL
@@ -78,7 +79,6 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         self._mef = None
         self._met = None
         self.home_dir = None
-        self.parent = None
         self._about = None
         self.database_files = None
 
@@ -210,7 +210,6 @@ following two modifiers are available.""")
         self.callbacks.addSuiteTab(self)
         self.callbacks.customizeUiComponent(self._main_tabs)
         self.callbacks.registerExtensionStateListener(self)
-        self.parent = SwingUtilities.getRoot(self._main_tabs)
         # Manually load Turbo Data Miner's own Apache Xerces library, which was obtained from:
         # http://xerces.apache.org/mirrors.cgi
         # Note that the files integrity was verified prior its incorporation into Turbo Data Miner.
@@ -220,6 +219,10 @@ following two modifiers are available.""")
         self.xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
                                                  Thread.currentThread().getContextClassLoader())
         sys.path.append(os.path.join(self.home_dir, "data", "libs"))
+
+    @property
+    def parent(self):
+        return SwingUtilities.getRoot(self._main_tabs)
 
     def getTabCaption(self):
         return "Turbo Miner"
