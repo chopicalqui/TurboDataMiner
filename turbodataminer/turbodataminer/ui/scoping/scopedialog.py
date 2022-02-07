@@ -40,7 +40,7 @@ class BaseScopeDialog(JDialog):
     This dialog implements all functionality to display a scope dialog.
     """
 
-    def __init__(self, owner, title="Check items to be processed"):
+    def __init__(self, owner, title="Check items to be processed", enable_filter=True):
         JDialog.__init__(self, owner, title)
         # Set the dialogs layout
         self._owner = owner
@@ -61,6 +61,7 @@ class BaseScopeDialog(JDialog):
         self._filter_option = JComboBox(["Test only selected items (whitelisting)",
                                         "Exclude all selected items from testing/processing (blacklisting)"])
         self._filter_option.setEditable(False)
+        self._filter_option.setEnabled(enable_filter)
         self._filter_option.setSelectedIndex(0)
         self._filter_option.setToolTipText("Specifies whether a whitelisting or blacklisting approach is "
                                            "be applied on the checked items in the table above.")
@@ -141,7 +142,7 @@ class ParameterScopeDialog(BaseScopeDialog):
     """
 
     def __init__(self, owner):
-        BaseScopeDialog.__init__(self, owner, title="Check parameters to be processed...")
+        BaseScopeDialog.__init__(self, owner, title="Check parameters to be processed...", enable_filter=False)
 
     @staticmethod
     def get_parameter_name(type):
