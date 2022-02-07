@@ -111,12 +111,20 @@ class ScriptInformation:
     This class holds all information and methods about a script
     """
 
-    def __init__(self, guid=str(uuid.uuid4()), name=None, author=None, version=None, plugins=[], script=None):
+    def __init__(self,
+                 guid=str(uuid.uuid4()),
+                 name=None,
+                 author=None,
+                 version=None,
+                 plugins=[],
+                 script=None,
+                 burp_professional_only=False):
         self.uuid = guid
         self.name = name
         self.author = author
         self.version = version
         self.plugins = plugins
+        self.burp_professional_only = burp_professional_only
         self._script = script
 
     @property
@@ -143,6 +151,7 @@ class ScriptInformation:
                                  author=json_object["author"] if "author" in json_object else None,
                                  version=json_object["version"] if "version" in json_object else None,
                                  plugins=plugins,
+                                 burp_professional_only=json_object["burp_professional_only"] if "burp_professional_only" in json_object else False,
                                  script=json_object["script"] if "script" in json_object else None)
 
     def is_new(self, script_path):
@@ -157,9 +166,11 @@ class ScriptInformation:
                 "author": self.author,
                 "version": self.version,
                 "plugins": [item.plugin_id for item in self.plugins],
+                "burp_professional_only": self.burp_professional_only,
                 "script": self.script}
 
     def __repr__(self):
         if self.name:
-            return "{} ({}) - {} - {} - {}".format(self.name, self.uuid, self.version, self.author, self.plugins)
+            name = self.name + ("*" if self.burp_professional_only else "")
+            return "{} ({}) - {} - {} - {}".format(name, self.uuid, self.version, self.author, self.plugins)
         return ""

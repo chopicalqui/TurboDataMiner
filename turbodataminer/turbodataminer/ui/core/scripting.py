@@ -33,6 +33,7 @@ from javax.swing import JFrame
 from javax.swing import JButton
 from javax.swing import JDialog
 from javax.swing import JComboBox
+from javax.swing import JCheckBox
 from javax.swing import JTextArea
 from javax.swing import JTextField
 from javax.swing import JOptionPane
@@ -42,6 +43,7 @@ from javax.swing import JToggleButton
 from javax.swing import DefaultComboBoxModel
 from java.awt import Font
 from java.awt import Toolkit
+from java.awt import Dimension
 from java.awt import GridLayout
 from java.awt import BorderLayout
 from java.awt.event import ItemEvent
@@ -100,16 +102,23 @@ class SaveDialog(JDialog):
                                                  author=script_info.author,
                                                  version=script_info.version,
                                                  plugins=script_info.plugins,
-                                                 script=script_info.script)
+                                                 script=script_info.script,
+                                                 burp_professional_only=script_info.burp_professional_only)
         self.setLocationRelativeTo(owner)
-        self.setLayout(GridLayout(1, 1))
+        self.setLayout(BorderLayout())
+        self.setMaximumSize(Dimension(800, 150))
+        self.setMinimumSize(Dimension(800, 150))
         self.setModal(True)
         self.result = None
         self.windowClosing = self.cancel_action
 
-        main_panel = JPanel()
-        main_panel.setLayout(GridLayout(5,2))
-        self.add(main_panel)
+        label_panel = JPanel()
+        input_panel = JPanel()
+        label_panel.setLayout(GridLayout(6, 1))
+        input_panel.setLayout(GridLayout(6, 1))
+        self.add(label_panel, BorderLayout.WEST)
+        self.add(input_panel, BorderLayout.CENTER)
+
         self._plugins = PluginInformation.get_plugins_by_category(plugin_category)
         self._select_plugins = JList(self._plugins)
         self._select_plugins.setToolTipText("Select the plugins in which this script will show up.")
@@ -119,41 +128,51 @@ class SaveDialog(JDialog):
             index = self._select_plugins.getSelectedIndex()
             indices.append(index)
         self._select_plugins.setSelectedIndices(indices)
-        self.add(self._select_plugins)
+        self.add(self._select_plugins, BorderLayout.EAST)
 
         l_guid = JLabel("GUID (Filename)")
         tf_guid = JTextField()
         tf_guid.setText(self.script_info.uuid)
         tf_guid.setEditable(False)
         tf_guid.setToolTipText("The unique ID and internal file name of this script.")
-        main_panel.add(l_guid)
-        main_panel.add(tf_guid)
+        label_panel.add(l_guid)
+        input_panel.add(tf_guid)
 
         l_name = JLabel("Name")
         self._tf_name = JTextField()
         self._tf_name.setToolTipText("Insert a short description for the script.")
         self._tf_name.setText(self.script_info.name)
-        main_panel.add(l_name)
-        main_panel.add(self._tf_name)
+        label_panel.add(l_name)
+        input_panel.add(self._tf_name)
 
         l_author = JLabel("Author")
         self._ta_author = JTextField()
         self._ta_author.setToolTipText("This field usually contains your name.")
         self._ta_author.setText(self.script_info.author)
-        main_panel.add(l_author)
-        main_panel.add(JScrollPane(self._ta_author))
+        label_panel.add(l_author)
+        input_panel.add(self._ta_author)
 
         l_version = JLabel("Version")
         self._ta_version = JTextField()
         self._ta_version.setText(self.script_info.version)
         self._ta_version.setToolTipText("This script's current version.")
-        main_panel.add(l_version)
-        main_panel.add(JScrollPane(self._ta_version))
+        label_panel.add(l_version)
+        input_panel.add(self._ta_version)
+
+        l_burp_professional = JLabel("Burp Professional Only")
+        self._cb_burp_professional = JCheckBox("", self.script_info.burp_professional_only)
+        self._cb_burp_professional.setToolTipText("Check if the script only works in Burp Suite Professional.")
+        label_panel.add(l_burp_professional)
+        input_panel.add(self._cb_burp_professional)
+
+        button_panel = JPanel()
+        button_panel.setLayout(GridLayout(1, 2))
+        input_panel.add(button_panel)
 
         b_save = JButton("Save", actionPerformed=self.save_action)
-        main_panel.add(b_save)
         b_cancel = JButton("Cancel", actionPerformed=self.cancel_action)
-        main_panel.add(b_cancel)
+        button_panel.add(b_save)
+        button_panel.add(b_cancel)
 
     def save_action(self, event):
         """
@@ -191,6 +210,7 @@ class SaveDialog(JDialog):
         self.script_info.name = name
         self.script_info.author = author
         self.script_info.version = version
+        self.script_info.burp_professional_only = self._cb_burp_professional.isSelected()
         self.result = JOptionPane.YES_OPTION
         self.setVisible(False)
 
@@ -368,10 +388,16 @@ class IdePane(JPanel):
                     content = f.read()
                     if content:
                         script_info = ScriptInformation.load_json(content)
-                        for plugin in script_info.plugins:
-                            if self._intel_base and plugin and self._intel_base.plugin_id == plugin.plugin_id:
-                                scripts.append(script_info)
-                                break
+                        if self._intel_base.extender.is_burp_professional or (
+                            not self._intel_base.extender.is_burp_professional and not script_info.burp_professional_only
+                        ):
+                            for plugin in script_info.plugins:
+                                if self._intel_base and plugin and self._intel_base.plugin_id == plugin.plugin_id:
+                                    scripts.append(script_info)
+                                    break
+                        else:
+                            print("The following script requires Burp Suite "
+                                  "Professional and therefore was not loaded: {}".format(script_info))
         scripts.sort(key=lambda x: x.name)
         self._cb_list = DefaultComboBoxModel(scripts)
         self._code_chooser.setModel(self._cb_list)

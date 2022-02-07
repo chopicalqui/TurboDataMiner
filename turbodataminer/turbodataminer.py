@@ -224,6 +224,15 @@ following two modifiers are available.""")
     def parent(self):
         return SwingUtilities.getRoot(self._main_tabs)
 
+    @property
+    def is_burp_professional(self):
+        result = False
+        for line in self.callbacks.getBurpVersion():
+            if line == "Burp Suite Professional":
+                result = True
+                break
+        return result
+
     def getTabCaption(self):
         return "Turbo Miner"
 
