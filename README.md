@@ -21,7 +21,7 @@ information from each response (see source code in 2) and adds it to the table (
 can sort per column to gain a better understanding of each cookie attribute or we can perform additional operations 
 via the table's context menu (see 5).
 
-![Turbo Data Miner's Proxy History Analyzer](example.png)
+![Turbo Data Miner's Proxy History Analyzer](media/example.png)
 
 As we can see, with Python skills, an understanding of the 
 [Burp Suite Extender API](https://portswigger.net/Burp/extender/api/index.html) as well as an understanding of Turbo 
