@@ -2863,6 +2863,7 @@ class BurpExtender(IBurpExtender, ITab, IContextMenuFactory, IMessageEditorTabFa
                 about_file_content = f.read()
         self._about = JTextPane()
         self._about.setContentType("text/html")
+        self._about.putClientProperty("html.disable", None)
         self._about.setEditable(False)
         self._about.setText(about_file_content)
         self._about.addHyperlinkListener(self.hyperlink_listener)
