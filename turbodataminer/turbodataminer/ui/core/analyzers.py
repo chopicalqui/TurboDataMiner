@@ -79,6 +79,7 @@ class JTabbedPaneClosableContextMenuAnalyzer(JTabbedPaneClosable, IContextMenuFa
             IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TREE,
             IContextMenuInvocation.CONTEXT_TARGET_SITE_MAP_TABLE,
             IContextMenuInvocation.CONTEXT_PROXY_HISTORY,
+            IContextMenuInvocation.CONTEXT_SCANNER_RESULTS,
             IContextMenuInvocation.CONTEXT_INTRUDER_PAYLOAD_POSITIONS,
             IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS,
             IContextMenuInvocation.CONTEXT_SEARCH_RESULTS]:

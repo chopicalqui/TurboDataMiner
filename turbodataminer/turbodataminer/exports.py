@@ -739,7 +739,7 @@ class ExportedMethods:
         body_offset = request_info.getBodyOffset()
         body_bytes = request_binary[body_offset:]
         new_request = self._extender.helpers.buildHttpMessage(headers, body_bytes)
-        return self._extender.callbacks.makeHttpRequest(http_service, new_request)
+        return self._extender.callbacks.makeHttpRequest(http_service, new_request, False)
 
     def split_http_header(self, header):
         """

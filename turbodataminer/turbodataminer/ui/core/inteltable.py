@@ -362,7 +362,11 @@ class IntelTable(JTable, IMessageEditorController):
         self._popup_menu.addPopupMenuListener(IntelTablePopupMenuListener(self))
         # Clear Table
         item = JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed)
-        item.setToolTipText("Remove all rows from the table.")
+        item.setToolTipText("Remove all rows from the table and reset heat map settings.")
+        self._popup_menu.add(item)
+        # Clear Table (without Heatmap)
+        item = JMenuItem("Clear Table (keep Heat Map Settings)", actionPerformed=self.clear_table_without_heat_map_menu_pressed)
+        item.setToolTipText("Remove all rows from the table but keep heat map settings.")
         self._popup_menu.add(item)
         # Refresh Table
         item = JMenuItem("Refresh Table", actionPerformed=self.refresh_table_menu_pressed)
@@ -450,15 +454,20 @@ class IntelTable(JTable, IMessageEditorController):
             self.setDefaultRenderer(Float, IntelDefaultTableCellRenderer())
             self.setDefaultRenderer(Double, IntelDefaultTableCellRenderer())
 
-    def clear_data(self):
+    def clear_data(self, clear_heat_map=True):
         """Clears the table's content"""
-        self.clear_heat_map()
+        if clear_heat_map:
+            self.clear_heat_map()
         with self._table_model_lock:
             self._data_model.clear_data()
 
     def clear_table_menu_pressed(self, event):
         """This method is invoked when the clear table menu is selected"""
         self.clear_data()
+
+    def clear_table_without_heat_map_menu_pressed(self, event):
+        """This method is invoked when the clear table menu is selected"""
+        self.clear_data(clear_heat_map=False)
 
     def _export_csv_menu_pressed(self, file_name):
         """This method is invoked by a thread when the export CSV menu is selected"""

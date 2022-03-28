@@ -132,7 +132,7 @@ class CommunicationManager:
             item = self._queue.poll(500, TimeUnit.MILLISECONDS)
             if item:
                 try:
-                    request_response = self._callbacks.makeHttpRequest(self._http_service, item.request)
+                    request_response = self._callbacks.makeHttpRequest(self._http_service, item.request, False)
                     if self.callback_method:
                         with self._cache_lock:
                             cache = self._cache[item.uuid]

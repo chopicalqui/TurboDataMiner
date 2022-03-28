@@ -40,6 +40,7 @@ from turbodataminer.model.scripting import PluginType
 from turbodataminer.model.scripting import PluginCategory
 from turbodataminer.model.intelligence import IntelDataModel
 from turbodataminer.model.messaging import CommunicationManager
+from turbodataminer.model.intelligence import TableRowEntry
 from turbodataminer.model.intelligence import IntelDataModelEntry
 
 
@@ -113,9 +114,11 @@ class IntelTab(IntelBase):
         """
         if not message_info:
             return
+
         header = []
-        rows = []
-        message_infos = {}
+        rows = [] # Deprecated
+        message_infos = {} # Deprecated
+        table_entries = TableRowEntry(message_info)
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
@@ -155,7 +158,9 @@ class IntelTab(IntelBase):
             'helpers': self._helpers,
             'header': header,
             'rows': rows,
+            'add_table_row': table_entries.add_table_row,
             'url': url,
+            'TableRowEntry': TableRowEntry,
             'show_scope_parameter_dialog': self._exported_methods.show_scope_parameter_dialog,
             'message_info': message_info,
             'message_infos': message_infos,
@@ -200,6 +205,7 @@ class IntelTab(IntelBase):
         message_infos = globals['message_infos']
         # Create new table row
         entries = []
+        # Deprecated
         for row in rows:
             if isinstance(row, list):
                 entries.append(IntelDataModelEntry(row, message_info, message_infos))
@@ -212,7 +218,9 @@ class IntelTab(IntelBase):
             self._data_model.set_header(header, reset_column_count=True)
         # Add new row to table
         with self._table_model_lock:
+            # Deprecated
             self._data_model.add_rows(entries)
+            self._data_model.add_rows(table_entries)
         self._ref += 1
 
 
@@ -281,6 +289,11 @@ class AnalyzerBase(IntelTab):
         """
         try:
             messages = invocation.getSelectedMessages()
+            # If message is None, then we are dealing with IContextMenuInvocation.CONTEXT_SCANNER_RESULTS
+            if not messages:
+                messages = []
+                for issue in invocation.getSelectedIssues():
+                    messages += issue.getHttpMessages()
             row_count = len(messages)
             # Initialize communication manager, which can be used by scripts for async HTTP request sending.
             manager = CommunicationManager(extender=self._extender, ide_pane=self._ide_pane)
@@ -339,6 +352,7 @@ class ContextMenuAnalyzer(AnalyzerBase):
         AnalyzerBase.__init__(self,
                               plugin_id=PluginType.context_menu_analyzer,
                               executable_on_startup=False,
+                              disable_start_stop_button=True,
                               **kwargs)
 
     def start_analysis(self):

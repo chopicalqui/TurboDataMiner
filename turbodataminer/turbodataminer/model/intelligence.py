@@ -31,6 +31,24 @@ from java.lang import Boolean
 from javax.swing.table import AbstractTableModel
 
 
+class TableRowEntry:
+
+    def __init__(self, message_info):
+        self._rows = []
+        self.message_info = message_info
+        self.used = False
+
+    @property
+    def rows(self):
+        return self._rows
+
+    def add_table_row(self, row, message_infos=None):
+        if isinstance(row, list):
+            self._rows.append(IntelDataModelEntry(row, self.message_info, message_infos))
+        else:
+            self._rows.append(IntelDataModelEntry([row], self.message_info, message_infos))
+
+
 class IntelDataModelEntry:
     """
     Represents a single row in the IntelDataModel class
@@ -38,7 +56,7 @@ class IntelDataModelEntry:
     This class contains all information about a single table row.
     """
 
-    def __init__(self, elements, message_info=None, message_infos={}):
+    def __init__(self, elements, message_info=None, message_infos=None):
         """
         :param elements: A list of items that were extracted from the request and/or response
         :param message_info: The IHttpRequestResponse from where the data elements were extracted
@@ -57,7 +75,7 @@ class IntelDataModelEntry:
                 self._elements.append(unicode(item, encoding="utf-8", errors="ignore"))
         self._length = len(elements)
         self._message_info = message_info
-        self._message_infos = message_infos
+        self._message_infos = message_infos if message_infos else {}
 
     @property
     def len(self):
@@ -153,21 +171,26 @@ class IntelDataModel(AbstractTableModel):
 
         :param entries: A list of IntelDataModelEntries
         """
-        if not isinstance(entries, list):
+        if isinstance(entries, TableRowEntry):
+            table_rows = entries.rows
+        elif isinstance(entries, list):
+            table_rows = entries
+        else:
             raise ValueError("Variable 'entries' must be a list!")
 
         rows = 0
-        for entry in entries:
-            if self._column_count < entry.len:
-                self._column_count = entry.len
-                self.fireTableStructureChanged()
-            self._content.append(entry)
-            rows = rows + 1
+        if table_rows:
+            for entry in table_rows:
+                if self._column_count < entry.len:
+                    self._column_count = entry.len
+                    self.fireTableStructureChanged()
+                self._content.append(entry)
+                rows = rows + 1
 
-        old_row_count = self._row_count
-        self._row_count = self._row_count + rows
-        if rows > 0:
-            self.fireTableRowsInserted(old_row_count, self._row_count - 1)
+            old_row_count = self._row_count
+            self._row_count = self._row_count + rows
+            if rows > 0:
+                self.fireTableRowsInserted(old_row_count, self._row_count - 1)
 
     def delete_row(self, row_index):
         if row_index < self._row_count:
