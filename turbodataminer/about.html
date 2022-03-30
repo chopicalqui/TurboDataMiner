@@ -214,6 +214,21 @@
             </td>
         </tr>
         <tr>
+            <td>find_error_messages</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            Refer to <a href="#ExportedMethods-find_error_messages">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>find_versions</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
@@ -793,6 +808,21 @@
             Refer to <a href="#ExportedMethods-split_http_header">Method Details</a> for more information.
             </td>
         </tr>
+        <tr>
+            <td>url_decode</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            Refer to <a href="#ExportedMethods-url_decode">Method Details</a> for more information.
+            </td>
+        </tr>
     </table>
 
     <h2>Method Details</h2>
@@ -871,6 +901,13 @@
     <br>
     :param&nbsp;content&nbsp;(str):&nbsp;The&nbsp;string&nbsp;in&nbsp;which&nbsp;the&nbsp;domain&nbsp;names&nbsp;are&nbsp;searched.<br>
     :return&nbsp;(List[str[):&nbsp;List&nbsp;of&nbsp;identified&nbsp;domain&nbsp;names.</tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-find_error_messages"><strong>find_error_messages</strong></a>(self, content)</dt><dd><tt>This method checks whether the given string matches one of the known error signatures based on an internal database.<br>
+    <br>
+    :param content (str): The string that is tested for known file signatures.<br>
+    :return (List[Dict[str, object]]: List of dictionaries. Each dictionary contains the following keys that specify<br>
+    information about the matched error signature: regex (str), group (int), type (str), severity(str), confidence (str).
+    </tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-find_versions"><strong>find_versions</strong></a>(self, content)</dt><dd><tt>This&nbsp;method&nbsp;searches&nbsp;the&nbsp;given&nbsp;text&nbsp;for&nbsp;known&nbsp;software&nbsp;versions&nbsp;based&nbsp;on&nbsp;an&nbsp;internal&nbsp;database<br>
     (source:&nbsp;vulners.com).<br>
@@ -1051,5 +1088,13 @@
     :param request (str): The header whose header name and value should be returned.<br>
     :return (tuple): The first element contains the header name and the second element the header value. If the<br>
     header is invalid (does not contain a colon), then the (None, None) is returned.<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-url_decode"><strong>url_decode</strong></a>(self, data, recursive=True)</dt><dd><tt>This method can be used to URL-decode the specified data. It is an alternative to IExtensionHelpers.urlDecode<br>
+    and allows recursively decoding the given value.<br>
+    <br>
+    :param data (str): The data to be decoded.<br>
+    :param recursive (bool): If true, then the given data is recusively decoded until it does not change anymore. If<br>
+    false, then the value is decoded once.<br>
+    :return (str): The decoded data.<br></tt></dd></dl>
 </body>
 </html>

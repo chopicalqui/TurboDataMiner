@@ -150,7 +150,7 @@ class HeatMapMenu(dict):
         :return:
         """
         heat_map_menu_item.removeAll()
-        # For create heat map groups
+        # Create heat map groups
         for data_type, columns in self.items():
             group_count = len(columns.values())
             data_type_menu = JMenu(data_type)
@@ -158,7 +158,7 @@ class HeatMapMenu(dict):
             for column_name, column_config in columns.items():
                 column_name_menu = JMenu(column_name)
                 data_type_menu.add(column_name_menu)
-                # If the heat map groups do not exist, then we have to create it first.
+                # If the heat map groups do not exist, then we have to create them first
                 if not column_config.heat_map_groups:
                     column_config.heat_map_groups = [False] * group_count
                 count = 1

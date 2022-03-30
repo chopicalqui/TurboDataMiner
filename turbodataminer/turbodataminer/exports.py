@@ -46,9 +46,10 @@ class IntelFiles:
     """
 
     def __init__(self, home_dir):
-        self._signatures = {}
-        self._extensions = {}
-        self._vulners_rules = {}
+        self.signatures = {}
+        self.extensions = {}
+        self.errors = []
+        self.vulners_rules = {}
         self.top_level_domains = []
         self.re_domain_name = \
             re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?")
@@ -56,29 +57,30 @@ class IntelFiles:
             json_object = json.loads(f.read())
             self.top_level_domains = json_object["data"] if "data" in json_object else []
         with open(os.path.join(home_dir, "data/file-signatures.json"), "r") as f:
-            self._signatures = json.loads(f.read(), strict=False)
+            self.signatures = json.loads(f.read(), strict=False)
         with open(os.path.join(home_dir, "data/file-extensions.json"), "r") as f:
-            self._extensions = json.loads(f.read())
+            self.extensions = json.loads(f.read())
         with open(os.path.join(home_dir, "data/version-vulns.json"), "r") as f:
-            self._vulners_rules = json.loads(f.read())
-            for name, details in self._vulners_rules["data"]["rules"].items():
+            self.vulners_rules = json.loads(f.read())
+            for name, details in self.vulners_rules["data"]["rules"].items():
                 try:
                     tmp = re.compile(details["regex"])
                     details["regex"] = tmp
                 except:
                     traceback.print_exc(file=self._extender.callbacks.getStderr())
-
-    @property
-    def signatures(self):
-        return self._signatures
-
-    @property
-    def extensions(self):
-        return self._extensions
-
-    @property
-    def vulners_rules(self):
-        return self._vulners_rules
+        with open(os.path.join(home_dir, "data/error-signatures.json"), "r") as f:
+            errors = json.loads(f.read())
+            for entry in errors["rules"]:
+                try:
+                    tmp = re.compile(entry["regex"])
+                    self.errors.append({"regex": tmp,
+                                        "group": entry["group"],
+                                        "type": entry["type"],
+                                        "severity": entry["severity"],
+                                        "confidence": entry["confidence"]})
+                    entry["regex"] = tmp
+                except:
+                    traceback.print_exc(file=self._extender.callbacks.getStderr())
 
 
 class ExportedMethods:
@@ -92,6 +94,7 @@ class ExportedMethods:
         self._html_parser = HTMLParser.HTMLParser()
         self._signatures = extender.intel_files.signatures
         self._extensions = extender.intel_files.extensions
+        self._errors = extender.intel_files.errors
         self._vulners_rules = extender.intel_files.vulners_rules
         self.top_level_domains = extender.intel_files.top_level_domains
         self.re_domain_name = extender.intel_files.re_domain_name
@@ -379,6 +382,28 @@ class ExportedMethods:
                 item["alias"] = details["alias"]
                 item["source"] = self._vulners_rules["source"]
                 result.append(item)
+        return result
+
+    def find_error_messages(self, content):
+        """
+        This method checks whether the given string matches one of the known error signatures based on an internal
+        database.
+
+        :param content (str): The string that is tested for known file signatures.
+        :return (List[Dict[str, object]]: List of dictionaries. Each dictionary contains the following keys that specify
+        information about the matched error signature: regex (str), group (int), type (str), severity(str),
+        confidence (str)
+        """
+        result = []
+        for entry in self._errors:
+            if not self._ide_pane.activated:
+                return result
+            if entry["regex"].search(content):
+                result.append({"regex": entry["regex"].pattern,
+                               "group": entry["group"],
+                               "type": entry["type"],
+                               "severity": entry["severity"],
+                               "confidence": entry["confidence"]})
         return result
 
     def get_content_length(self, headers):
@@ -757,3 +782,25 @@ class ExportedMethods:
         else:
             return None, None
         return unicode(header_name, errors="ignore"), unicode(header_value, errors="ignore").strip()
+
+    def url_decode(self, data, recursive=True):
+        """
+        This method can be used to URL-decode the specified data. It is an alternative to IExtensionHelpers.urlDecode
+        and allows recursively decoding the given value.
+
+        :param data: The data to be decoded.
+        :param recursive: If true, then the given data is recusively decoded until it does not change anymore. If
+        false, then the value is decoded once.
+        :return: The decoded data.
+        """
+        result = None
+        tmp = str(data)
+        while True:
+            result =  self._extender.helpers.urlDecode(tmp)
+            if not self._ide_pane.activated:
+                result = None
+                break
+            elif result == tmp or not recursive:
+                break
+            tmp = result
+        return result
