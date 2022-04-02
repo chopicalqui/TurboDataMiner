@@ -54,7 +54,6 @@ from turbodataminer.ui.analyzers import ProxyHistoryAnalyzer
 from turbodataminer.ui.modifiers import HttpListenerModifier
 from turbodataminer.ui.modifiers import ProxyListenerModifier
 from turbodataminer.ui.custommessage import CustomMessageEditorTab
-from turbodataminer.ui.scannercheck import CustomScannerCheckTab
 from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 from turbodataminer.ui.core.analyzers import JTabbedPaneClosableContextMenuAnalyzer
 
@@ -148,9 +147,11 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         self._plm = JTabbedPaneClosable(extender=self,
                                         component_class=ProxyListenerModifier,
                                         configuration=json_object[unicode(PluginType.proxy_listener_modifier)])
-        self._sct = JTabbedPaneClosable(extender=self,
-                                        component_class=CustomScannerCheckTab,
-                                        configuration=json_object[unicode(PluginType.scanner_check)])
+        if self.is_burp_professional:
+            from turbodataminer.ui.scannercheck import CustomScannerCheckTab
+            self._sct = JTabbedPaneClosable(extender=self,
+                                            component_class=CustomScannerCheckTab,
+                                            configuration=json_object[unicode(PluginType.scanner_check)])
         self._met = JTabbedPaneClosable(extender=self,
                                         component_class=CustomMessageEditorTab,
                                         configuration=json_object[unicode(PluginType.custom_message_editor)])
@@ -188,11 +189,12 @@ received by Burp's Intruder for example).""")
         analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
                                        """This analyzer implements the interface IProxyListener of the Burp Suite Extender API. Thereby, it executes the Python
 script after each request sent and response received.""")
-        others_tabs.addTab("Custom Scanner Checks", self._sct)
-        analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
-                                       """This tab implements the interface IScannerCheck of the Burp Suite Extender API. Use it to efficiently implement a custom
-scanner check. Your Python script must implement the following three methods: do_passive_scan, do_active_scan and
-consolidate_duplicate_issues. For more information refer to the IScannerCheck specification.""")
+        if self.is_burp_professional:
+            others_tabs.addTab("Custom Scanner Checks", self._sct)
+            analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
+                                           """This tab implements the interface IScannerCheck of the Burp Suite Extender API. Use it to efficiently implement a custom
+    scanner check. Your Python script must implement the following three methods: do_passive_scan, do_active_scan and
+    consolidate_duplicate_issues. For more information refer to the IScannerCheck specification.""")
         others_tabs.addTab("Custom Message Editors", self._met)
         analyzer_tabs.setToolTipTextAt(analyzer_tabs.getTabCount() - 1,
                                        """This tab implements the interface IMessageEditorTab of the Burp Suite Extender API. Use it to implement an encoder
@@ -277,7 +279,8 @@ following two modifiers are available.""")
             result[unicode(PluginType.http_listener_analyzer)] = self._hla.get_json()
             result[unicode(PluginType.http_listener_modifier)] = self._hlm.get_json()
             result[unicode(PluginType.proxy_listener_modifier)] = self._plm.get_json()
-            result[unicode(PluginType.scanner_check)] = self._sct.get_json()
+            if self.is_burp_professional:
+                result[unicode(PluginType.scanner_check)] = self._sct.get_json()
             result[unicode(PluginType.custom_message_editor)] = self._met.get_json()
             result = json.JSONEncoder().encode(result)
             result = base64.b64encode(result)
@@ -289,7 +292,8 @@ following two modifiers are available.""")
             self._hla.stop_scripts()
             self._hlm.stop_scripts()
             self._plm.stop_scripts()
-            self._sct.stop_scripts()
+            if self.is_burp_professional:
+                self._sct.stop_scripts()
             self._met.stop_scripts()
         except:
             traceback.print_exc(file=self.callbacks.getStderr())
