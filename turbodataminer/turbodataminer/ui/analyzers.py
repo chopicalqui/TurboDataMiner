@@ -42,6 +42,7 @@ from turbodataminer.model.intelligence import IntelDataModel
 from turbodataminer.model.messaging import CommunicationManager
 from turbodataminer.model.intelligence import TableRowEntry
 from turbodataminer.model.intelligence import IntelDataModelEntry
+from java.lang import NullPointerException
 
 
 class IntelTab(IntelBase):
@@ -120,9 +121,14 @@ class IntelTab(IntelBase):
         message_infos = {} # Deprecated
         table_entries = TableRowEntry(message_info)
         # Setup API
-        request_info = self._helpers.analyzeRequest(message_info)
-        url = request_info.getUrl()
-        in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
+        try:
+            request_info = self._helpers.analyzeRequest(message_info)
+            url = request_info.getUrl()
+            in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
+        except NullPointerException:
+            # This should never happen except the project file is corrupt.
+            traceback.print_exc(file=self._callbacks.getStderr())
+            return
         globals = {
             'callbacks': self._callbacks,
             'xerceslib': self._extender.xerces_classloader,

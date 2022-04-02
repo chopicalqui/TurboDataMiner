@@ -29,6 +29,7 @@ from turbodataminer.ui.core.intelbase import IntelBase
 from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.model.scripting import PluginCategory
+from java.lang import NullPointerException
 
 
 class ModifierTab(IntelBase):
@@ -54,10 +55,14 @@ class ModifierTab(IntelBase):
         if not message_info:
             return
         # Setup API
-        request_info = self._helpers.analyzeRequest(message_info)
-        url = request_info.getUrl()
-        in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
-
+        try:
+            request_info = self._helpers.analyzeRequest(message_info)
+            url = request_info.getUrl()
+            in_scope = self._callbacks.isInScope(url) if in_scope is None else in_scope
+        except NullPointerException:
+            # This should never happen except the project file is corrupt.
+            traceback.print_exc(file=self._callbacks.getStderr())
+            return
         globals = {
             'callbacks': self._callbacks,
             'xerceslib': self._extender.xerces_classloader,
