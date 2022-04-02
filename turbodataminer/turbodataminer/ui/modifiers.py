@@ -53,8 +53,6 @@ class ModifierTab(IntelBase):
         """
         if not message_info:
             return
-        header = []
-        rows = []
         # Setup API
         request_info = self._helpers.analyzeRequest(message_info)
         url = request_info.getUrl()
@@ -94,8 +92,6 @@ class ModifierTab(IntelBase):
             'split_http_header': self._exported_methods.split_http_header,
             'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
-            'header': header,
-            'rows': rows,
             'url': url,
             'message_info': message_info,
             'request_info': request_info,
@@ -105,19 +101,13 @@ class ModifierTab(IntelBase):
         }
         if tool_flag:
             globals["tool_flag"] = tool_flag
-        if listener_interface:
-            globals["listener_interface"] = listener_interface
-        if client_ip_address:
-            globals["client_ip_address"] = client_ip_address
-        if message_reference:
-            globals["message_reference"] = message_reference
         if proxy_message_info:
             globals["proxy_message_info"] = proxy_message_info
         # Execute script
         exec(self.ide_pane.compiled_code, globals)
         # Reimport API variables
         self._session = globals['session']
-        self._ref = self._ref + 1
+        self._ref += 1
 
 
 class HttpListenerModifier(ModifierTab, IHttpListener):

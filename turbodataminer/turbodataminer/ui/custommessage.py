@@ -54,7 +54,7 @@ class CustomMessageEditorBase(IMessageEditorTab):
         """
         Initializes the IMessageEditorTab instance. This constructor is called by
         CustomMessageEditorTab.createNewInstance
-        :param custom_editor_tab: The CustomMessageEditorTab that is displayed in the custom message editor tab. This
+        :param custom_editor_tab: The CustomMessageEditorTab that is displayed in the Others tab. This
         object provides access to all necessary information like extender.
         :param controller: Provided by IMessageEditorTabFactory
         :param editable: Provided by IMessageEditorTabFactory
@@ -73,6 +73,8 @@ class CustomMessageEditorBase(IMessageEditorTab):
                                                             is_request,
                                                             self._custom_editor_tab.session)
         except:
+            self._custom_editor_tab.ide_pane.activated = False
+            self._custom_editor_tab.stop_analysis()
             traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
         return rvalue
@@ -87,6 +89,8 @@ class CustomMessageEditorBase(IMessageEditorTab):
             else:
                 self._set_message("", is_request, False)
         except:
+            self._custom_editor_tab.ide_pane.activated = False
+            self._custom_editor_tab.stop_analysis()
             traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             # clear our display
@@ -100,6 +104,8 @@ class CustomMessageEditorBase(IMessageEditorTab):
             else:
                 return None
         except:
+            self._custom_editor_tab.ide_pane.activated = False
+            self._custom_editor_tab.stop_analysis()
             traceback.print_exc(file=self._extender.callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
             return None
@@ -188,12 +194,14 @@ _is_enabled = is_enabled"""
         self._set_message = None
         self._get_message_lock = Lock()
         self._get_message = None
+        self._session_lock = Lock()
+        self._session = {}
         self.add(self._ide_pane)
 
     def start_analysis(self):
         try:
             # Setup API
-            self._session = {}
+            self.session = {}
             globals = {
                 'callbacks': self._extender.callbacks,
                 'xerceslib': self._extender.xerces_classloader,
@@ -233,11 +241,12 @@ _is_enabled = is_enabled"""
             }
             # Execute script
             exec(self.ide_pane.compiled_code, globals)
-            self._extender.callbacks.registerMessageEditorTabFactory(self)
             # Reimport API method implementations
             self.set_message = globals['_set_message']
             self.get_message = globals['_get_message']
             self.is_enabled = globals['_is_enabled']
+            # Register IMessageEditorTabFactory
+            self._extender.callbacks.registerMessageEditorTabFactory(self)
         except:
             self._ide_pane.activated = False
             self.stop_analysis()
@@ -245,10 +254,13 @@ _is_enabled = is_enabled"""
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
 
     def stop_analysis(self):
+        # Unregister IMessageEditorTabFactory
+        self._extender.callbacks.removeMessageEditorTabFactory(self)
+        # Delete current method definition
         self.set_message = None
         self.get_message = None
         self.is_enabled = None
-        self._extender.callbacks.removeMessageEditorTabFactory(self)
+        self.session = {}
 
     @property
     def is_enabled(self):
@@ -282,6 +294,17 @@ _is_enabled = is_enabled"""
     def get_message(self, value):
         with self._get_message_lock:
             self._get_message = value
+
+    @property
+    def session(self):
+        with self._session_lock:
+            result = self._session
+        return result
+
+    @session.setter
+    def session(self, value):
+        with self._session_lock:
+            self._session = value
 
     def createNewInstance(self, controller, editable):
         """This method implements IMessageEditorTabFactory.createNewInstance"""

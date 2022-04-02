@@ -216,6 +216,7 @@ class JTabbedPaneClosableChangeListener(ChangeListener):
                     if self._tabbed_pane.getSelectedIndex() == self._tabbed_pane.getTabCount() - 1:
                         self._tabbed_pane.setSelectedIndex(self._tabbed_pane.getTabCount() - 2)
                     return
+            # Do not make an elif here
             if self._tabbed_pane.getTitleAt(self._tabbed_pane.getSelectedIndex()) == "...":
                 self._tab_count += 1
                 panel = self._tabbed_pane.create_component()
@@ -255,7 +256,6 @@ class JTabbedPaneClosable(JTabbedPane):
                         # Load and add plugin UI with the configuration
                         component = self.create_component(script_info)
                         self.addTab(title, None, component)
-                        self.extender.callbacks.customizeUiComponent(component)
                         tab_count += 1
                         # Launch plugin script it has been running at the last unload
                         if script_info.activated:
@@ -326,6 +326,7 @@ class JTabbedPaneClosable(JTabbedPane):
         elif isinstance(component, ProxyListenerModifier):
             callbacks.registerProxyListener(component)
         # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab
+        # Note that CustomScannerCheckTab is registered in turbodataminer.ui.scannercheck.CustomScannerCheckTab
 
     @staticmethod
     def remove_listener(callbacks, component):
@@ -343,3 +344,4 @@ class JTabbedPaneClosable(JTabbedPane):
         elif isinstance(component, ProxyListenerModifier):
             callbacks.removeProxyListener(component)
         # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab
+        # Note that CustomScannerCheckTab is registered in turbodataminer.ui.scannercheck.CustomScannerCheckTab

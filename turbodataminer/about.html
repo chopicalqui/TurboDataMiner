@@ -43,6 +43,7 @@
             <th>HTTP Listener Analyzer</th>
             <th>HTTP Listener Modifier</th>
             <th>Proxy Listener Modifier</th>
+            <th>Custom Scanner Check</th>
             <th>Custom Message Editor</th>
             <th>Description</th>
         </tr>
@@ -54,9 +55,10 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
             <td>
             Refer to <a href="#ExportedMethods-add_table_row">Method Details</a> for more information.
             </td>
@@ -69,9 +71,10 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
-            <td><center></center></td>
-            <td><center></center></td>
-            <td><center></center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-analyze_request">Method Details</a> for more information.
             </td>
@@ -80,6 +83,7 @@
             <td>analyze_response</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -102,6 +106,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-analyze_signatures">Method Details</a> for more information.
             </td>
@@ -117,16 +122,19 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
-            This variable is of type <code>burp.IBurpExtenderCallbacks</code>, which can be used to access
-            functionalities provided by Burp Suite. For more information refer to
-            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            This variable is of type <a href="https://portswigger.net/burp/extender/api/burp/iburpextendercallbacks.html">
+            IBurpExtenderCallbacks</a>, which can be used to access functionalities provided by Burp
+            Suite. For more information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">
+            Burp Extender API</a>.
             </td>
         </tr>
         <tr>
             <td>compress_gzip</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -149,6 +157,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-decode_html">Method Details</a> for more information.
             </td>
@@ -157,6 +166,7 @@
             <td>decode_jwt</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -179,6 +189,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-decompress_gzip">Method Details</a> for more information.
             </td>
@@ -187,6 +198,7 @@
             <td>encode_jwt</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -209,6 +221,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-find_domains">Method Details</a> for more information.
             </td>
@@ -217,6 +230,7 @@
             <td>find_error_messages</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -239,6 +253,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-find_versions">Method Details</a> for more information.
             </td>
@@ -247,6 +262,7 @@
             <td>get_content_length</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -269,6 +285,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_content_type">Method Details</a> for more information.
             </td>
@@ -277,6 +294,7 @@
             <td>get_cookie_attributes</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -299,6 +317,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_cookies">Method Details</a> for more information.
             </td>
@@ -307,6 +326,7 @@
             <td>get_extension_info</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -329,6 +349,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_header">Method Details</a> for more information.
             </td>
@@ -337,6 +358,7 @@
             <td>get_headers</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -359,6 +381,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_hostname">Method Details</a> for more information.
             </td>
@@ -367,6 +390,7 @@
             <td>get_json_attribute_by_path</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -389,6 +413,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_json_attributes">Method Details</a> for more information.
             </td>
@@ -397,6 +422,7 @@
             <td>get_jwt</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -419,6 +445,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-get_parameter_name">Method Details</a> for more information.
             </td>
@@ -427,6 +454,7 @@
             <td>get_parameters</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -449,6 +477,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-has_header">Method Details</a> for more information.
             </td>
@@ -461,6 +490,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
@@ -480,10 +510,11 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
-            This variable is of type <code>burp.IExtensionHelpers</code>, which can be used to access
-            functionalities provided by Burp Suite. For more information refer to
-            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            This variable is of type <a href="https://portswigger.net/burp/extender/api/burp/iextensionhelpers.html">
+            IExtensionHelpers</a>, which can be used to access functionalities provided by Burp Suite. For more
+            information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>.
             </td>
         </tr>
         <tr>
@@ -496,6 +527,7 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center></center></td>
             <td><center></center></td>
             <td>
             This variable is of type <code>bool</code> and specifies whether the current request/response item is
@@ -514,10 +546,11 @@
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
-            This variable is of type <code>IContextMenuInvocation</code> and contains details about a context menu
-            invocation. Context Menu Analyzer scripts can query this interface to obtain details of the invocation
-            event.
+            This variable is of type <a href="https://portswigger.net/burp/extender/api/burp/icontextmenuinvocation.html">
+            IContextMenuInvocation</a> and contains details about a context menu invocation. Context Menu
+            Analyzer scripts can query this interface to obtain details of the invocation event.
             </td>
         </tr>
         <tr>
@@ -531,10 +564,11 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
             This variable is of type <code>bool</code> and specifies whether the given
-            <code>IInterceptedProxyMessage</code> object is a request (<code>True</code>) or a response
-            (<code>False</code>).
+            <a href="https://portswigger.net/burp/extender/api/burp/iinterceptedproxymessage.html">
+            IInterceptedProxyMessage</a> object is a request (<code>True</code>) or a response (<code>False</code>).
             </td>
         </tr>
         <tr>
@@ -548,12 +582,15 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
-            This variable is of type <code>IHttpRequestResponse</code> and represents the request/response item that
-            was processed or from which information was extracted. Clicking on a table row in one of Turbo Data Miner's
-            Analyzers, will always display the information of this variable in tab <code>Message Information</code>.
-            For more information about the <code>IHttpRequestResponse</code> interface, refer to
-            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            This variable is of type <a href="https://portswigger.net/burp/extender/api/burp/ihttprequestresponse.html">
+            IHttpRequestResponse</a> and represents the request/response item that was processed or from which
+            information was extracted. Clicking on a table row in one of Turbo Data Miner's Analyzers, will always
+            display the information of this variable in tab <code>Message Information</code>. For more information
+            about the <a href="https://portswigger.net/burp/extender/api/burp/ihttprequestresponse.html">
+            IHttpRequestResponse</a> interface, refer to <a href="https://portswigger.net/Burp/extender/api/index.html">
+            Burp Extender API</a>
             </td>
         </tr>
         <tr>
@@ -567,15 +604,20 @@
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
             This variable is of type <code>dict</code> and can be used by any Turbo Data Miner Analyzer to add additional
-            <code>IHttpRequestResponse</code> items to the message info tabs. Note that the dict keys must be of type
-            <code>str</code> and their values of type <code>IHttpRequestResponse</code> in order to be displayed.
+            <a href="https://portswigger.net/burp/extender/api/burp/ihttprequestresponse.html">IHttpRequestResponse</a>
+            items to the message info tabs. Note that the dict keys must be of type <code>str</code> and their values
+            of type <a href="https://portswigger.net/burp/extender/api/burp/ihttprequestresponse.html">
+            IHttpRequestResponse</a> in order to be displayed.
             </td>
         </tr>
         <tr>
             <td>plugin_id</td>
-            <td><center>Variable</center></td><td><center>r</center></td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
@@ -585,9 +627,14 @@
             <td><center>&#10004;</center></td>
             <td>
             This variable is of type <code>int</code> and specifies the Turbo Data Miner module that executes the
-            script. Flag 0 stands for the Proxy History Analyzer, 1 for the HTTP Listener Analyzer, 3 for the HTTP
-            Listener Modifier, 4 for the Proxy Listener Modifiers, 5 for the Custom Message Editor, and 6 for the Site
-            Map Analyzer.
+            script. Flag 0 stands for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Proxy-History-Analyzers">Proxy History Analyzer</a>,
+            1 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/HTTP-Listener-Analyers">HTTP Listener Analyzer</a>,
+            3 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/HTTP-Listener-Modifiers">HTTP Listener Modifier</a>,
+            4 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Proxy-Listener-Modifiers">Proxy Listener Modifiers</a>,
+            5 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Custom-Message-Editors">Custom Message Editor</a>,
+            6 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Site-Map-Analyzers">Site Map Analyzer</a>,
+            7 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Context-Menu-Analyzers">Context Menu Analyzer</a> and
+            8 for the <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Custom-Scanner-Check">Custom Scanner Check</a>.
             </td>
         </tr>
         <tr>
@@ -601,11 +648,13 @@
             <td><center></center></td>
             <td><center>&#10004;</center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
-            This variable is of type <code>IInterceptedProxyMessage</code> and represents the
-            request/response item that can be processed or from which information can be extracted.
-            For more information refer to
-            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            This variable is of type
+            <a href="https://portswigger.net/burp/extender/api/burp/iinterceptedproxymessage.html">IInterceptedProxyMessage</a>
+            and represents the request/response item that can be processed or from which information can be extracted.
+            For more information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender
+            API</a>.
             </td>
         </tr>
         <tr>
@@ -619,9 +668,11 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
             This variable is of type <code>int</code> and is reset to 1, if the Start button is pressed and
-            is then auto incremented with each subsequent request/response item (<code>IHttpRequestResponse</code>).
+            is then auto incremented with each subsequent request/response item
+            (<a href="https://portswigger.net/burp/extender/api/burp/ihttprequestresponse.html">IHttpRequestResponse</a>).
             You can for example use this variable to reset the <code>session</code> dictionary at the beginning of
             a script execution or determine that several table rows belong to the same request/response item.
             </td>
@@ -637,10 +688,11 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
-            This variable is of type <code>IRequestInfo</code> and represents the current request of the current
-            <code>message_info</code> variable. For more information refer to
-            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>
+            This variable is of type <a href="https://portswigger.net/burp/extender/api/burp/irequestinfo.html">IRequestInfo</a>
+            and represents the current request of the current <code>message_info</code> variable. For more information
+            refer to <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>.
             </td>
         </tr>
         <tr>
@@ -654,9 +706,9 @@
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
-            For the Proxy History and Site Map Analyzer this variable holds the total number request/response
-            items.
+            For the Proxy History and Site Map Analyzer this variable holds the total number request/response items.
             </td>
         </tr>
         <tr>
@@ -670,27 +722,33 @@
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
             This variable is a two-dimensional list. Use this two-dimensional list to add content to the GUI table.
             Thereby, each row in <code>rows</code> represents one row in the GUI table.
 
             If the variable is a one-dimensional list, then each element is added as a single row to the GUI table.
             </td>
-        </tr>
         <tr>
-            <td>session</td>
-            <td><center>Variable</center></td>
-            <td><center>rw</center></td>
+            <td>ScanIssue</td>
+            <td><center>Class</center></td>
+            <td><center>-</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
             <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
+            <td><center></center></td>
             <td>
-            This variable is of type <code>dict</code>. You can use this variable to store information across
-            processing iterations. For example, this variable can be used to deduplicate content
+            This class is derived from <a href="https://portswigger.net/burp/extender/api/burp/iscanissue.html">
+            IScanIssue</a> and can be used by
+            <a href="https://github.com/chopicalqui/TurboDataMiner/wiki/Custom-Scanner-Check">Custom Scanner Check</a>
+            plugins to store and register
+            <a href="https://portswigger.net/burp/extender/api/burp/iscanissue.html">IScanIssue</a>.
+            For more information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">
+            Burp Extender API</a>.
             </td>
         </tr>
         <tr>
@@ -704,8 +762,26 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-send_http_message">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>session</td>
+            <td><center>Variable</center></td>
+            <td><center>rw</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>dict</code>. You can use this variable to store information across
+            processing iterations. For example, this variable can be used to deduplicate content
             </td>
         </tr>
         <tr>
@@ -719,78 +795,9 @@
             <td><center></center></td>
             <td><center></center></td>
             <td><center></center></td>
+            <td><center></center></td>
             <td>
             Refer to <a href="#ExportedMethods-show_scope_parameter_dialog">Method Details</a> for more information.
-            </td>
-        </tr>
-        <tr>
-            <td>tool_flag</td>
-            <td><center>Variable</center></td>
-            <td><center>r</center></td>
-            <td><center></center></td>
-            <td><center></center></td>
-            <td><center></center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center></center></td>
-            <td><center></center></td>
-            <td>
-            This variable is of type <code>int</code> and indicates the Burp Suite tool that issued the request.
-            The Burp Suite tool flags are defined in the <code>IBurpExtenderCallbacks</code> interface. To convert
-            the value into a human readable string, use <code>callbacks.getToolName(tool_flag)</code>. For more
-            information refer to <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>.
-            </td>
-        </tr>
-        <tr>
-            <td>url</td>
-            <td><center>Variable</center></td>
-            <td><center>r</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center></center></td>
-            <td>
-            This variable is of type <code>java.net.URL</code> and holds the URL of the current
-            <code>message_info</code> variable so that you do not have to explicitly extract it. For more information
-            regarding <code>java.net.URL</code> refer to the
-            <a href="https://docs.oracle.com/javase/7/docs/api/java/net/URL.html">Java documentation</a>.
-            </td>
-        </tr>
-        <tr>
-            <td>xerceslib</td>
-            <td><center>Variable</center></td>
-            <td><center>r</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center>&#10004;</center></td>
-            <td><center></center></td>
-            <td>
-            Per default, BApps written in Python cannot use Burp Suite's build in XML library as documented in the
-            Burp Suite User Forum thread
-            <a href="https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a">SAXParser
-            Dependency Delimma</a>. This same thread describes a workaround by loading the
-            <a href="https://xerces.apache.org/">Apache Xerces</a> library within BApps themselves.<br>
-            This variable contains a reference to a <code>java.net.URLClassLoader</code> object, which loaded Turbo
-            Data Miner's own local <a href="https://xerces.apache.org/">Apache Xerces</a> library (version 1.12.1).
-            This variable can then be used within Python scripts to load Turbo Data Miner's own
-            <a href="https://xerces.apache.org/">Apache Xerces</a> library into the current execution thread and
-            subsequently, to successfully process XML files. In order to make XML library available, use the following
-            Python code:
-            <br><br>
-            <code>
-            from java.lang import Thread<br>
-            Thread.currentThread().setContextClassLoader(xerceslib)<br>
-            import xml.etree.ElementTree as ET<br>
-            [...]<br>
-            root = ET.fromstring(body_content.encode("utf-8"))<br>
-            [...]<br>
-            </code>
             </td>
         </tr>
         <tr>
@@ -804,8 +811,48 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-split_http_header">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>tool_flag</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <code>int</code> and indicates the Burp Suite tool that issued the request.
+            The Burp Suite tool flags are defined in the
+            <a href="https://portswigger.net/burp/extender/api/burp/iburpextendercallbacks.html">IBurpExtenderCallbacks
+            </a> interface. To convert the value into a human readable string, use
+            <code>callbacks.getToolName(tool_flag)</code>. For more information refer to
+            <a href="https://portswigger.net/Burp/extender/api/index.html">Burp Extender API</a>.
+            </td>
+        </tr>
+        <tr>
+            <td>url</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            This variable is of type <a href="https://docs.oracle.com/javase/7/docs/api/java/net/URL.html">java.net.URL</a>
+            and holds the URL of the current <code>message_info</code> variable so that you do not have to explicitly
+            extract it.
             </td>
         </tr>
         <tr>
@@ -819,8 +866,45 @@
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
             <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
             <td>
             Refer to <a href="#ExportedMethods-url_decode">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
+            <td>xerceslib</td>
+            <td><center>Variable</center></td>
+            <td><center>r</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td>
+            Per default, BApps written in Python cannot use Burp Suite's build in XML library as documented in the
+            Burp Suite User Forum thread
+            <a href="https://forum.portswigger.net/thread/saxparser-dependency-delimma-499c057a">SAXParser
+            Dependency Delimma</a>. This same thread describes a workaround by loading the
+            <a href="https://xerces.apache.org/">Apache Xerces</a> library within BApps themselves.<br>
+            This variable contains a reference to a
+            <a href="https://docs.oracle.com/javase/7/docs/api/java/net/URLClassLoader.html">java.net.URLClassLoader</a>
+            object, which loaded Turbo Data Miner's own local <a href="https://xerces.apache.org/">Apache Xerces</a>
+            library (version 1.12.1). This variable can then be used within Python scripts to load Turbo Data Miner's own
+            <a href="https://xerces.apache.org/">Apache Xerces</a> library into the current execution thread and
+            subsequently, to successfully process XML files. In order to make XML library available, use the following
+            Python code:
+            <br><br>
+            <code>
+            from java.lang import Thread<br>
+            Thread.currentThread().setContextClassLoader(xerceslib)<br>
+            import xml.etree.ElementTree as ET<br>
+            [...]<br>
+            root = ET.fromstring(body_content.encode("utf-8"))<br>
+            [...]<br>
+            </code>
             </td>
         </tr>
     </table>

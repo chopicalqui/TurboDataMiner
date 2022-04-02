@@ -37,6 +37,7 @@ class PluginType:
     custom_message_editor = 5
     site_map_analyzer = 6
     context_menu_analyzer = 7
+    scanner_check = 8
 
 
 class PluginCategory:
@@ -44,6 +45,7 @@ class PluginCategory:
     analyzer = 0
     modifier = 1
     custom_message_editor = 2
+    scan = 3
 
 
 class PluginInformation:
@@ -103,7 +105,8 @@ LIST = [PluginInformation(PluginType.proxy_history_analyzer, "Proxy History Anal
         PluginInformation(PluginType.context_menu_analyzer, "Context Menu Analyzer", PluginCategory.analyzer),
         PluginInformation(PluginType.http_listener_modifier, "HTTP Listener Modifier", PluginCategory.modifier),
         PluginInformation(PluginType.proxy_listener_modifier, "Proxy Listener Modifier", PluginCategory.modifier),
-        PluginInformation(PluginType.custom_message_editor, "Custom Message Editor", PluginCategory.custom_message_editor)]
+        PluginInformation(PluginType.custom_message_editor, "Custom Message Editor", PluginCategory.custom_message_editor),
+        PluginInformation(PluginType.scanner_check, "Custom Scanner Check", PluginCategory.scan)]
 
 
 class ScriptInformation:

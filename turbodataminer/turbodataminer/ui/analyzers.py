@@ -162,7 +162,6 @@ class IntelTab(IntelBase):
             'rows': rows,
             'add_table_row': table_entries.add_table_row,
             'url': url,
-            'TableRowEntry': TableRowEntry,
             'show_scope_parameter_dialog': self._exported_methods.show_scope_parameter_dialog,
             'message_info': message_info,
             'message_infos': message_infos,
@@ -173,20 +172,6 @@ class IntelTab(IntelBase):
         }
         if tool_flag:
             globals["tool_flag"] = tool_flag
-        if send_date:
-            globals["sent_date"] = send_date
-        if received_date:
-            globals["received_date"] = received_date
-        if listener_interface:
-            globals["listener_interface"] = listener_interface
-        if client_ip_address:
-            globals["client_ip_address"] = client_ip_address
-        if timedout is not None:
-            globals["timedout"] = timedout
-        if message_reference:
-            globals["message_reference"] = message_reference
-        if time_delta:
-            globals["time_delta"] = time_delta
         if invocation:
             globals["invocation"] = invocation
         # Initialize and start communication manager with current HTTP request information
