@@ -101,6 +101,7 @@ class ModifierTab(IntelBase):
             'message_info': message_info,
             'request_info': request_info,
             'session': self._session,
+            'has_stopped': self._exported_methods.has_stopped,
             'in_scope': in_scope,
             'ref': self._ref
         }

@@ -460,6 +460,8 @@ class IntelTable(JTable, IMessageEditorController):
             self.clear_heat_map()
         with self._table_model_lock:
             self._data_model.clear_data()
+        # Update the row count
+        self._intel_tab.ide_pane.set_row_count(self._data_model.getRowCount())
 
     def clear_table_menu_pressed(self, event):
         """This method is invoked when the clear table menu is selected"""
@@ -742,6 +744,8 @@ class IntelTable(JTable, IMessageEditorController):
                 rows.sort(reverse=True)
                 for i in rows:
                     self._data_model.delete_row(i)
+            # Update the row count
+            self._intel_tab.ide_pane.set_row_count(self._data_model.getRowCount())
             JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
                                           "Deleting the selected rows completed successfully.",
                                           "Deleting completed ...",

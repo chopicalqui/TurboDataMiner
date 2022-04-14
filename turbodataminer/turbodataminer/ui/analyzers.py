@@ -67,23 +67,24 @@ class IntelTab(IntelBase):
         self._table = IntelTable(self, self._data_model, self._table_model_lock)
         self._message_info_pane = MessageViewPane(extender, self._table)
 
-        split_pane = JSplitPane(JSplitPane.VERTICAL_SPLIT)
-        split_pane.setOneTouchExpandable(True)
-        self.add(split_pane, BorderLayout.CENTER)
+        self._split_pane = JSplitPane(JSplitPane.VERTICAL_SPLIT)
+        self._split_pane.setOneTouchExpandable(True)
+        self._split_pane.setResizeWeight(0.5)
+        self.add(self._split_pane, BorderLayout.CENTER)
 
         # table of extracted entries
         scroll_pane = JScrollPane()
         scroll_pane.setViewportView(self._table)
-        split_pane.setLeftComponent(scroll_pane)
+        self._split_pane.setLeftComponent(scroll_pane)
 
         # tabbed pane containing IDE and table details
         self._work_tabbed_pane = DynamicMessageViewer(extender, self._table)
-        split_pane.setRightComponent(self._work_tabbed_pane)
+        self._split_pane.setRightComponent(self._work_tabbed_pane)
 
         self._work_tabbed_pane.addTab("Python", self._ide_pane)
         self._work_tabbed_pane.addTab("Message Information", self._message_info_pane)
 
-        split_pane.setDividerLocation(0.5)
+        self._split_pane.setDividerLocation(0.5)
 
     @property
     def message_info_pane(self):
@@ -164,6 +165,7 @@ class IntelTab(IntelBase):
             'split_http_header': self._exported_methods.split_http_header,
             'has_header': self._exported_methods.has_header,
             'helpers': self._helpers,
+            'has_stopped': self._exported_methods.has_stopped,
             'header': header,
             'rows': rows,
             'add_table_row': table_entries.add_table_row,
@@ -207,7 +209,7 @@ class IntelTab(IntelBase):
         # Setup table header
         if self._ref <= 1:
             self._data_model.set_header(header, reset_column_count=True)
-        elif row_count and self._ref == (row_count - 1) and not self._data_model.get_header() and header:
+        elif row_count and self._ref == row_count and not self._data_model.get_header() and header:
             self._data_model.set_header(header, reset_column_count=True)
         # Add new row to table
         with self._table_model_lock:
@@ -262,18 +264,29 @@ class AnalyzerBase(IntelTab):
         """Iterates through all entries of the HTTP proxy history and processes them."""
         try:
             self._table.clear_data()
+            # Enable the slidebar between JTable and IDE pane during processing
+            self._split_pane.setEnabled(False)
             row_count = len(entries)
+            # Initialize progress bar max value
+            self._ide_pane.set_progressbar_max(row_count)
             for message_info in entries:
                 # Check if the user clicked the Stop button to immediately stop execution.
                 if not self._ide_pane.activated:
                     break
                 self.process_proxy_history_entry(message_info, IBurpExtenderCallbacks.TOOL_PROXY, row_count=row_count)
+                # Update progress bar status
+                self._ide_pane.set_progressbar_value(self._ref)
             # This notifies the user that execution is complete by re-enabling the IDE components.
             self._ide_pane.activated = False
         except:
             self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+        finally:
+            # Update the row count
+            self._ide_pane.set_row_count(self.data_model.getRowCount())
+            # Enable the slidebar between JTable and IDE pane during processing
+            self._split_pane.setEnabled(True)
 
     def _menu_invocation_pressed(self, invocation):
         """
@@ -281,6 +294,8 @@ class AnalyzerBase(IntelTab):
         Turbo Data Miner's context menu.
         """
         try:
+            # Enable the slidebar between JTable and IDE pane during processing
+            self._split_pane.setEnabled(False)
             messages = invocation.getSelectedMessages()
             # If message is None, then we are dealing with IContextMenuInvocation.CONTEXT_SCANNER_RESULTS
             if not messages:
@@ -288,6 +303,8 @@ class AnalyzerBase(IntelTab):
                 for issue in invocation.getSelectedIssues():
                     messages += issue.getHttpMessages()
             row_count = len(messages)
+            # Initialize progress bar max value
+            self._ide_pane.set_progressbar_max(row_count)
             # Initialize communication manager, which can be used by scripts for async HTTP request sending.
             manager = CommunicationManager(extender=self._extender, ide_pane=self._ide_pane)
             for message_info in messages:
@@ -300,12 +317,19 @@ class AnalyzerBase(IntelTab):
                                                  in_scope=True,
                                                  row_count=row_count,
                                                  communication_manager=manager)
+                # Update progress bar status
+                self._ide_pane.set_progressbar_value(self._ref)
             # This notifies the user that execution is complete by re-enabling the IDE components.
             self._ide_pane.activated = False
         except:
             self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())
             ErrorDialog.Show(self._extender.parent, traceback.format_exc())
+        finally:
+            # Update the row count
+            self._ide_pane.set_row_count(self.data_model.getRowCount())
+            # Enable the slidebar between JTable and IDE pane during processing
+            self._split_pane.setEnabled(True)
 
 
 class ProxyHistoryAnalyzer(AnalyzerBase):
@@ -345,11 +369,10 @@ class ContextMenuAnalyzer(AnalyzerBase):
         AnalyzerBase.__init__(self,
                               plugin_id=PluginType.context_menu_analyzer,
                               executable_on_startup=False,
-                              disable_start_stop_button=True,
                               **kwargs)
 
     def start_analysis(self):
-        pass
+        self._ide_pane.activated = False
 
 
 class HttpListenerAnalyzer(IntelTab, IHttpListener):
@@ -375,6 +398,8 @@ class HttpListenerAnalyzer(IntelTab, IHttpListener):
         try:
             if self._ide_pane.activated and not is_request:
                 self.process_proxy_history_entry(message_info, is_request, tool_flag)
+                # Update the row count
+                self._ide_pane.set_row_count(self.data_model.getRowCount())
         except:
             self._ide_pane.activated = False
             traceback.print_exc(file=self._callbacks.getStderr())

@@ -231,7 +231,6 @@ following two modifiers are available.""")
         self.xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
                                                  Thread.currentThread().getContextClassLoader())
         sys.path.append(os.path.join(self.home_dir, "data", "libs"))
-        # self.callbacks.customizeUiComponent(self._main_tabs)
 
     @property
     def parent(self):

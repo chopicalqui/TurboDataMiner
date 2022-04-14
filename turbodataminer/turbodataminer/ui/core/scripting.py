@@ -39,6 +39,7 @@ from javax.swing import JTextField
 from javax.swing import JOptionPane
 from javax.swing import JScrollPane
 from javax.swing import JFileChooser
+from javax.swing import JProgressBar
 from javax.swing import JToggleButton
 from javax.swing import DefaultComboBoxModel
 from java.awt import Font
@@ -49,6 +50,8 @@ from java.awt import BorderLayout
 from java.awt.event import ItemEvent
 from java.awt.event import ItemListener
 from java.awt.datatransfer import StringSelection
+from turbodataminer.model.scripting import PluginType
+from turbodataminer.model.scripting import PluginCategory
 from turbodataminer.model.scripting import ScriptInformation
 from turbodataminer.model.scripting import PluginInformation
 
@@ -247,6 +250,10 @@ class IdePane(JPanel):
         self._pre_script_code = pre_script_code
         self._post_script_code = post_script_code
         self._cb_list = DefaultComboBoxModel()
+        self._progress_bar_lock = Lock()
+        self._progress_bar = None
+        self._row_count_lock = Lock()
+        self._row_count_label = None
         # This flag is required to remember the state of the self._text_area component.
         self._code_changed_state = False
         IdePane.INSTANCES.append(self)
@@ -281,7 +288,20 @@ class IdePane(JPanel):
         self._delete_button = JButton("Delete Script", actionPerformed=self.delete_button_pressed)
         self._delete_button.setToolTipText("Press this button to delete the currently loaded script.")
         self._code_chooser.setMaximumRowCount(21)
-        components_pane.add(self._code_chooser, BorderLayout.NORTH)
+        components_pane.add(self._code_chooser, BorderLayout.CENTER)
+        if intel_base.plugin_id in [PluginType.proxy_history_analyzer,
+                                    PluginType.site_map_analyzer,
+                                    PluginType.context_menu_analyzer]:
+            # Add a progress bar to analyzers
+            self._progress_bar = JProgressBar()
+            self._progress_bar.setStringPainted(True)
+            self._progress_bar.setVisible(False)
+            components_pane.add(self._progress_bar, BorderLayout.NORTH)
+        if intel_base.plugin_category_id == PluginCategory.analyzer:
+            # Add a row count label to analyzers
+            self._row_count_label = JLabel()
+            components_pane.add(self._row_count_label, BorderLayout.EAST)
+            self.set_row_count()
         components_pane.add(self._button_pane, BorderLayout.SOUTH)
         self._button_pane.add(self._start_stop_button)
         self._button_pane.add(self._clear_session_button)
@@ -341,6 +361,29 @@ class IdePane(JPanel):
             self._new_button.setEnabled(not value)
             self._code_chooser.setEnabled(not value)
             self._delete_button.setEnabled(not value)
+            if self._progress_bar:
+                self._progress_bar.setMinimum(1)
+                self._progress_bar.setMaximum(1)
+                self._progress_bar.setVisible(value)
+
+    def set_row_count(self, count = 0):
+        if self._row_count_label:
+            with self._row_count_lock:
+                if count == 1:
+                    self._row_count_label.setText(" {} row".format(count))
+                else:
+                    self._row_count_label.setText(" {} rows".format(count))
+
+    def set_progressbar_max(self, count):
+        if self._progress_bar:
+            with self._progress_bar_lock:
+                self._progress_bar.setMinimum(1)
+                self._progress_bar.setMaximum(count)
+
+    def set_progressbar_value(self, count):
+        if self._progress_bar:
+            with self._progress_bar_lock:
+                self._progress_bar.setValue(count)
 
     @staticmethod
     def copy_to_clipboard(content):

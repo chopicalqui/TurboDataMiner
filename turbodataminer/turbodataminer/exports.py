@@ -734,6 +734,16 @@ class ExportedMethods:
                 return True
         return result
 
+    def has_stopped(self):
+        """
+        This method returns true, if the user clicked the Stop button to immediately stop the execution of the current
+        script. This method should be used within potentially long-lasting loops to check whether the loop should be
+        immediately exited.
+
+        :return (bool): True, if the user clicked the Stop, else False.
+        """
+        return not self._ide_pane.activated
+
     def get_extension_info(self, content):
         """
         This method analyses the file extension of the given string and returns additional information like file
@@ -794,7 +804,7 @@ class ExportedMethods:
         :return: The decoded data.
         """
         result = None
-        tmp = str(data)
+        tmp = unicode(data)
         while True:
             result =  self._extender.helpers.urlDecode(tmp)
             if not self._ide_pane.activated:

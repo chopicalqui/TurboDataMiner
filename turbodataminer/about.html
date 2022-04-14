@@ -483,6 +483,22 @@
             </td>
         </tr>
         <tr>
+            <td>hast_stopped</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            Refer to <a href="#ExportedMethods-has_stopped">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>header</td>
             <td><center>Variable</center></td>
             <td><center>rw</center></td>
@@ -1128,6 +1144,13 @@
     :param headers (List[str]): The list of headers that shall be searched to determine if the given header name exists.<br>
     :param name (str): The header name that shall be searched.<br>
     :return (bool): True, if the given header name exists in the headers list, else False.<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-has_stopped"><strong>has_stopped</strong></a>(self)</dt><dd><tt>
+    This method returns true, if the user clicked the <code>Stop</code> button to immediately stop the executiono of<br>
+    the current script. This method should be used within potentially long-lasting loops to check whether the loop<br>
+    should be immediately exited.
+    <br>
+    :return (bool): <code>True</code>, if the user clicked the <code>Stop</code>, else <code>False</code>.<br></tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-send_http_message"><strong>send_http_message</strong></a>(self, request, http_service)</dt><dd><tt>This method sends the given request to the given HTTP service.<br>
     <br>

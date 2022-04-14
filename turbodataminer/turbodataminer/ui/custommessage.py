@@ -234,6 +234,7 @@ _is_enabled = is_enabled"""
                 'send_http_message': self._exported_methods.send_http_message,
                 'split_http_header': self._exported_methods.split_http_header,
                 'has_header': self._exported_methods.has_header,
+                'has_stopped': self._exported_methods.has_stopped,
                 '_set_message': self._set_message,
                 '_get_message': self._get_message,
                 '_is_enabled': self._is_enabled,
