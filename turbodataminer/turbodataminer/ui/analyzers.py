@@ -216,6 +216,9 @@ class IntelTab(IntelBase):
             # Deprecated
             self._data_model.add_rows(entries)
             self._data_model.add_rows(table_entries)
+        # Update the table cell renderer values
+        self._table.update_table_cell_renderer(entries)
+        self._table.update_table_cell_renderer(table_entries)
         self._ref += 1
 
 

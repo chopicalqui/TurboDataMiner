@@ -47,69 +47,11 @@ from burp import IMessageEditorController
 from javax.swing.filechooser import FileNameExtensionFilter
 from turbodataminer.ui.core.scripting import IdePane
 from turbodataminer.ui.core.scripting import ErrorDialog
-
-
-class PalletIndex:
-    """
-    This class manages the minimal and maximal values of a heat map group. In addition, it allows the computation of
-    the index within the pallet list.
-    """
-
-    def __init__(self, min_value, max_value, column_names):
-        if min_value == max_value:
-            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
-        self._value_lock = threading.Lock()
-        self._min_value = min_value
-        self._max_value = max_value
-        self.column_names = column_names
-        self._normalized_max_value = max_value - min_value
-
-    def update_values(self, min_value, max_value):
-        """
-        Implementing a setter for min_value and max_value did not work. Therefore, we had to implement this workaround.
-        :param min_value:
-        :param max_value:
-        :return:
-        """
-        if min_value == max_value:
-            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
-        with self._value_lock:
-            self._min_value = min_value
-            self._max_value = max_value
-            self._normalized_max_value = max_value - min_value
-
-    def get_pallet_index(self, pallet_length, value):
-        """This method returns the index in the pallet for the given cell value."""
-        with self._value_lock:
-            if value < self._min_value:
-                self._min_value = value
-                self._normalized_max_value = self._max_value - self._min_value
-            if value > self._max_value:
-                self._max_value = value
-                self._normalized_max_value = self._max_value - self._min_value
-            i = pallet_length * (value - self._min_value) / self._normalized_max_value
-        return int(min(max(i, 0), pallet_length - 1))
-
-    def __repr__(self):
-        return "({}/{}/{})".format(self._min_value, self._max_value, self._normalized_max_value)
-
-
-class HeatMapMenuEntry:
-    """
-    This class implements a single heat map menu entry.
-    """
-
-    def __init__(self, column_name, class_type):
-        self.column_name = column_name
-        self.heat_map_groups = []
-        if class_type == Float or class_type == float:
-            self.class_type = Float
-        elif class_type == Double:
-            self.class_type = Double
-        elif class_type == Integer or class_type == int:
-            self.class_type = Integer
-        else:
-            raise NotImplementedError("Case not implemented")
+from turbodataminer.model.heatmap import PalletIndex
+from turbodataminer.model.heatmap import HeatMapMenuEntry
+from turbodataminer.model.heatmap import IntelTableCellRenderer
+from turbodataminer.model.heatmap import IntelDefaultTableCellRenderer
+from turbodataminer.model.intelligence import TableRowEntry
 
 
 class HeatMapMenu(dict):
@@ -246,47 +188,6 @@ class HeatMapMenu(dict):
             result = IntelTableCellRenderer(self._intel_table, self._pallet, pallet_indices)
         else:
             result = IntelDefaultTableCellRenderer()
-        return result
-
-
-class IntelTableCellRenderer(DefaultTableCellRenderer):
-    """
-    This class implements a heat map for the UI table.
-    """
-
-    def __init__(self, intel_table, pallet, pallet_indices):
-        DefaultTableCellRenderer.__init__(self)
-        self._intel_table = intel_table
-        self._pallet = pallet
-        self._pallet_length = len(self._pallet)
-        self.pallet_indices = pallet_indices
-
-    def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
-        """This method is called by the UI table to calculate a row's background color."""
-        result = DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
-        pallet_index = self.pallet_indices[column]
-        if pallet_index:
-            index = pallet_index.get_pallet_index(self._pallet_length, value)
-            result.setBackground(self._pallet[index])
-        elif not is_selected:
-            result.setBackground(None)
-        return result
-
-
-class IntelDefaultTableCellRenderer(DefaultTableCellRenderer):
-    """
-    This class implements the default JTable background. This is necessary to ensure that the background stays the same
-    independent from whether the heat map is active or not.
-    """
-
-    def __init__(self):
-        DefaultTableCellRenderer.__init__(self)
-
-    def getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column):
-        """This method is called by the UI table to calculate a row's background color."""
-        result = DefaultTableCellRenderer.getTableCellRendererComponent(self, table, value, is_selected, has_focus, row, column)
-        if not is_selected:
-            result.setBackground(None)
         return result
 
 
@@ -780,6 +681,32 @@ class IntelTable(JTable, IMessageEditorController):
                             indices.update_values(min_value, max_value)
         if updated:
             self.repaint()
+
+    def update_table_cell_renderer(self, entries):
+        """
+        This method updates the table cell renderer based on the given IntelDataModelEntry items
+        :param entries: List of IntelDataModelEntry instances which were newly created by Analyzers.
+        :return:
+        """
+        if isinstance(entries, TableRowEntry):
+            table_rows = entries.rows
+        elif isinstance(entries, list):
+            table_rows = entries
+        else:
+            raise ValueError("Variable 'entries' must be a list!")
+        # row is of type IntelDataModelEntry
+        for row in table_rows:
+            row_count = row.len
+            # Check each value of the current row to determine if the min/max values of the heat map must be updated
+            for i in range(row.len):
+                column_value_type = row.get_type_at(i)
+                column_value = row.get_value_at(i)
+                renderer = self.getDefaultRenderer(column_value_type)
+                if isinstance(renderer, IntelTableCellRenderer) and row.is_numeric(i):
+                    # If the min/max values were updated, then we have to repaint the table.
+                    updated = renderer.update_pallet_indices(column_value, i)
+                    if updated:
+                        self.repaint()
 
     def delete_rows_menu_pressed(self, event):
         """This method is invoked when the delete rows button is pressed"""
