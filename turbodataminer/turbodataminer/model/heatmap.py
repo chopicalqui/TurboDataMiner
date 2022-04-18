@@ -37,13 +37,16 @@ class PalletIndex:
     """
 
     def __init__(self, min_value, max_value, column_names):
-        if min_value == max_value:
-            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
         self._value_lock = threading.Lock()
-        self._min_value = min_value
-        self._max_value = max_value
         self.column_names = column_names
-        self._normalized_max_value = max_value - min_value
+        if min_value == max_value:
+            self._min_value = 0
+            self._max_value = 0
+            self._normalized_max_value = None
+        else:
+            self._min_value = min_value
+            self._max_value = max_value
+            self._normalized_max_value = max_value - min_value
 
     def update_values(self, min_value, max_value):
         """
@@ -53,11 +56,22 @@ class PalletIndex:
         :return:
         """
         if min_value == max_value:
-            raise ValueError("Pallet values cannot be equal because this will lead to a division by zero exception.")
-        with self._value_lock:
+            self._min_value = 0
+            self._max_value = 0
+            self._normalized_max_value = None
+        else:
             self._min_value = min_value
             self._max_value = max_value
             self._normalized_max_value = max_value - min_value
+
+    def reset(self):
+        """
+        This method re-initializes the PalletIndex object.
+        :return:
+        """
+        self._min_value = None
+        self._max_value = None
+        self._normalized_max_value = None
 
     def update_value(self, current_value):
         """
@@ -67,29 +81,36 @@ class PalletIndex:
         :return: True if the min/max value was updated.
         """
         result = False
-        if current_value < self._min_value:
-            with self._value_lock:
+        with self._value_lock:
+            if self._min_value is None and self._max_value is None:
                 self._min_value = current_value
-                self._normalized_max_value = self._max_value - self._min_value
-            result = True
-        elif self._max_value < current_value:
-            with self._value_lock:
                 self._max_value = current_value
-                self._normalized_max_value = self._max_value - self._min_value
-            result = True
+                self._normalized_max_value = None
+            elif current_value < self._min_value:
+                self._min_value = current_value
+                self._normalized_max_value = self._max_value - self._min_value \
+                    if self._max_value > self._min_value else None
+                result = True
+            elif self._max_value < current_value:
+                self._max_value = current_value
+                self._normalized_max_value = self._max_value - self._min_value \
+                    if self._max_value > self._min_value else None
+                result = True
         return result
 
     def get_pallet_index(self, pallet_length, value):
-        """This method returns the index in the pallet for the given cell value."""
+        """
+        This method returns the index in the pallet for the given cell value.
+        :param pallet_length:
+        :param value:
+        :return:
+        """
+        result = None
         with self._value_lock:
-            if value < self._min_value:
-                self._min_value = value
-                self._normalized_max_value = self._max_value - self._min_value
-            if value > self._max_value:
-                self._max_value = value
-                self._normalized_max_value = self._max_value - self._min_value
-            i = pallet_length * (value - self._min_value) / self._normalized_max_value
-        return int(min(max(i, 0), pallet_length - 1))
+            if self._normalized_max_value is not None:
+                i = pallet_length * (value - self._min_value) / self._normalized_max_value
+                result = int(min(max(i, 0), pallet_length - 1))
+        return result
 
     def __repr__(self):
         return "({}/{}/{})".format(self._min_value, self._max_value, self._normalized_max_value)
@@ -137,7 +158,10 @@ class IntelTableCellRenderer(DefaultTableCellRenderer):
                 pallet_index = self.pallet_indices[column]
             if pallet_index:
                 index = pallet_index.get_pallet_index(self._pallet_length, value)
-                result.setBackground(self._pallet[index])
+                if index is not None:
+                    result.setBackground(self._pallet[index])
+                else:
+                    result.setBackground(None)
             elif not is_selected:
                 result.setBackground(None)
         else:
@@ -165,6 +189,16 @@ class IntelTableCellRenderer(DefaultTableCellRenderer):
                 self.pallet_indices_count += 1
         return result
 
+    def reset_pallet_indices(self):
+        """
+        This method resets the min/max values of the PalletIndex objects.
+        :return:
+        """
+        with self.pallet_indices_lock:
+            for pallet in self.pallet_indices:
+                if pallet:
+                    pallet.reset()
+
 
 class IntelDefaultTableCellRenderer(DefaultTableCellRenderer):
     """
@@ -181,3 +215,10 @@ class IntelDefaultTableCellRenderer(DefaultTableCellRenderer):
         if not is_selected:
             result.setBackground(None)
         return result
+
+    def reset_pallet_indices(self):
+        """
+        This method resets the min/max values of the PalletIndex objects.
+        :return:
+        """
+        pass

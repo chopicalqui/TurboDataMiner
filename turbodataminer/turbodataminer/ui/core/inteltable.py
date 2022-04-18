@@ -92,23 +92,26 @@ class HeatMapMenu(dict):
         :return:
         """
         heat_map_menu_item.removeAll()
+        column_names = self._intel_table.data_model.get_header()
         # Create heat map groups
         for data_type, columns in self.items():
             group_count = len(columns.values())
             data_type_menu = JMenu(data_type)
             heat_map_menu_item.add(data_type_menu)
-            for column_name, column_config in columns.items():
-                column_name_menu = JMenu(column_name)
-                data_type_menu.add(column_name_menu)
-                # If the heat map groups do not exist, then we have to create them first
-                if not column_config.heat_map_groups:
-                    column_config.heat_map_groups = [False] * group_count
-                count = 1
-                for item in column_config.heat_map_groups:
-                    item_title = "Heat Map Group {}".format(count)
-                    heat_map_group_menu = JCheckBoxMenuItem(item_title, item, actionPerformed=actionPerformed)
-                    column_name_menu.add(heat_map_group_menu)
-                    count += 1
+            for column_name in column_names:
+                if column_name in columns:
+                    column_config = columns[column_name]
+                    column_name_menu = JMenu(column_name)
+                    data_type_menu.add(column_name_menu)
+                    # If the heat map groups do not exist, then we have to create them first
+                    if not column_config.heat_map_groups:
+                        column_config.heat_map_groups = [False] * group_count
+                    count = 1
+                    for item in column_config.heat_map_groups:
+                        item_title = "Heat Map Group {}".format(count)
+                        heat_map_group_menu = JCheckBoxMenuItem(item_title, item, actionPerformed=actionPerformed)
+                        column_name_menu.add(heat_map_group_menu)
+                        count += 1
         if self.items():
             heat_map_menu_item.addSeparator()
             item = JMenuItem("Refresh All", actionPerformed=self.refresh_heat_maps_event)
@@ -337,6 +340,10 @@ class IntelTable(JTable, IMessageEditorController):
         self._popup_menu.add(item)
         self.setComponentPopupMenu(self._popup_menu)
 
+    @property
+    def data_model(self):
+        return self._data_model
+
     def _setEnablePopupMenu(self, enabled):
         for item in self._popup_menu.getSubElements():
             item.setEnabled(enabled)
@@ -355,10 +362,18 @@ class IntelTable(JTable, IMessageEditorController):
             self.setDefaultRenderer(Float, IntelDefaultTableCellRenderer())
             self.setDefaultRenderer(Double, IntelDefaultTableCellRenderer())
 
+    def reset_default_cell_renderer_pallet_values(self):
+        """This method re-initializes the intel table cell renderers"""
+        self.getDefaultRenderer(Integer).reset_pallet_indices()
+        self.getDefaultRenderer(Float).reset_pallet_indices()
+        self.getDefaultRenderer(Double).reset_pallet_indices()
+
     def clear_data(self, clear_heat_map=True):
         """Clears the table's content"""
         if clear_heat_map:
             self.clear_heat_map()
+        else:
+            self.reset_default_cell_renderer_pallet_values()
         with self._table_model_lock:
             self._data_model.clear_data()
         # Update the row count
@@ -647,6 +662,8 @@ class IntelTable(JTable, IMessageEditorController):
                     self._data_model.delete_row(i)
             # Update the row count
             self._intel_tab.ide_pane.set_row_count(self._data_model.getRowCount())
+            # Recalculate heat map
+            self.refresh_heat_map_values()
             JOptionPane.showConfirmDialog(self._intel_tab.extender.parent,
                                           "Deleting the selected rows completed successfully.",
                                           "Deleting completed ...",
