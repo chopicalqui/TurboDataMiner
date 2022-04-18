@@ -2,7 +2,8 @@
     "author": "Lukas Reiter", 
     "plugins": [
         0, 
-        6
+        6, 
+        7
     ], 
     "burp_professional_only": false, 
     "uuid": "fcfbfcaa-e902-4469-bc75-0c5634d4571a", 
