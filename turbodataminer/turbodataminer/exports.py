@@ -35,6 +35,7 @@ from java.io import BufferedReader
 from java.io import InputStreamReader
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
+from javax.swing import JOptionPane
 from java.util.zip import GZIPInputStream
 from java.util.zip import GZIPOutputStream
 from turbodataminer.ui.scoping.scopedialog import ParameterScopeDialog
@@ -194,10 +195,14 @@ class ExportedMethods:
                     task = ""
                 rows.append([task, get_parameter_name(parameter.getType()), parameter.getName()])
         """
-        result = None
+        result = ParameterScopeDialog(owner=self._extender.parent)
         if len(request_info.getParameters()) > 0:
-            result = ParameterScopeDialog(owner=self._extender.parent)
             result.display(request_info=request_info)
+        else:
+            JOptionPane.showConfirmDialog(self._extender.parent,
+                                          "Request does not contain any parameters and as a result, processing is stopped.",
+                                          "Processing stopped ...",
+                                          JOptionPane.DEFAULT_OPTION)
         return result
 
     def analyze_request(self, message_info):
