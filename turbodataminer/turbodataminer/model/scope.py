@@ -57,7 +57,8 @@ class BaseScopeDataModel(AbstractTableModel):
         self._header = ["Process"]
         self._header += columns
         self._column_count = len(self._header)
-        self.fireTableStructureChanged()
+        if self._row_count > 0:
+            self.fireTableStructureChanged()
 
     def set_content(self, rows):
         self._content = []
