@@ -53,7 +53,8 @@ class IntelFiles:
         self.vulners_rules = {}
         self.top_level_domains = []
         self.re_domain_name = \
-            re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?")
+            re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?",
+                       re.IGNORECASE)
         with open(os.path.join(home_dir, "data/top-level-domains.json"), "r") as f:
             json_object = json.loads(f.read())
             self.top_level_domains = json_object["data"] if "data" in json_object else []
@@ -349,8 +350,8 @@ class ExportedMethods:
         The search is based on a regular expression and in order to decrease the likelihood of false positives, each
         identified identified domains top-level domain (TLD) is compared to a known list of TLDs.
 
-        :param content (str): The string in which the domain names are searched.
-        :return (List[str[): List of identified domain names.
+        :param content (str): The string in which domain names are searched.
+        :return (List[str]): List of identified domain names.
         """
         result = []
         if not content:
