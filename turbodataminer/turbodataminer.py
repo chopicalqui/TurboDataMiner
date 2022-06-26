@@ -245,6 +245,10 @@ following two modifiers are available.""")
                 break
         return result
 
+    @property
+    def context_menu_analyzer_tab(self):
+        return self._cma
+
     def getTabCaption(self):
         return "Turbo Miner"
 

@@ -31,9 +31,9 @@ from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 
 
 class ContextMenuAnalyzerMenuItem(JMenuItem):
-    def __init__(self, analyzer, title, actionPerformed):
-        JMenuItem.__init__(self, title, actionPerformed=actionPerformed)
-        self.analyzer = analyzer
+    def __init__(self, analyzers, title, action_performed):
+        JMenuItem.__init__(self, title, actionPerformed=action_performed)
+        self.analyzers = analyzers if isinstance(analyzers, list) else [analyzers]
 
 
 class JTabbedPaneClosableContextMenuAnalyzer(JTabbedPaneClosable, IContextMenuFactory):
@@ -58,13 +58,34 @@ class JTabbedPaneClosableContextMenuAnalyzer(JTabbedPaneClosable, IContextMenuFa
         with self._context_menu_invocation_lock:
             self.__context_menu_invocation = value
 
+    def add_menu_items(self, parent_menu, action_performed=None):
+        """
+        This method adds all JMenu items of the Context Menu Analyzer to the given parent menu object.
+        :param parent_menu: The parent_menu of type JMenu to which the Context Menu Analyzer's menu items shall be added.
+        :param action_performed: This method is invoked when a Context Menu Analyzer's menu item is clicked.
+        :return:
+        """
+        # Obtain all tab names
+        components = []
+        parent_menu.removeAll()
+        action_performed = action_performed if action_performed else self.menu_invocation_pressed
+        for index in range(0, self.getTabCount() - 1):
+            tab_component = self.getTabComponentAt(index)
+            component = self.getComponentAt(index)
+            title = tab_component.get_title()
+            components.append(component)
+            parent_menu.add(ContextMenuAnalyzerMenuItem(component, "Tab: {}".format(title),
+                                                        action_performed=action_performed))
+        parent_menu.addSeparator()
+        parent_menu.add(ContextMenuAnalyzerMenuItem(components, "All tabs", action_performed=action_performed))
+
     def createMenuItems(self, invocation):
         """
         This method will be called by Burp Suite when the user invokes a context menu anywhere within Burp Suite. The
         factory can then provide any custom context menu items that should be displayed in the context menu, based on
         the details of the menu invocation.
 
-        :param invocation An object that implements the IMessageEditorTabFactory interface, which the extension can
+        :param invocation: An object that implements the IMessageEditorTabFactory interface, which the extension can
         query to obtain details of the context menu invocation.
         :return: A list of custom menu items (which may include sub-menus, checkbox menu items, etc.) that should be
         displayed. Extensions may return null from this method, to indicate that no menu items are required.
@@ -84,17 +105,11 @@ class JTabbedPaneClosableContextMenuAnalyzer(JTabbedPaneClosable, IContextMenuFa
             IContextMenuInvocation.CONTEXT_INTRUDER_ATTACK_RESULTS,
             IContextMenuInvocation.CONTEXT_SEARCH_RESULTS]:
             pha_menu = JMenu("Send to Context Menu Analyzer")
-            # Obtain all tab names
-            for index in range(0, self.getTabCount() - 1):
-                tab_component = self.getTabComponentAt(index)
-                component = self.getComponentAt(index)
-                title = tab_component.get_title()
-                pha_menu.add(ContextMenuAnalyzerMenuItem(component,
-                                                         "Tab: {}".format(title),
-                                                         actionPerformed=self.menu_invocation_pressed))
+            self.add_menu_items(pha_menu)
             menu_items.append(pha_menu)
         return menu_items
 
     def menu_invocation_pressed(self, event):
         """This method will be called when one of the menu items are pressed."""
-        event.getSource().analyzer.menu_invocation_pressed(self._context_menu_invocation)
+        for analyzer in event.getSource().analyzers:
+            analyzer.menu_invocation_pressed(self._context_menu_invocation)

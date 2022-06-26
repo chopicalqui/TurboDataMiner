@@ -195,9 +195,13 @@ class HeatMapMenu(dict):
 
 
 class IntelTablePopupMenuListener(PopupMenuListener):
-    def __init__(self, intel_table):
+    MENU_NAME_HEAT_MAP = "Heat Map"
+    MENU_NAME_CONTEXT_MENU_ANALYZER = "Send Selected Row(s) to Context Menu Analyzer"
+
+    def __init__(self, intel_table, intel_tab):
         PopupMenuListener.__init__(self)
         self._intel_table = intel_table
+        self._intel_tab = intel_tab
         self._renderer = None
         self._heat_map_menu_info = None
 
@@ -210,15 +214,23 @@ class IntelTablePopupMenuListener(PopupMenuListener):
         menu = event.getSource()
         menu_item_count = menu.getComponentCount()
         heat_map_item = None
-        # Obtain heat map menu item
+        context_menu_analyzer_item = None
+        # Obtain menu items heat map menu item
         for i in range(0, menu_item_count):
             item = menu.getComponent(i)
-            if isinstance(item, JMenu) and item.getText() == "Heat Map":
-                heat_map_item = item
+            if isinstance(item, JMenu):
+                if item.getText() == IntelTablePopupMenuListener.MENU_NAME_HEAT_MAP:
+                    heat_map_item = item
+                elif item.getText() == IntelTablePopupMenuListener.MENU_NAME_CONTEXT_MENU_ANALYZER:
+                    context_menu_analyzer_item = item
+        # Create heat map submenu items
         if heat_map_item:
             self._intel_table.load_head_map_menu_entries()
             self._intel_table.heat_map_menu.create_menu_entries(heat_map_item,
                                                                 actionPerformed=self.action_checked_menu_item)
+        # Create Context Menu Analyzer submenu items
+        if context_menu_analyzer_item:
+            self._intel_tab.extender.context_menu_analyzer_tab.add_menu_items(context_menu_analyzer_item, action_performed=None)
 
     def action_checked_menu_item(self, event):
         """
@@ -263,7 +275,7 @@ class IntelTable(JTable, IMessageEditorController):
         self._currently_selected_message_info = None
         # table pop menu
         self._popup_menu = JPopupMenu()
-        self._popup_menu.addPopupMenuListener(IntelTablePopupMenuListener(self))
+        self._popup_menu.addPopupMenuListener(IntelTablePopupMenuListener(self, self._intel_tab))
         # Clear Table
         item = JMenuItem("Clear Table", actionPerformed=self.clear_table_menu_pressed)
         item.setToolTipText("Remove all rows from the table and reset heat map settings.")
@@ -316,7 +328,7 @@ class IntelTable(JTable, IMessageEditorController):
                             "clipboard.")
         self._popup_menu.add(item)
         self._popup_menu.addSeparator()
-        item = JMenu("Heat Map")
+        item = JMenu(IntelTablePopupMenuListener.MENU_NAME_HEAT_MAP)
         item.setToolTipText("Creates a heat map on the selected column type(s).")
         self._popup_menu.add(item)
         self._popup_menu.addSeparator()
@@ -336,7 +348,12 @@ class IntelTable(JTable, IMessageEditorController):
         self._popup_menu.addSeparator()
         # Send Selected Row(s) to Repeater
         item = JMenuItem("Send Selected Row(s) to Repeater", actionPerformed=self.send_to_repeater)
-        item.setToolTipText("Send the request of the selected row to Burp Suite's Repeater for further analysis.")
+        item.setToolTipText("Send the request of the selected row(s) to Burp Suite's Repeater for further analysis.")
+        self._popup_menu.add(item)
+        # Send Selected Row(s) to Context Menu Analyzers
+        item = JMenu(IntelTablePopupMenuListener.MENU_NAME_CONTEXT_MENU_ANALYZER)
+        item.setToolTipText("Send the request/response item of the selected row(s) to Turbo Data Miner's "
+                            "Context Menu Analyzer.")
         self._popup_menu.add(item)
         self.setComponentPopupMenu(self._popup_menu)
 
