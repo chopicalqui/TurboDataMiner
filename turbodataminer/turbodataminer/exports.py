@@ -53,7 +53,7 @@ class IntelFiles:
         self.vulners_rules = {}
         self.top_level_domains = []
         self.re_domain_name = \
-            re.compile("(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?",
+            re.compile("(([\"'/@])|(: )|(\*\.))(?P<domain>(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9])\.?",
                        re.IGNORECASE)
         with open(os.path.join(home_dir, "data/top-level-domains.json"), "r") as f:
             json_object = json.loads(f.read())

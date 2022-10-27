@@ -83,11 +83,19 @@ class BaseScopeDialog(JDialog):
     def data_model(self):
         return self._scope_table.data_model
 
-    def display(self, header, content):
-        """This method displays the scoping dialog."""
-        self._scope_table.set_model(header=header, rows=content)
+    def display(self, header, rows):
+        """
+        This method displays the scoping dialog.
+        :param header: List of column names that shall be displayed in the dialog's table.
+        :param rows: Two-dimensional list containing the table's content that shall be displayed by the dialog.
+
+        :return: True if the OK button was clicked. False if the Cancel button was clicked.
+        """
+        self._scope_table.set_model(header=header, rows=rows)
+        self._scope_table.repaint()
         self.setVisible(True)
         self.pack()
+        return not self.canceled
 
     def _save_action(self, event):
         """
@@ -142,6 +150,10 @@ class ParameterScopeDialog(BaseScopeDialog):
     """
 
     def __init__(self, owner):
+        """
+        Constructor.
+        :param owner: The parent UI component.
+        """
         BaseScopeDialog.__init__(self, owner, title="Check parameters to be processed...", enable_filter=False)
 
     @staticmethod
@@ -192,20 +204,23 @@ class ParameterScopeDialog(BaseScopeDialog):
         return result
 
     def display(self, request_info):
-        """This method displays the scoping dialog."""
+        """
+        This method displays the scoping dialog based on the given IRequestResponseMessage.
+
+        :param request_info: The IRequestResponseMessage object whose parameters are displayed.
+        :return: True if the OK button was clicked. False if the Cancel button was clicked.
+        """
         parameters = []
         for parameter in request_info.getParameters():
             type_name = self.get_parameter_name(parameter.getType())
             parameters.append([type_name, parameter.getName(), parameter.getValue()])
-        self._scope_table.set_model(header=["Type", "Name", "Example Value"], rows=parameters)
-        self.setVisible(True)
-        self.pack()
+        return BaseScopeDialog.display(self, header=["Type", "Name", "Example Value"], rows=parameters)
 
     def match(self, parameter):
         """
-        Returns True if the given IParameter is
-        :param parameter:
-        :return:
+        Returns True if the given IParameter matches the previous user selection.
+        :param parameter: The IParameter that should verified.
+        :return: True or false depending on whether the parameter was selected by the user.
         """
         result = False
         for include in self.filter_results:

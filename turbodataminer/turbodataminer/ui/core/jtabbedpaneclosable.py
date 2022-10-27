@@ -325,8 +325,8 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.registerHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.registerProxyListener(component)
-        # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab
-        # Note that CustomScannerCheckTab is registered in turbodataminer.ui.scannercheck.CustomScannerCheckTab
+        # Note that CustomMessageEditorTab is registered in turbominer.ui.custommessage.CustomMessageEditorTab
+        # Note that CustomScannerCheckTab is registered in turbominer.ui.scannercheck.CustomScannerCheckTab
 
     @staticmethod
     def remove_listener(callbacks, component):
@@ -343,5 +343,5 @@ class JTabbedPaneClosable(JTabbedPane):
             callbacks.removeHttpListener(component)
         elif isinstance(component, ProxyListenerModifier):
             callbacks.removeProxyListener(component)
-        # Note that CustomMessageEditorTab is registered in turbodataminer.ui.custommessage.CustomMessageEditorTab
-        # Note that CustomScannerCheckTab is registered in turbodataminer.ui.scannercheck.CustomScannerCheckTab
+        # Note that CustomMessageEditorTab is registered in turbominer.ui.custommessage.CustomMessageEditorTab
+        # Note that CustomScannerCheckTab is registered in turbominer.ui.scannercheck.CustomScannerCheckTab
