@@ -35,6 +35,7 @@ from java.io import BufferedReader
 from java.io import InputStreamReader
 from java.io import ByteArrayInputStream
 from java.io import ByteArrayOutputStream
+from java.lang import String
 from javax.swing import JOptionPane
 from java.util.zip import GZIPInputStream
 from java.util.zip import GZIPOutputStream
@@ -100,6 +101,10 @@ class ExportedMethods:
         self._vulners_rules = extender.intel_files.vulners_rules
         self.top_level_domains = extender.intel_files.top_level_domains
         self.re_domain_name = extender.intel_files.re_domain_name
+
+    @property
+    def parent_ui(self):
+        return self._extender.parent
 
     def _decode_jwt(self, item):
         result = item.replace('_', '/')
@@ -410,6 +415,64 @@ class ExportedMethods:
                                "type": entry["type"],
                                "severity": entry["severity"],
                                "confidence": entry["confidence"]})
+        return result
+
+    def follow_redirects(self, message_info, max_redirects=1, current_count=0):
+        """
+        This method analyzes the given IHttpRequestResponse object and if its response performs a redirect, then it
+        follows this redirect and returns the resulting IHttpRequestResponse object.
+
+        Note that this method follows redirects recursively until the maximum allowed number of redirects (see parameter
+        max_redirects) is reached.
+
+        :param message_info (IHttpRequestResponse): The IHttpRequestResponse object that shall be analyzed to determine
+        whether following the redirct is necessary.
+        :param max_redirects: Total number of allowed redirects until the redirectin process is
+        :param current_count:
+        :return:
+        """
+        # TODO test this function
+        result = message_info
+        # Check maximum number of redirects
+        if current_count < max_redirects:
+            response = message_info.getResponse()
+            if response:
+                # Make sure current response is a redirect
+                response_info = self._extender.helpers.analyzeResponse(response)
+                if response_info.getStatusCode() == 302:
+                    # Analyze request and response
+                    http_service = message_info.getHttpService()
+                    request_info = self._extender.helpers.analyzeRequest(message_info)
+                    # Obtain current URL
+                    url = request_info.getUrl()
+                    # Obtain redirect location and create new URL
+                    _, location = self.get_header(response_info.getHeaders(), "Location")
+                    url = URL(url.getProtocol(),
+                              url.getHost(),
+                              url.getPort(),
+                              location) if location.startswith("/") else URL(location)
+                    # Redirect to other web application
+                    new_request = self._extender.helpers.buildHttpRequest(url)
+                    if url.getHost() != http_service.getHost() or \
+                            url.getPort() != http_service.getPort() or \
+                            url.getProtocol() != http_service.getProtocol():
+                        http_service = self._extender.helpers.buildHttpService(url.getHost(),
+                                                                               url.getPort(),url.getProtocol())
+                    else:
+                        # Clone the headers of the original request
+                        # We need to convert the strings to java.lang.String else we receive the following exception:
+                        #   class org.python.core.PyUnicode cannot be cast to class java.lang.String
+                        relevant_headers = [String(self._extender.helpers.analyzeRequest(new_request).getHeaders()[0])]
+                        for item in request_info.getHeaders()[1:]:
+                            item_lower = item.lower()
+                            if not item_lower.startswith("content-length:") and not item_lower.startswith(
+                                    "transfer-encoding"):
+                                relevant_headers.append(String(item))
+                        new_request = self._extender.helpers.buildHttpMessage(relevant_headers, None)
+                    new_message_info = self._extender.callbacks.makeHttpRequest(http_service, new_request, False)
+                    result = self.follow_redirects(new_message_info,
+                                                   current_count=current_count + 1,
+                                                   max_redirects=max_redirects)
         return result
 
     def get_content_length(self, headers):

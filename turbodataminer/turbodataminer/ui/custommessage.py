@@ -238,6 +238,7 @@ _is_enabled = is_enabled"""
                 '_set_message': self._set_message,
                 '_get_message': self._get_message,
                 '_is_enabled': self._is_enabled,
+                'core': self._exported_methods,
                 'helpers': self._helpers
             }
             # Execute script

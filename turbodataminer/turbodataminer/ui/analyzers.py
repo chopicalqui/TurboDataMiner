@@ -176,6 +176,7 @@ class IntelTab(IntelBase):
             'request_info': request_info,
             'session': self._session,
             'in_scope': in_scope,
+            'core': self._exported_methods,
             'ref': self._ref
         }
         if tool_flag:

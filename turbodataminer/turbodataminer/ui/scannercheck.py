@@ -159,6 +159,7 @@ _consolidate_duplicate_issues = consolidate_duplicate_issues"""
                 '_do_active_scan': self._do_active_scan,
                 '_consolidate_duplicate_issues': self._consolidate_duplicate_issues,
                 'helpers': self._helpers,
+                'core': self._exported_methods,
                 'ScanIssue': ScanIssue
             }
             # Execute script

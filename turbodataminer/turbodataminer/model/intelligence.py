@@ -32,6 +32,9 @@ from javax.swing.table import AbstractTableModel
 
 
 class TableRowEntry:
+    """
+    This class is used by the Turbo Data Miner API to add a new row of type list to the Intel table.
+    """
 
     def __init__(self, message_info):
         self._rows = []
@@ -43,6 +46,13 @@ class TableRowEntry:
         return self._rows
 
     def add_table_row(self, row, message_infos=None):
+        """
+        Method exposed via the built-in Turbo Data Miner API to Turbo Data Miner scripts. Scripts use this method to
+        add a new rows to the Intel table.
+        :param row: The row that shall be added.
+        :param message_infos:
+        :return:
+        """
         if isinstance(row, list):
             self._rows.append(IntelDataModelEntry(row, self.message_info, message_infos))
         else:
@@ -177,7 +187,6 @@ class IntelDataModel(AbstractTableModel):
             table_rows = entries
         else:
             raise ValueError("Variable 'entries' must be a list!")
-
         rows = 0
         if table_rows:
             for entry in table_rows:
@@ -186,7 +195,6 @@ class IntelDataModel(AbstractTableModel):
                     self.fireTableStructureChanged()
                 self._content.append(entry)
                 rows = rows + 1
-
             old_row_count = self._row_count
             self._row_count = self._row_count + rows
             if rows > 0:

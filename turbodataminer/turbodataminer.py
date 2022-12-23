@@ -44,7 +44,7 @@ from java.awt import Desktop
 from java.lang import Thread
 from java.net import URL
 from java.net import URLClassLoader
-from turbodataminer.exports import IntelFiles
+from turbodataminer import exports
 from turbodataminer.model.scripting import PluginType
 from turbodataminer.ui.core.scripting import ErrorDialog
 from turbodataminer.ui.analyzers import SiteMapAnalyzer
@@ -94,7 +94,7 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         self.helpers = callbacks.getHelpers()
         self.home_dir = os.path.dirname(callbacks.getExtensionFilename())
         # Load data from files
-        self.intel_files = IntelFiles(self.home_dir)
+        self.intel_files = exports.IntelFiles(self.home_dir)
         # Set up About tab
         about_file = os.path.join(self.home_dir, "about.html")
         about_file_content = ""
@@ -231,6 +231,10 @@ following two modifiers are available.""")
         self.xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
                                                  Thread.currentThread().getContextClassLoader())
         sys.path.append(os.path.join(self.home_dir, "data", "libs"))
+        # Finally, we make the following objects accessible to the TurboMiner package
+        import turbominer
+        turbominer.helpers = self.helpers
+        turbominer.callbacks = self.callbacks
 
     @property
     def parent(self):

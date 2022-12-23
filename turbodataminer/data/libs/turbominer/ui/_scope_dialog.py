@@ -32,7 +32,7 @@ from javax.swing import JScrollPane
 from java.awt import GridLayout
 from java.awt import BorderLayout
 from java.awt import Dimension
-from turbodataminer.ui.scoping.scopetable import ScopeTable
+from ._scope_table import ScopeTable
 
 
 class BaseScopeDialog(JDialog):
