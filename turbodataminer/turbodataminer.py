@@ -230,7 +230,7 @@ following two modifiers are available.""")
         xerces_path = os.path.join(self.home_dir, "data", "xercesImpl.jar")
         self.xerces_classloader = URLClassLoader([URL("file://{}".format(xerces_path))],
                                                  Thread.currentThread().getContextClassLoader())
-        sys.path.append(os.path.join(self.home_dir, "data", "libs"))
+        sys.path.append(os.path.join(self.home_dir, "libs"))
         # Finally, we make the following objects accessible to the TurboMiner package
         import turbominer
         turbominer.helpers = self.helpers
