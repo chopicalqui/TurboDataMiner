@@ -28,7 +28,22 @@ from java.lang import Float
 from java.lang import String
 from java.lang import Integer
 from java.lang import Boolean
+from java.lang import Runnable
+from javax.swing import SwingUtilities
 from javax.swing.table import AbstractTableModel
+
+
+class SwingInvokeLater(Runnable):
+    """
+    This class is used by Turbo Data Miner to asynchronously add items to the JTable using SwingUtilities.invokeLater.
+    """
+
+    def __init__(self, target, **kwargs):
+        self._target = target
+        self._kwargs = kwargs
+
+    def run(self):
+        self._target(**self._kwargs)
 
 
 class TableRowEntry:
@@ -36,8 +51,9 @@ class TableRowEntry:
     This class is used by the Turbo Data Miner API to add a new row of type list to the Intel table.
     """
 
-    def __init__(self, message_info):
+    def __init__(self, intel_base, message_info):
         self._rows = []
+        self._intel_base = intel_base
         self.message_info = message_info
         self.used = False
 
@@ -45,18 +61,43 @@ class TableRowEntry:
     def rows(self):
         return self._rows
 
+    def set_header(self, header):
+        """
+
+        :param header:
+        :return:
+        """
+        with self._intel_base.table_model_lock:
+            self._intel_base.data_model.set_header(header, reset_column_count=True)
+
     def add_table_row(self, row, message_infos=None):
         """
         Method exposed via the built-in Turbo Data Miner API to Turbo Data Miner scripts. Scripts use this method to
         add a new rows to the Intel table.
-        :param row: The row that shall be added.
-        :param message_infos:
+        :param row: One-dimensional string list that will be added as a new row to the GUI table.
+        :param message_infos: Dictionary containing the IHttpRequestResponse instances that shall be displayed in
+        the GUI table's details pane when the given row is selected. The dictionary's key specifies the tab title.
         :return:
         """
-        if isinstance(row, list):
-            self._rows.append(IntelDataModelEntry(row, self.message_info, message_infos))
-        else:
-            self._rows.append(IntelDataModelEntry([row], self.message_info, message_infos))
+        if not isinstance(row, list):
+            raise TypeError("Row is not of type list.")
+        self.add_table_rows([row], message_infos)
+
+    def add_table_rows(self, rows, message_infos=None):
+        """
+        Method exposed via the built-in Turbo Data Miner API to Turbo Data Miner scripts. Scripts use this method to
+        add a new rows to the Intel table.
+        :param rows: Two-dimensional string list that will be added as new rows to the GUI table.
+        :return:
+        """
+        entries = []
+        if not isinstance(rows, list):
+            raise TypeError("Row is not of type list.")
+        for row in rows:
+            entries.append(IntelDataModelEntry(row, self.message_info, message_infos))
+        with self._intel_base.table_model_lock:
+            self._intel_base.data_model.add_rows(entries)
+            self._intel_base.table.update_table_cell_renderer(entries)
 
 
 class IntelDataModelEntry:
@@ -73,6 +114,8 @@ class IntelDataModelEntry:
         :param message_infos: List of additional IHttpRequestResponse objects associated with the current row.
         """
         self._elements = []
+        if not isinstance(elements, list):
+            raise TypeError("Row is not of type list.")
         for item in elements:
             if isinstance(item, Integer) or \
                     isinstance(item, Float) or \
@@ -147,10 +190,11 @@ class IntelDataModel(AbstractTableModel):
         self._column_count = 0
         self._row_count = 0
 
-    def set_header(self, header, reset_column_count=False):
+    def _set_header(self, header, reset_column_count=False):
         """
         Method used to set the header of the data model
         :param header: List of header elements
+        :param reset_column_count: If true, then the column count is updated
         :return: Returns true
         """
         if not isinstance(header, list):
@@ -165,20 +209,41 @@ class IntelDataModel(AbstractTableModel):
         self.fireTableStructureChanged()
         return True
 
+    def set_header(self, header, reset_column_count=False):
+        """
+        Method used to safely set the header of the data model
+        :param header: List of header elements
+        :param reset_column_count: If true, then the column count is updated.
+        :return: Returns true
+        """
+        SwingUtilities.invokeLater(SwingInvokeLater(target=self._set_header,
+                                                    header=header,
+                                                    reset_column_count=reset_column_count))
+
     def get_header(self):
         return self._header
 
-    def clear_data(self):
+    def _clear_data(self):
+        """
+        Method used to empty the data model.
+        :return:
+        """
         if self._row_count != 0:
             self._content = []
             old_row_count = self._row_count
             self._row_count = 0
             self.fireTableRowsDeleted(0, old_row_count - 1)
 
-    def add_rows(self, entries):
+    def clear_data(self):
+        """
+        Method used to safely empty the data model.
+        :return:
+        """
+        SwingUtilities.invokeLater(SwingInvokeLater(target=self._clear_data))
+
+    def _add_rows(self, entries):
         """
         Method used to add a new row to the data model
-
         :param entries: A list of IntelDataModelEntries
         """
         if isinstance(entries, TableRowEntry):
@@ -200,11 +265,32 @@ class IntelDataModel(AbstractTableModel):
             if rows > 0:
                 self.fireTableRowsInserted(old_row_count, self._row_count - 1)
 
-    def delete_row(self, row_index):
+    def add_rows(self, entries):
+        """
+        Method used to safely add a new row to the data model
+        :param entries: A list of IntelDataModelEntries
+        :return:
+        """
+        SwingUtilities.invokeLater(SwingInvokeLater(target=self._add_rows, entries=entries))
+
+    def _delete_row(self, row_index):
+        """
+        Method used to delete the row at the given index
+        :param row_index: The row index that shall be deleted
+        :return:
+        """
         if row_index < self._row_count:
             del self._content[row_index]
             self._row_count = self._row_count - 1
             self.fireTableRowsDeleted(row_index, row_index)
+
+    def delete_row(self, row_index):
+        """
+        Method used to safely delete the row at the given index
+        :param row_index: The row index that shall be deleted
+        :return:
+        """
+        SwingUtilities.invokeLater(SwingInvokeLater(target=self._delete_row, row_index=row_index))
 
     def get_message_info_at(self, row_index):
         """Returns the message info at row_index"""

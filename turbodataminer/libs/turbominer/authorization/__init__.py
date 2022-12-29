@@ -351,6 +351,8 @@ class AuthorizationTestBase:
             # Perform authorization test
             check_results = {}
             for user in self._users:
+                if self._core.has_stopped():
+                    return
                 new_message_info = self._send_request(message_info, request_info, user)
                 check_results[user.name] = new_message_info
                 new_response = new_message_info.getResponse()

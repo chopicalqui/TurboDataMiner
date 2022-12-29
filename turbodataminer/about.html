@@ -48,7 +48,7 @@
             <th>Description</th>
         </tr>
         <tr>
-            <td>add_table_row</td>
+            <td>add_row</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
             <td><center>&#10004;</center></td>
@@ -60,7 +60,7 @@
             <td><center></center></td>
             <td><center></center></td>
             <td>
-            Refer to <a href="#ExportedMethods-add_table_row">Method Details</a> for more information.
+            Refer to <a href="#ExportedMethods-add_row">Method Details</a> for more information.
             </td>
         </tr>
         <tr>
@@ -801,6 +801,22 @@
             </td>
         </tr>
         <tr>
+            <td>set_header</td>
+            <td><center>Method</center></td>
+            <td><center>-</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center>&#10004;</center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td><center></center></td>
+            <td>
+            Refer to <a href="#ExportedMethods-set_header">Method Details</a> for more information.
+            </td>
+        </tr>
+        <tr>
             <td>show_scope_parameter_dialog</td>
             <td><center>Method</center></td>
             <td><center>-</center></td>
@@ -928,7 +944,7 @@
     <h2>Method Details</h2>
     This chapter provides an overview about Turbo Data Miner's API methods.
 
-    <dl><dt><a name="ExportedMethods-add_table_row"><strong>add_table_row</strong></a>(self, row, message_infos=None)</dt><dd><tt>
+    <dl><dt><a name="ExportedMethods-add_row"><strong>add_row</strong></a>(self, row, message_infos=None)</dt><dd><tt>
     This method adds the given row to the GUI table as well as assigns additional IHttpRequestResponse instances to<br>
     the current row, which are displayed in the GUI table's details pane if the row is selected.<br>
     <br>
@@ -1187,6 +1203,12 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;task = "Not selected"<br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# We add the results to the UI table<br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows.append([task, get_parameter_name(parameter.getType()), parameter.getName()])<br></tt></dd></dl>
+
+    <dl><dt><a name="ExportedMethods-set_header"><strong>set_header</strong></a>(self, header)</dt><dd><tt>
+    This method sets the column names of the GUI table.<br>
+    <br>
+    :param&nbsp;header&nbsp;(List[str]):&nbsp;One-dimensional string list that holds the column names of the GUI table.<br>
+    </tt></dd></dl>
 
     <dl><dt><a name="ExportedMethods-split_http_header"><strong>split_http_header</strong></a>(self, header)</dt><dd><tt>This method splits the given header string into the header name and value. Usually this method is used in<br>
     combination with the getHeaders method of the IRequestInfo or IResponseInfo interface.<br>

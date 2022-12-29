@@ -106,6 +106,14 @@ class IntelTab(IntelBase):
     def response_details (self):
         return self._response_details
 
+    @property
+    def table(self):
+        return self._table
+
+    @property
+    def table_model_lock(self):
+        return self._table_model_lock
+
     def process_proxy_history_entry(self, message_info, is_request=False, tool_flag=None, send_date=None, received_date=None,
                                     listener_interface=None, client_ip_address=None, timedout=None,
                                     message_reference=None, proxy_message_info=None, time_delta=None, row_count=None,
@@ -120,7 +128,7 @@ class IntelTab(IntelBase):
         header = []
         rows = [] # Deprecated
         message_infos = {} # Deprecated
-        table_entries = TableRowEntry(message_info)
+        table_entries = TableRowEntry(self, message_info)
         # Setup API
         try:
             request_info = self._helpers.analyzeRequest(message_info)
@@ -168,7 +176,8 @@ class IntelTab(IntelBase):
             'has_stopped': self._exported_methods.has_stopped,
             'header': header,
             'rows': rows,
-            'add_table_row': table_entries.add_table_row,
+            'add_row': table_entries.add_table_row,
+            'set_header': table_entries.set_header,
             'url': url,
             'show_scope_parameter_dialog': self._exported_methods.show_scope_parameter_dialog,
             'message_info': message_info,
@@ -198,28 +207,14 @@ class IntelTab(IntelBase):
         self._session = globals['session']
         rows = globals['rows']
         header = globals['header']
-        message_infos = globals['message_infos']
-        # Create new table row
-        entries = []
-        # Deprecated
-        for row in rows:
-            if isinstance(row, list):
-                entries.append(IntelDataModelEntry(row, message_info, message_infos))
-            else:
-                entries.append(IntelDataModelEntry([row], message_info, message_infos))
         # Setup table header
-        if self._ref <= 1:
-            self._data_model.set_header(header, reset_column_count=True)
-        elif row_count and self._ref == row_count and not self._data_model.get_header() and header:
-            self._data_model.set_header(header, reset_column_count=True)
+        if header:
+            if self._ref <= 1:
+                table_entries.set_header(header=header)
+            elif row_count and self._ref == row_count and not self._data_model.get_header():
+                table_entries.set_header(header=header)
         # Add new row to table
-        with self._table_model_lock:
-            # Deprecated
-            self._data_model.add_rows(entries)
-            self._data_model.add_rows(table_entries)
-        # Update the table cell renderer values
-        self._table.update_table_cell_renderer(entries)
-        self._table.update_table_cell_renderer(table_entries)
+        table_entries.add_table_rows(rows)
         self._ref += 1
 
 
@@ -268,8 +263,6 @@ class AnalyzerBase(IntelTab):
         """Iterates through all entries of the HTTP proxy history and processes them."""
         try:
             self._table.clear_data()
-            # Enable the slidebar between JTable and IDE pane during processing
-            self._split_pane.setEnabled(False)
             row_count = len(entries)
             # Initialize progress bar max value
             self._ide_pane.set_progressbar_max(row_count)
@@ -289,8 +282,6 @@ class AnalyzerBase(IntelTab):
         finally:
             # Update the row count
             self._ide_pane.set_row_count(self.data_model.getRowCount())
-            # Enable the slidebar between JTable and IDE pane during processing
-            self._split_pane.setEnabled(True)
 
     def _menu_invocation_pressed(self, invocation):
         """
