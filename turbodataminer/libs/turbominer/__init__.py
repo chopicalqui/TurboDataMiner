@@ -27,6 +27,8 @@ import os
 # at startup. Afterwards, these objects can be accessed and used by the internal turbominer package.
 helpers = None
 callbacks = None
+montoya_api = None
+collaborator_client = None
 
 
 class UrlBlacklist:

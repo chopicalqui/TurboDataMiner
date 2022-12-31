@@ -34,6 +34,8 @@ from burp import ITab
 from burp import IBurpExtender
 from burp import IMessageEditorTab
 from burp import IExtensionStateListener
+from burp.api.montoya import BurpExtension
+from burp.api.montoya import MontoyaApi
 from javax.swing import JScrollPane
 from javax.swing import JTabbedPane
 from javax.swing import JTextPane
@@ -58,13 +60,14 @@ from turbodataminer.ui.core.jtabbedpaneclosable import JTabbedPaneClosable
 from turbodataminer.ui.core.analyzers import JTabbedPaneClosableContextMenuAnalyzer
 
 
-class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
+class BurpExtender(IBurpExtender, ITab, IExtensionStateListener, BurpExtension):
     """
     This class puts it all together by implementing the burp.IBurpExtender interface
     """
 
     def __init__(self):
         self.callbacks = None
+        self.montoya_api = None
         self.helpers = None
         self.xerces_classloader = None
         self._main_tabs = None
@@ -82,6 +85,17 @@ class BurpExtender(IBurpExtender, ITab, IExtensionStateListener):
         self.home_dir = None
         self._about = None
         self.database_files = None
+
+    def initialize(self, api):
+        """
+        This method is invoked when the extension is loaded.
+
+        :param api: The api implementation to access the functionality of burp suite.
+        :return:
+        """
+        self.montoya_api = api
+        turbominer.montoya_api = api
+        turbominer.collaborator_client = api.collaborator.createClient()
 
     def registerExtenderCallbacks(self, callbacks):
         """
